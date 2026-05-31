@@ -340,7 +340,7 @@ jQuery(document).ready(function ($) {
         if (!host || !stage) return;
         var scale = Math.min(1, host.offsetWidth / 720);
         stage.style.transform = 'scale(' + scale + ')';
-        host.style.height     = Math.round(498 * scale) + 'px';
+        host.style.height     = Math.round(580 * scale) + 'px';
     }
 
     function escTp(str) {

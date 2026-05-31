@@ -487,13 +487,12 @@ th.headerSortUp {
     display: flex;
     justify-content: center;
     padding: 6px 10px 0;
-    overflow: hidden;
 }
 
 .dataping-top-prog .tp-stage {
     position: relative;
     width: 720px;
-    height: 498px;
+    height: 580px;
     transform-origin: top center;
     flex: none;
 }
