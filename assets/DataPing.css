@@ -360,6 +360,249 @@ th.headerSortUp {
     flex-shrink: 0;
 }
 
+/* ===== Top Progression ===== */
+
+.dataping-top-prog {
+    --dtp-navy:      #2b3a4f;
+    --dtp-navy2:     #34465e;
+    --dtp-blue:      #2b7cb5;
+    --dtp-blue-dk:   #1f5e8b;
+    --dtp-red:       #d34328;
+    --dtp-green:     #2e9e54;
+    --dtp-green-bg:  #dcefe1;
+    --dtp-gold:      #f0b429;
+    --dtp-silver:    #aeb9c4;
+    --dtp-bronze:    #c8794a;
+    margin-bottom: 36px;
+}
+
+/* --- En-tête + toggle --- */
+.dataping-top-prog .tp-head {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin: 0 0 8px;
+}
+
+.dataping-top-prog .tp-h1 {
+    margin: 0 !important;
+    font-size: 26px !important;
+    font-weight: 900 !important;
+    color: var(--dtp-navy) !important;
+    letter-spacing: -0.01em;
+    line-height: 1.1;
+}
+
+.dataping-top-prog .tp-sub {
+    margin: 4px 0 0;
+    font-size: 14px;
+    color: #8794a1;
+    font-weight: 600;
+}
+
+.dataping-top-prog .tp-toggle {
+    display: inline-flex;
+    background: #dde3e9;
+    border-radius: 999px;
+    padding: 4px;
+    gap: 3px;
+    flex-shrink: 0;
+}
+
+.dataping-top-prog .tp-toggle button {
+    appearance: none;
+    border: 0;
+    cursor: pointer;
+    font-family: inherit;
+    font-weight: 700;
+    font-size: 13.5px;
+    padding: 8px 16px;
+    border-radius: 999px;
+    color: #6c7884;
+    background: transparent;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.dataping-top-prog .tp-toggle button.tp-on {
+    background: var(--dtp-navy);
+    color: #fff;
+    box-shadow: 0 4px 12px rgba(43, 58, 79, 0.28);
+}
+
+/* --- Carte podium --- */
+.dataping-top-prog .tp-podium-card {
+    position: relative;
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 18px 50px -28px rgba(43, 58, 79, 0.4), 0 2px 0 rgba(0, 0, 0, 0.02);
+    overflow: hidden;
+    border: 1px solid #eef1f4;
+}
+
+.dataping-top-prog .tp-pc-band {
+    height: 7px;
+    width: 100%;
+    background: linear-gradient(90deg, var(--dtp-blue), var(--dtp-navy));
+}
+
+.dataping-top-prog .tp-pc-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 16px 22px 0;
+}
+
+.dataping-top-prog .tp-icn {
+    width: 22px;
+    height: 22px;
+    color: var(--dtp-blue);
+    flex-shrink: 0;
+}
+
+.dataping-top-prog .tp-pc-title h3 {
+    margin: 0 !important;
+    font-size: 17px !important;
+    font-weight: 800 !important;
+    color: var(--dtp-navy) !important;
+}
+
+.dataping-top-prog .tp-tag {
+    margin-left: auto;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--dtp-blue);
+    background: #e8f1f8;
+    padding: 5px 12px;
+    border-radius: 999px;
+    white-space: nowrap;
+}
+
+/* --- Scène du podium --- */
+.dataping-top-prog .tp-stage-host {
+    display: flex;
+    justify-content: center;
+    padding: 6px 10px 0;
+    overflow: hidden;
+}
+
+.dataping-top-prog .tp-stage {
+    position: relative;
+    width: 720px;
+    height: 498px;
+    transform-origin: top center;
+    flex: none;
+}
+
+.dataping-top-prog .tp-podium {
+    position: absolute;
+    inset: 0;
+    width: 720px;
+    height: 498px;
+}
+
+.dataping-top-prog .tp-watermark {
+    position: absolute;
+    left: 50%;
+    top: 150px;
+    transform: translateX(-50%);
+    width: 220px;
+    height: 220px;
+    opacity: 0.05;
+    pointer-events: none;
+}
+
+/* --- Avatars (injectés par JS) --- */
+.dataping-top-prog .tp-figure {
+    position: absolute;
+    width: 128px;
+    transform: translateX(-50%);
+    opacity: 1;
+}
+
+.dataping-top-prog .tp-figure svg {
+    display: block;
+    width: 128px;
+    height: auto;
+    filter: drop-shadow(0 8px 10px rgba(43, 58, 79, 0.18));
+}
+
+.dataping-top-prog .tp-figure--anim {
+    animation: dtpRise 0.5s cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
+}
+
+@keyframes dtpRise {
+    from { opacity: 0; transform: translateX(-50%) translateY(18px); }
+    to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+
+/* --- Médaille (injectée par JS comme <svg class="tp-medal">) --- */
+.dataping-top-prog .tp-medal {
+    position: absolute;
+    width: 46px;
+    height: 46px;
+}
+
+/* --- Plaque nom/progression (injectée par JS) --- */
+.dataping-top-prog .tp-plate {
+    position: absolute;
+    width: 200px;
+    text-align: center;
+}
+
+.dataping-top-prog .tp-name {
+    font-weight: 800;
+    font-size: 15px;
+    color: var(--dtp-navy);
+    letter-spacing: 0.01em;
+    line-height: 1.2;
+}
+
+.dataping-top-prog .tp-name--f { color: var(--dtp-red); }
+.dataping-top-prog .tp-name--m { color: var(--dtp-blue-dk); }
+
+.dataping-top-prog .tp-first {
+    font-size: 12.5px;
+    color: #909aa6;
+    margin-top: 2px;
+}
+
+.dataping-top-prog .tp-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    margin-top: 6px;
+    font-weight: 800;
+    font-size: 14px;
+    padding: 5px 12px;
+    border-radius: 999px;
+    background: var(--dtp-green-bg);
+    color: var(--dtp-green);
+}
+
+.dataping-top-prog .tp-pill svg {
+    width: 11px;
+    height: 11px;
+    flex-shrink: 0;
+}
+
+/* --- Mobile : réduction de l'en-tête --- */
+@media (max-width: 600px) {
+    .dataping-top-prog .tp-head {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+    .dataping-top-prog .tp-toggle button {
+        font-size: 12px;
+        padding: 7px 12px;
+    }
+}
+
 /* ADMIN */
 .DataPing_nonoff{
     font-size: 15px;
