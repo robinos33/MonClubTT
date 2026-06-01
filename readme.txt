@@ -1,36 +1,75 @@
 === DataPing ===
-Tags: ping, tennis de table, ping pong, resultats championnat, api fftt 
-Requires at least: 3.2
-Tested up to: 3.4
-Stable tag: 0.2.3
+Contributors: robinos33
+Tags: table tennis, fftt, club, rankings, results
+Requires at least: 5.0
+Tested up to: 6.7
+Stable tag: 1.0.0
+Requires PHP: 7.4
 License: GPLv2
+License URI: https://www.gnu.org/licenses/gpl-2.0.html
+
+Display your table tennis club data from the official FFTT Smartping API.
 
 == Description ==
-Plugin Wordpress non-officiel d'affichage des données issues de l'API de Fédération Française de Tennis de Table.
 
-Version actuelle - v0.2.3 :
-- Correction de bugs
-Version passée - v0.2.1 :
-- Correction de divers bugs
-- Gestion simple de l'affichage des joueurs
+DataPing is an unofficial WordPress plugin that connects to the FFTT (Fédération Française de Tennis de Table) Smartping 2.0 API to display your club's data on your WordPress site.
 
-----------------------------------------------------------------------------------
-Le plugin se verra évoluer au fur et à mesure des semaines pour implémenter l'ensemble des fonctionnalités de l'API.
-Merci à Vincent Bab (vincentbab@gmail.com), auteur de la classe de récupération des données (que j'ai adapté pour les besoin de la création de ce plugin).
+**Features:**
 
-== Changelog ==
-= 0.2.3 =
-* Correction de bugs
-= 0.2.1 =
-* Correction de divers bugs
-* Gestion simple de l'affichage des joueurs
-= 0.1 =
-* Gestion simple des paramètres de l'API
-* Gestion simple de l'affichage des résultats des équipes d'un club
+* **Player list** — sortable table with monthly and annual rating progression badges, filterable by gender
+* **Team page** — league standings with your club highlighted, championship results by round
+* **Match sheets** — click a result to reveal team composition and set-by-set scores (AJAX, cached 7 days)
+* **Top Progression** — animated podium showing the top 3 players by monthly or annual rating gain
+* **Manual sync** — synchronise players and teams from the admin panel with real-time API logs
+* **Dashboard widget** — quick sync button on the WordPress dashboard
+* **Team management** — automatically create or trash WordPress pages per team
+* **Developer hooks** — expose cached data to other plugins via `apply_filters`
+
+**Shortcodes:**
+
+* `[joueurs type="MF"]` — display club players (M, F, or MF)
+* `[equipe iddiv="198511" idpoule="1140384"]` — display a team's standings and results
+
+**Requirements:**
+
+* Valid FFTT API credentials (App ID + password, obtainable from the FFTT)
+* Your club number (8 digits, e.g. `10330011`)
+
+This plugin is not affiliated with or endorsed by the FFTT.
+
+== Installation ==
+
+1. Upload the `DataPing` folder to `/wp-content/plugins/`
+2. Activate the plugin in *Plugins → Installed Plugins*
+3. Go to *DataPing → Settings* and enter your FFTT API credentials and club number
+4. Click *Synchronize data* to fetch your club's data for the first time
 
 == Frequently Asked Questions ==
-N'hésitez pas à poser des questions par mail à robin.aldasoro@gmail.com. J'essairai d'y répondre et d'en tenir compte dans mes developpements.
 
-== Amis Developpeurs ==
-Pour les developpeurs, n'hésitez pas à me faire part de vos remarques, et même à participer via github https://github.com/robinos33/wp-Api-FFTT.
-Mais 0.2 comme numéro de version, c'est pas pour rien :)
+= Where do I get FFTT API credentials? =
+Contact the FFTT directly. An App ID and password are provided upon request.
+
+= What is the club number format? =
+8 digits, e.g. `10330011`.
+
+= How often is the data updated? =
+Player data is refreshed on manual sync only. League standings and results are cached and automatically refreshed at 08:00 and 13:00 each day. Match sheets are cached for 7 days (past results do not change).
+
+= Can I use the data in another plugin? =
+Yes. DataPing exposes four filters: `dataping_get_joueurs`, `dataping_get_equipes`, `dataping_get_classement_poule`, `dataping_get_rencontres_poule`. See the documentation for usage.
+
+== Changelog ==
+
+= 1.0.0 =
+* First stable release
+* Player list with monthly and annual progression badges
+* Team pages with league standings and match results by round
+* Match sheets with AJAX lazy loading and 7-day cache
+* Top Progression animated podium (monthly / annual toggle)
+* Manual sync with real-time API logs
+* Automatic team page generation and deletion
+
+== Upgrade Notice ==
+
+= 1.0.0 =
+First stable release.

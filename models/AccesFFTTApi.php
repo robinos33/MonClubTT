@@ -1,4 +1,5 @@
 <?php
+if ( ! defined( 'ABSPATH' ) ) exit;
 
 if (!class_exists('AccesFFTTApi')) {
 
@@ -49,7 +50,7 @@ if (!class_exists('AccesFFTTApi')) {
                     $_SESSION['serial'] = AccesFFTTApi::generateSerial();
                 }
 
-                $this->setSerial(!empty($_SESSION['serial']) ? $_SESSION['serial'] : AccesFFTTApi::generateSerial());
+                $this->setSerial(!empty($_SESSION['serial']) ? sanitize_text_field(wp_unslash($_SESSION['serial'])) : AccesFFTTApi::generateSerial());
                 // Initialise l'application si possible (les éventuelles erreurs XML sont gérées en interne)
                 $this->initialization();
             }
@@ -397,7 +398,7 @@ if (!class_exists('AccesFFTTApi')) {
             if ($generateHash) {
                 $params['serie'] = $this->getSerial();
                 $params['id'] = $this->getAppId();
-                $params['tm'] = date('YmdHis') . substr(microtime(), 2, 3);
+                $params['tm'] = gmdate('YmdHis') . substr(microtime(), 2, 3);
                 $params['tmc'] = hash_hmac('sha1', $params['tm'], hash('md5', $this->getAppKey(), false));
             }
 
@@ -408,50 +409,35 @@ if (!class_exists('AccesFFTTApi')) {
             // Stocker le log pour affichage dans l'interface admin (URL sans credentials)
             $logUrl = preg_replace('/([?&])(id|serie|tm|tmc)=[^&]*/', '$1[REDACTED]', $url);
             $this->addApiLog("Appel API: $logUrl");
-            error_log("DataPing - Appel API: $logUrl");
 
-            $curl = curl_init();
-            curl_setopt($curl, CURLOPT_URL, $url);
-            if ($this->getIpSource()) {
-                curl_setopt($curl, CURLOPT_INTERFACE, $this->getIpSource());
-            }
-            curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
-            curl_setopt($curl, CURLOPT_ENCODING, ''); // Gère automatiquement gzip/deflate
-            curl_setopt($curl, CURLOPT_FOLLOWLOCATION, true); // Suit les redirections
-            curl_setopt($curl, CURLOPT_MAXREDIRS, 5);
-            curl_setopt($curl, CURLOPT_TIMEOUT, 30);
-            curl_setopt($curl, CURLOPT_HTTPHEADER, array(
-                "User-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
-                "Accept: text/xml,application/xml,*/*",
+            $response = wp_remote_get($url, array(
+                'timeout'     => 30,
+                'redirection' => 5,
+                'user-agent'  => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+                'headers'     => array('Accept' => 'text/xml,application/xml,*/*'),
             ));
-            $data = curl_exec($curl);
-            $curlError = curl_error($curl);
-            $curlErrno = curl_errno($curl);
-            $httpCode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
-            $contentType = curl_getinfo($curl, CURLINFO_CONTENT_TYPE);
-            $dataLength = is_string($data) ? strlen($data) : 0;
-            curl_close($curl);
+
+            if (is_wp_error($response)) {
+                if (!$silentErrors) {
+                    $msg = 'Erreur HTTP : ' . $response->get_error_message();
+                    $this->addApiLog($msg, 'error');
+                }
+                return false;
+            }
+
+            $httpCode    = wp_remote_retrieve_response_code($response);
+            $contentType = wp_remote_retrieve_header($response, 'content-type');
+            $data        = wp_remote_retrieve_body($response);
+            $dataLength  = strlen($data);
 
             // Log de diagnostic
             if (!$silentErrors) {
                 $this->addApiLog("HTTP $httpCode | Type: $contentType | Taille: $dataLength octets", $httpCode === 200 ? 'info' : 'error');
             }
 
-            // Log des erreurs cURL
-            if ($curlErrno !== 0) {
-                if (!$silentErrors) {
-                    $msg = "Erreur cURL ($curlErrno): $curlError";
-                    $this->addApiLog($msg, 'error');
-                    error_log("DataPing - $msg - URL: $url");
-                }
-                return false;
-            }
-
             if ($httpCode !== 200) {
                 if (!$silentErrors) {
-                    $msg = "Code HTTP $httpCode";
-                    $this->addApiLog($msg, 'error');
-                    error_log("DataPing - $msg - URL: $url");
+                    $this->addApiLog("Code HTTP $httpCode", 'error');
                 }
                 return false;
             }
@@ -461,7 +447,6 @@ if (!class_exists('AccesFFTTApi')) {
                 if (!$silentErrors) {
                     $msg = "RÉPONSE VIDE de l'API FFTT - Vérifiez vos identifiants (ID: '$this->appId')";
                     $this->addApiLog($msg, 'error');
-                    error_log("DataPing - $msg - URL: $url");
                 }
                 return false;
             }
@@ -486,7 +471,6 @@ if (!class_exists('AccesFFTTApi')) {
                 if (!$silentErrors) {
                     $msg = "Erreur parsing XML - Data: " . substr($data, 0, 200);
                     $this->addApiLog($msg, 'error');
-                    error_log("DataPing - $msg - URL: $url");
                 }
                 return false;
             }
@@ -563,7 +547,7 @@ if (!class_exists('AccesFFTTApi')) {
         {
             $serial = '';
             for ($i = 0; $i < 15; $i++) {
-                $serial .= chr(mt_rand(65, 90)); //(A-Z)
+                $serial .= chr(wp_rand(65, 90)); //(A-Z)
             }
 
             return $serial;

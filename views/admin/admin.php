@@ -1,4 +1,5 @@
 <?php
+if ( ! defined( 'ABSPATH' ) ) exit;
 // Afficher un message de succès après la sauvegarde des paramètres
 if (isset($_GET['settings-updated']) && $_GET['settings-updated']) {
     echo '<div class="notice notice-success is-dismissible"><p><strong>Paramètres enregistrés avec succès !</strong></p></div>';

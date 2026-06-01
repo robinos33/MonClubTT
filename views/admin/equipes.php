@@ -1,4 +1,5 @@
 <?php
+if ( ! defined( 'ABSPATH' ) ) exit;
 $equipes      = new Equipes();
 $listeEquipes = $equipes->getEquipesSeniorChampionnat('MF');
 $nonce        = wp_create_nonce('dataping_generate_pages_nonce');

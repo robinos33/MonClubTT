@@ -1,13 +1,18 @@
 <?php
 /*
   Plugin Name: DataPing
-  Plugin URI: http://robin-aldasoro.com/docs/wordpress-plugins/DataPing.zip
-  Description: Ce plugin affiche les données accessibles via l'API de la FFTT
-  Version: 0.3.0
+  Plugin URI: https://github.com/robinos33/DataPing
+  Description: Display your table tennis club data from the FFTT Smartping API.
+  Version: 1.0.0
   Author: Robin Aldasoro
-  Author URI: robin-aldasoro.com
+  Author URI: https://github.com/robinos33
   License: GPLv2
+  Text Domain: dataping
+  Requires at least: 5.0
+  Requires PHP: 7.4
  */
+
+if ( ! defined( 'ABSPATH' ) ) exit;
 
 require_once('Utils.php');
 
@@ -88,9 +93,9 @@ class DataPing
 
     public function register_settings()
     {
-        register_setting('DataPing_settings', ConstantesDataPing::DATAPING_ID_APPLICATION);
-        register_setting('DataPing_settings', ConstantesDataPing::DATAPING_MOT_DE_PASSE);
-        register_setting('DataPing_settings', ConstantesDataPing::DATAPING_NUM_CLUB);
+        register_setting('DataPing_settings', ConstantesDataPing::DATAPING_ID_APPLICATION, array('sanitize_callback' => 'sanitize_text_field'));
+        register_setting('DataPing_settings', ConstantesDataPing::DATAPING_MOT_DE_PASSE,    array('sanitize_callback' => 'sanitize_text_field'));
+        register_setting('DataPing_settings', ConstantesDataPing::DATAPING_NUM_CLUB,        array('sanitize_callback' => 'sanitize_text_field'));
 
         add_settings_section('DataPing_section', 'Paramètres du plugin', array($this, 'section_html'), 'DataPing_settings');
         add_settings_field(ConstantesDataPing::DATAPING_ID_APPLICATION, 'Id Application', array($this, 'id_application_html'), 'DataPing_settings', 'DataPing_section');
@@ -278,8 +283,8 @@ class DataPing
      */
     public function handle_ajax_feuille_match()
     {
-        $rencId   = sanitize_text_field($_POST['renc_id']   ?? '');
-        $isRetour = (int) ($_POST['is_retour'] ?? 0);
+        $rencId   = sanitize_text_field(wp_unslash($_POST['renc_id']   ?? ''));
+        $isRetour = (int) wp_unslash($_POST['is_retour'] ?? 0);
 
         if (empty($rencId)) {
             wp_send_json_error(array('message' => 'ID de rencontre manquant'));
@@ -604,7 +609,7 @@ class DataPing
                     type: 'POST',
                     data: {
                         action: 'dataping_sync',
-                        nonce: '<?php echo wp_create_nonce('dataping_sync_nonce'); ?>'
+                        nonce: '<?php echo esc_js(wp_create_nonce('dataping_sync_nonce')); ?>'
                     },
                     success: function(response) {
                         $loading.hide();

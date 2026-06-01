@@ -1,4 +1,5 @@
 <?php ob_start();
+if ( ! defined( 'ABSPATH' ) ) exit;
 $pluginData = DataPing::getPluginData();
 if (isset($pluginData)) { ?>
     <h1 class="DataPing_title">DataPing <span class="DataPing_version">v<?php echo $pluginData['Version']; ?></span></h1>
