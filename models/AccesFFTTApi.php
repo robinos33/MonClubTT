@@ -104,8 +104,17 @@ if (!class_exists('AccesFFTTApi')) {
 
         public function initialization()
         {
-            // L'API xml_initialisation.php retourne souvent une réponse vide, on ignore les erreurs de parsing
-            return AccesFFTTApi::getObject($this->getData('https://www.fftt.com/mobile/pxml/xml_initialisation.php', array(), true, true));
+            $key = 'dataping_init_' . md5((string) $this->appId);
+            if (function_exists('get_transient') && get_transient($key) !== false) {
+                return;
+            }
+            $result = AccesFFTTApi::getObject(
+                $this->getData('https://www.fftt.com/mobile/pxml/xml_initialisation.php', array(), true, true)
+            );
+            if (function_exists('set_transient')) {
+                set_transient($key, 1, HOUR_IN_SECONDS);
+            }
+            return $result;
         }
 
         public function getClubsByDepartement($departement)
@@ -159,44 +168,22 @@ if (!class_exists('AccesFFTTApi')) {
             $key = $this->buildCacheKey('equipes_club', array('numclu' => $club, 'type' => $type));
             $lifeTime = $this->computeHalfDayTtl();
             $teams = $this->getCachedData($key, $lifeTime, function () use ($club, $type) {
-                $data = $this->getData('https://www.fftt.com/mobile/pxml/xml_equipe.php', array('numclu' => $club, 'type' => $type));
-                error_log("DataPing - getEquipesByClub($club, $type) - getData result: " . (is_array($data) ? json_encode($data) : gettype($data)));
-                $result = AccesFFTTApi::getCollection($data, 'equipe');
-                error_log("DataPing - getEquipesByClub($club, $type) - getCollection result count: " . count($result));
+                $result = AccesFFTTApi::getCollection(
+                    $this->getData('https://www.fftt.com/mobile/pxml/xml_equipe.php', array('numclu' => $club, 'type' => $type)),
+                    'equipe'
+                );
 
-                // Extraire iddiv et idpoule AVANT de mettre en cache
                 foreach ($result as &$team) {
-                    $params = array();
-
-                    // Vérifier si liendivision est une chaîne avant de la parser
-                    if (isset($team['liendivision']) && is_string($team['liendivision']) && !empty($team['liendivision'])) {
-                        $liendivision = $team['liendivision'];
-
-                        // Si c'est une URL complète, extraire seulement la query string
-                        if (strpos($liendivision, '?') !== false) {
-                            $urlParts = parse_url($liendivision);
-                            $liendivision = isset($urlParts['query']) ? $urlParts['query'] : $liendivision;
-                        }
-
-                        parse_str($liendivision, $params);
+                    $team['idpoule'] = null;
+                    $team['iddiv']   = null;
+                    if (isset($team['liendivision']) && is_string($team['liendivision']) && $team['liendivision'] !== '') {
+                        $qs = strpos($team['liendivision'], '?') !== false
+                            ? parse_url($team['liendivision'], PHP_URL_QUERY)
+                            : $team['liendivision'];
+                        $params = array();
+                        parse_str((string) $qs, $params);
                         $team['idpoule'] = isset($params['cx_poule']) ? $params['cx_poule'] : null;
-                        $team['iddiv'] = isset($params['D1']) ? $params['D1'] : null;
-
-                        // Log détaillé pour diagnostic
-                        $teamName = isset($team['libequipe']) ? $team['libequipe'] : 'UNKNOWN';
-                        if ($team['idpoule'] && $team['iddiv']) {
-                            error_log("DataPing - SUCCESS - Team: {$teamName} - liendivision: {$team['liendivision']} - iddiv: {$team['iddiv']}, idpoule: {$team['idpoule']}");
-                        } else {
-                            error_log("DataPing - WARNING - Team: {$teamName} - liendivision parsé mais paramètres manquants - Raw: {$team['liendivision']} - Params trouvés: " . json_encode($params));
-                        }
-                    } else {
-                        // Si c'est déjà un tableau ou absent, définir des valeurs par défaut
-                        $team['idpoule'] = null;
-                        $team['iddiv'] = null;
-                        $teamName = isset($team['libequipe']) ? $team['libequipe'] : 'UNKNOWN';
-                        $liendivisionType = isset($team['liendivision']) ? gettype($team['liendivision']) : 'absent';
-                        $liendivisionValue = isset($team['liendivision']) ? (is_string($team['liendivision']) ? $team['liendivision'] : json_encode($team['liendivision'])) : 'N/A';
-                        error_log("DataPing - ERROR - Team: {$teamName} - liendivision absent, vide ou non-string - Type: {$liendivisionType} - Value: {$liendivisionValue}");
+                        $team['iddiv']   = isset($params['D1'])       ? $params['D1']       : null;
                     }
                 }
 
@@ -247,11 +234,10 @@ if (!class_exists('AccesFFTTApi')) {
 
         public function getLicencesByClub($club)
         {
-            $data = $this->getData('https://www.fftt.com/mobile/pxml/xml_liste_joueur.php', array('club' => $club));
-            error_log("DataPing - getLicencesByClub($club) - getData result: " . (is_array($data) ? json_encode($data) : gettype($data)));
-            $result = AccesFFTTApi::getCollection($data, 'joueur');
-            error_log("DataPing - getLicencesByClub($club) - getCollection result count: " . count($result));
-            return $result;
+            return AccesFFTTApi::getCollection(
+                $this->getData('https://www.fftt.com/mobile/pxml/xml_liste_joueur.php', array('club' => $club)),
+                'joueur'
+            );
         }
 
         public function getLicence($licence)
