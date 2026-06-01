@@ -44,11 +44,11 @@
     <table class="wp-list-table widefat fixed striped posts">
         <thead>
         <tr>
-            <th>Points mensuels</th>
             <th>Nom</th>
             <th>Prénom</th>
             <th>Classement Off.</th>
             <th>Points Off.</th>
+            <th>Points mensuels</th>
         </tr>
         </thead>
         <tbody id="the-list">
@@ -59,11 +59,11 @@
                 /** @var Joueur $joueur */
             ?>
         <tr class="<?php echo esc_attr($joueur->getSexe()); ?>">
-            <td><?php echo esc_html($joueur->getClassement()->getPointsMensuels()); ?></td>
             <td class="bold"><?php echo esc_html($joueur->getNom()); ?></td>
             <td class="bold"><?php echo esc_html($joueur->getPrenom()); ?></td>
             <td><?php echo esc_html($joueur->getClassement()->getClassementOfficiel()); ?></td>
             <td><?php echo esc_html($joueur->getClassement()->getPointsOfficiels()); ?></td>
+            <td><?php echo esc_html($joueur->getClassement()->getPointsMensuels()); ?></td>
         </tr>
         <?php endforeach; ?>
         </tbody>
