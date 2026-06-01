@@ -3,7 +3,7 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 $pluginData = DataPing::getPluginData();
 if (isset($pluginData)) { ?>
     <h1 class="DataPing_title">DataPing <span class="DataPing_version">v<?php echo esc_html($pluginData['Version']); ?></span></h1>
-    <p class="DataPing_author">Par <?php echo esc_html($pluginData['Author']); ?></p>
+    <p class="DataPing_author">Par <?php echo wp_kses($pluginData['Author'], array('a' => array('href' => array(), 'rel' => array()))); ?></p>
     <?php
 }
 
