@@ -114,9 +114,7 @@ if ( ! defined( 'ABSPATH' ) ) exit;
                 if ($u1 !== false) { $updated = (int) max($updated, $u1); }
                 if ($u2 !== false) { $updated = (int) max($updated, $u2); }
                 if ($updated > 0) {
-                    $formatted = function_exists('date_i18n')
-                        ? date_i18n('d/m/Y H:i', $updated, false)
-                        : date('d/m/Y H:i', $updated);
+                    $formatted = date_i18n('d/m/Y H:i', $updated, false);
                     echo '<p class="dataping-updated-at">Dernière mise à jour : ' . esc_html($formatted) . '</p>';
                 }
             }

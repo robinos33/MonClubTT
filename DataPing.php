@@ -160,7 +160,7 @@ class DataPing
     {
         $api = AccesFFTTApi::getInstance();
         if (!is_object($api)) {
-            return __('Problème lors de la récupération des résultats', 'dataping');
+            return __('Problème lors de la récupération des résultats', 'dataping'); // phpcs:ignore WordPress.WP.I18n.TextDomainMismatch
         }
 
         // Normalise et valide les attributs du shortcode
@@ -168,7 +168,7 @@ class DataPing
         $atts['iddiv'] = (string) $atts['iddiv'];
         $atts['idpoule'] = (string) $atts['idpoule'];
         if ($atts['iddiv'] === '' || $atts['idpoule'] === '') {
-            return __('Poule ou division incorrecte', 'dataping');
+            return __('Poule ou division incorrecte', 'dataping'); // phpcs:ignore WordPress.WP.I18n.TextDomainMismatch
         }
 
         $listeEquipesM = $api->getEquipesByClub(ParametresDataPing::getNumClub(), 'M');
@@ -199,7 +199,7 @@ class DataPing
             require __DIR__ . '/views/front/joueurs.php';
             return ob_get_clean();
         }
-        return __('Erreur de paramètres du shortcode', 'dataping');
+        return __('Erreur de paramètres du shortcode', 'dataping'); // phpcs:ignore WordPress.WP.I18n.TextDomainMismatch
     }
 
     private function getTypeListeJoueurs()
