@@ -272,51 +272,61 @@ jQuery(document).ready(function ($) {
         /* ordre visuel : 2e gauche, 1er centre, 3e droite */
         var order = [winners[1], winners[0], winners[2]];
         var ranks = [2, 1, 3];
-        var stage = document.getElementById('dataping-tp-stage');
-        if (!stage) return;
+        var stage      = document.getElementById('dataping-tp-stage');
+        var nameplates = document.getElementById('dataping-tp-nameplates');
+        if (!stage || !nameplates) return;
 
-        var old = stage.querySelectorAll('.tp-figure,.tp-plate,.tp-medal');
+        /* Nettoyer figures + médailles dans le stage */
+        var old = stage.querySelectorAll('.tp-figure,.tp-medal');
         for (var k = 0; k < old.length; k++) { old[k].remove(); }
+        /* Nettoyer les plaques hors du stage */
+        nameplates.innerHTML = '';
 
         order.forEach(function (p, i) {
-            if (!p) return;
             var rank = ranks[i];
             var c    = COLS[rank];
-            var val  = p[metric];
-            var sign = val > 0 ? '+' : '';
 
-            /* Avatar */
-            var fig = document.createElement('div');
-            fig.className = 'tp-figure tp-figure--anim';
-            fig.style.cssText = 'left:' + (c.cx + DX / 2) + 'px;bottom:' + (580 - c.top - 4) + 'px;animation-delay:' + (i * 0.08) + 's';
-            fig.innerHTML = p.sex === 'F' ? avatarFemale() : avatarMale();
-            stage.appendChild(fig);
-            (function (el) {
-                setTimeout(function () { el.classList.remove('tp-figure--anim'); }, 700 + i * 80);
-            }(fig));
+            if (p) {
+                var val  = p[metric];
+                var sign = val > 0 ? '+' : '';
 
-            /* Médaille */
-            var tmp = document.createElement('div');
-            tmp.innerHTML = medalSVG(rank);
-            var medalEl = tmp.firstChild;
-            medalEl.style.left = (c.cx - 23) + 'px';
-            stage.appendChild(medalEl);
+                /* Avatar */
+                var fig = document.createElement('div');
+                fig.className = 'tp-figure tp-figure--anim';
+                fig.style.cssText = 'left:' + (c.cx + DX / 2) + 'px;bottom:' + (498 - c.top - 4) + 'px;animation-delay:' + (i * 0.08) + 's';
+                fig.innerHTML = p.sex === 'F' ? avatarFemale() : avatarMale();
+                stage.appendChild(fig);
+                (function (el) {
+                    setTimeout(function () { el.classList.remove('tp-figure--anim'); }, 700 + i * 80);
+                }(fig));
 
-            /* Plaque */
-            var plate = document.createElement('div');
-            plate.className = 'tp-plate';
-            plate.style.cssText = 'left:' + (c.cx - 100) + 'px;top:' + (BASE_Y + 8) + 'px';
-            plate.innerHTML =
-                '<div class="tp-name tp-name--' + (p.sex === 'F' ? 'f' : 'm') + '">' + escTp(p.nom)    + '</div>' +
-                '<div class="tp-first">'                                                 + escTp(p.prenom) + '</div>' +
-                '<div class="tp-pill">' +
-                  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">' +
-                    '<path d="M4 16l6-6 4 4 6-8"/><path d="M20 6v5M20 6h-5"/>' +
-                  '</svg>' +
-                  sign + val +
-                '</div>';
-            stage.appendChild(plate);
+                /* Médaille */
+                var tmp = document.createElement('div');
+                tmp.innerHTML = medalSVG(rank);
+                var medalEl = tmp.firstChild;
+                medalEl.style.left = (c.cx - 23) + 'px';
+                stage.appendChild(medalEl);
+
+                /* Plaque — dans le flux normal, hors du stage */
+                var plate = document.createElement('div');
+                plate.className = 'tp-plate';
+                plate.innerHTML =
+                    '<div class="tp-name tp-name--' + (p.sex === 'F' ? 'f' : 'm') + '">' + escTp(p.nom)    + '</div>' +
+                    '<div class="tp-first">'                                                 + escTp(p.prenom) + '</div>' +
+                    '<div class="tp-pill">' +
+                      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">' +
+                        '<path d="M4 16l6-6 4 4 6-8"/><path d="M20 6v5M20 6h-5"/>' +
+                      '</svg>' +
+                      sign + val +
+                    '</div>';
+                nameplates.appendChild(plate);
+            } else {
+                /* Colonne vide pour maintenir l'alignement flex */
+                nameplates.appendChild(document.createElement('div'));
+            }
         });
+
+        scalePodium();
     }
 
     function setMode(mode) {
@@ -335,12 +345,12 @@ jQuery(document).ready(function ($) {
     }
 
     function scalePodium() {
-        var host  = document.getElementById('dataping-tp-stage-host');
-        var stage = document.getElementById('dataping-tp-stage');
-        if (!host || !stage) return;
+        var host     = document.getElementById('dataping-tp-stage-host');
+        var scalable = document.getElementById('dataping-tp-scalable');
+        if (!host || !scalable) return;
         var scale = Math.min(1, host.offsetWidth / 720);
-        stage.style.transform = 'scale(' + scale + ')';
-        host.style.height     = Math.round(580 * scale) + 'px';
+        scalable.style.transform = 'scale(' + scale + ')';
+        host.style.height = Math.round(scalable.offsetHeight * scale) + 'px';
     }
 
     function escTp(str) {

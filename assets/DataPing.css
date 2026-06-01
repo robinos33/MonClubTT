@@ -499,12 +499,26 @@ th.headerSortUp {
     padding: 6px 10px 0;
 }
 
+/* Wrapper scalable : contient le stage SVG + les plaques de noms */
+.dataping-top-prog .tp-scalable {
+    width: 720px;
+    flex: none;
+    transform-origin: top center;
+}
+
 .dataping-top-prog .tp-stage {
     position: relative;
     width: 720px;
-    height: 580px;
-    transform-origin: top center;
-    flex: none;
+    height: 498px;
+}
+
+/* Rangée de plaques en flux normal sous le podium */
+.dataping-top-prog .tp-nameplates {
+    display: flex;
+    width: 720px;
+    padding: 8px 48px 20px;
+    gap: 12px;
+    box-sizing: border-box;
 }
 
 .dataping-top-prog .tp-podium {
@@ -556,9 +570,9 @@ th.headerSortUp {
     height: 46px;
 }
 
-/* --- Plaque nom/progression (injectée par JS) --- */
+/* --- Plaque nom/progression (flex child dans tp-nameplates) --- */
 .dataping-top-prog .tp-plate {
-    position: absolute;
+    flex: 0 0 200px;
     width: 200px;
     text-align: center;
 }

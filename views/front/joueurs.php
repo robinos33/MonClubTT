@@ -66,14 +66,17 @@ var DataPingTopProg = {
                 <span class="tp-tag" id="dataping-tp-tag"><?php echo esc_html($moisLabel); ?></span>
             </div>
             <div class="tp-stage-host" id="dataping-tp-stage-host">
-                <div class="tp-stage" id="dataping-tp-stage">
-                    <svg class="tp-watermark" viewBox="0 0 100 100">
-                        <circle cx="50" cy="50" r="47" fill="#2b3a4f"/>
-                        <g transform="rotate(-32 50 52)">
-                            <ellipse cx="44" cy="42" rx="18" ry="20" fill="#2b3a4f"/>
-                        </g>
-                    </svg>
-                    <svg class="tp-podium" id="dataping-tp-podium-svg" viewBox="0 0 720 498" aria-label="Podium"></svg>
+                <div class="tp-scalable" id="dataping-tp-scalable">
+                    <div class="tp-stage" id="dataping-tp-stage">
+                        <svg class="tp-watermark" viewBox="0 0 100 100">
+                            <circle cx="50" cy="50" r="47" fill="#2b3a4f"/>
+                            <g transform="rotate(-32 50 52)">
+                                <ellipse cx="44" cy="42" rx="18" ry="20" fill="#2b3a4f"/>
+                            </g>
+                        </svg>
+                        <svg class="tp-podium" id="dataping-tp-podium-svg" viewBox="0 0 720 498" aria-label="Podium"></svg>
+                    </div>
+                    <div class="tp-nameplates" id="dataping-tp-nameplates"></div>
                 </div>
             </div>
         </div>
