@@ -345,6 +345,16 @@ th.headerSortUp {
     background-image: url(tablesorter/img/asc.gif); 
 } 
 
+/* Rotation de l'icône sync pendant le chargement */
+@keyframes dataping-spin {
+    from { transform: rotate(0deg); }
+    to   { transform: rotate(-360deg); }
+}
+
+.button.is-loading .dataping-sync-icon {
+    animation: dataping-spin 0.8s linear infinite;
+}
+
 /* Icône dans les boutons admin — hors portée de .wp-core-ui .button .dashicons */
 .dataping-icon {
     font-family: dashicons;

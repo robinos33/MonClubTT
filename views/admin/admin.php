@@ -25,13 +25,9 @@ if (isset($_GET['settings-updated']) && $_GET['settings-updated']) {
         }
         ?>
         <button id="dataping-sync-button" class="button button-primary" style="display:inline-flex; align-items:center; gap:6px; line-height:1;">
-            <span aria-hidden="true" style="font-family:dashicons; display:inline-block; font-size:20px; line-height:1; width:20px; height:20px; flex-shrink:0; speak:none; -webkit-font-smoothing:antialiased;">&#xf463;</span>
-            Synchroniser les données
+            <span class="dataping-icon dataping-sync-icon" aria-hidden="true">&#xf463;</span>
+            <span class="dataping-sync-label">Synchroniser les données</span>
         </button>
-        <span id="dataping-sync-loading" style="display: none; margin-left: 10px;">
-            <span class="spinner is-active" style="float: none; margin: 0;"></span>
-            Synchronisation en cours...
-        </span>
         <div id="dataping-sync-message" style="margin-top: 10px;"></div>
     </div>
 
@@ -113,11 +109,10 @@ if (isset($_GET['settings-updated']) && $_GET['settings-updated']) {
 jQuery(document).ready(function($) {
     $('#dataping-sync-button').on('click', function() {
         var $button = $(this);
-        var $loading = $('#dataping-sync-loading');
         var $message = $('#dataping-sync-message');
 
-        $button.prop('disabled', true);
-        $loading.show();
+        $button.prop('disabled', true).addClass('is-loading');
+        $button.find('.dataping-sync-label').text('Synchronisation en cours…');
         $message.html('');
 
         $.ajax({
@@ -128,8 +123,8 @@ jQuery(document).ready(function($) {
                 nonce: '<?php echo wp_create_nonce('dataping_sync_nonce'); ?>'
             },
             success: function(response) {
-                $loading.hide();
-                $button.prop('disabled', false);
+                $button.prop('disabled', false).removeClass('is-loading');
+                $button.find('.dataping-sync-label').text('Synchroniser les données');
 
                 if (response.success) {
                     console.log('DataPing Sync - Résultats:', response.data.results);
@@ -159,8 +154,8 @@ jQuery(document).ready(function($) {
                 }
             },
             error: function() {
-                $loading.hide();
-                $button.prop('disabled', false);
+                $button.prop('disabled', false).removeClass('is-loading');
+                $button.find('.dataping-sync-label').text('Synchroniser les données');
                 $message.html('<div class="notice notice-error is-dismissible"><p><strong>Erreur :</strong> Erreur de communication avec le serveur</p></div>');
             }
         });
