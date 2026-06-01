@@ -1,5 +1,6 @@
-<?php require_once(__DIR__ . '/header.php'); ?>
+<?php
 if ( ! defined( 'ABSPATH' ) ) exit;
+require_once(__DIR__ . '/header.php'); ?>
 <div class="DataPing_div">
     <?php
     foreach ($listeEquipes as $equipe) {
