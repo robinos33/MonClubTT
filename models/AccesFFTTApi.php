@@ -104,17 +104,8 @@ if (!class_exists('AccesFFTTApi')) {
 
         public function initialization()
         {
-            $key = 'dataping_init_' . md5((string) $this->appId);
-            if (function_exists('get_transient') && get_transient($key) !== false) {
-                return;
-            }
-            $result = AccesFFTTApi::getObject(
-                $this->getData('https://www.fftt.com/mobile/pxml/xml_initialisation.php', array(), true, true)
-            );
-            if (function_exists('set_transient')) {
-                set_transient($key, 1, HOUR_IN_SECONDS);
-            }
-            return $result;
+            // L'API xml_initialisation.php retourne souvent une réponse vide, on ignore les erreurs de parsing
+            return AccesFFTTApi::getObject($this->getData('https://www.fftt.com/mobile/pxml/xml_initialisation.php', array(), true, true));
         }
 
         public function getClubsByDepartement($departement)
