@@ -288,7 +288,7 @@ jQuery(document).ready(function ($) {
             /* Avatar */
             var fig = document.createElement('div');
             fig.className = 'tp-figure tp-figure--anim';
-            fig.style.cssText = 'left:' + (c.cx + DX / 2) + 'px;bottom:' + (498 - c.top - 4) + 'px;animation-delay:' + (i * 0.08) + 's';
+            fig.style.cssText = 'left:' + (c.cx + DX / 2) + 'px;bottom:' + (580 - c.top - 4) + 'px;animation-delay:' + (i * 0.08) + 's';
             fig.innerHTML = p.sex === 'F' ? avatarFemale() : avatarMale();
             stage.appendChild(fig);
             (function (el) {
