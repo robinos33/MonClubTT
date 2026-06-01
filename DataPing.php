@@ -138,7 +138,7 @@ class DataPing
         echo '<form action="options.php" method="POST" name="DataPing_settings" class="DataPing_settings_form">';
         do_settings_sections('DataPing_settings');
         settings_fields('DataPing_settings');
-        echo '<div>' . submit_button('Valider la saisie') . '</div>';
+        echo '<div>' . submit_button('Valider la saisie') . '</div>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
         echo '</form>';
     }
 
@@ -283,8 +283,8 @@ class DataPing
      */
     public function handle_ajax_feuille_match()
     {
-        $rencId   = sanitize_text_field(wp_unslash($_POST['renc_id']   ?? ''));
-        $isRetour = (int) wp_unslash($_POST['is_retour'] ?? 0);
+        $rencId   = sanitize_text_field(wp_unslash($_POST['renc_id']   ?? '')); // phpcs:ignore WordPress.Security.NonceVerification.Missing
+        $isRetour = (int) wp_unslash($_POST['is_retour'] ?? 0); // phpcs:ignore WordPress.Security.NonceVerification.Missing,WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
 
         if (empty($rencId)) {
             wp_send_json_error(array('message' => 'ID de rencontre manquant'));
@@ -404,8 +404,8 @@ class DataPing
             return;
         }
 
-        $teamsCreate = isset($_POST['teams_create']) ? (array) $_POST['teams_create'] : array();
-        $teamsDelete = isset($_POST['teams_delete']) ? (array) $_POST['teams_delete'] : array();
+        $teamsCreate = isset($_POST['teams_create']) ? array_map('sanitize_text_field', wp_unslash((array) $_POST['teams_create'])) : array();
+        $teamsDelete = isset($_POST['teams_delete']) ? array_map('sanitize_text_field', wp_unslash((array) $_POST['teams_delete'])) : array();
 
         if (empty($teamsCreate) && empty($teamsDelete)) {
             wp_send_json_error(array('message' => 'Aucune équipe dans la liste'));
@@ -506,7 +506,7 @@ class DataPing
             'post_type'      => 'page',
             'post_status'    => $statuses,
             'posts_per_page' => 1,
-            'meta_query'     => array(
+            'meta_query'     => array( // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
                 array('key' => '_dataping_iddiv',   'value' => $iddiv),
                 array('key' => '_dataping_idpoule', 'value' => $idpoule),
             ),

@@ -47,7 +47,7 @@ $nonce        = wp_create_nonce('dataping_generate_pages_nonce');
                     <?php if ( $hasIds ): ?>
                         <input
                             type="checkbox"
-                            id="<?php echo $checkId; ?>"
+                            id="<?php echo esc_attr($checkId); ?>"
                             class="dataping-team-checkbox"
                             data-iddiv="<?php echo esc_attr( $iddiv ); ?>"
                             data-idpoule="<?php echo esc_attr( $idpoule ); ?>"
@@ -58,7 +58,7 @@ $nonce        = wp_create_nonce('dataping_generate_pages_nonce');
                 </th>
                 <td>
                     <?php if ( $hasIds ): ?>
-                        <label for="<?php echo $checkId; ?>" style="cursor:pointer; font-weight:600;">
+                        <label for="<?php echo esc_attr($checkId); ?>" style="cursor:pointer; font-weight:600;">
                             <?php echo esc_html( $equipe->getLibequipe() ); ?>
                         </label>
                     <?php else: ?>

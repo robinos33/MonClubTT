@@ -2,12 +2,13 @@
 if ( ! defined( 'ABSPATH' ) ) exit;
 $pluginData = DataPing::getPluginData();
 if (isset($pluginData)) { ?>
-    <h1 class="DataPing_title">DataPing <span class="DataPing_version">v<?php echo $pluginData['Version']; ?></span></h1>
-    <p class="DataPing_author">Par <?php echo $pluginData['Author']; ?></p>
+    <h1 class="DataPing_title">DataPing <span class="DataPing_version">v<?php echo esc_html($pluginData['Version']); ?></span></h1>
+    <p class="DataPing_author">Par <?php echo esc_html($pluginData['Author']); ?></p>
     <?php
 }
 
-if (!is_object(AccesFFTTApi::getInstance()) && $_GET['page'] !== 'parametres_DataPing') {
+$current_page = isset($_GET['page']) ? sanitize_text_field(wp_unslash($_GET['page'])) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+if (!is_object(AccesFFTTApi::getInstance()) && $current_page !== 'parametres_DataPing') {
     ?>
     <div class="wrap">
         <h1 class="DataPing_title">Les équipes </h1>

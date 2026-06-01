@@ -170,7 +170,7 @@ if (!class_exists('AccesFFTTApi')) {
                     $team['iddiv']   = null;
                     if (isset($team['liendivision']) && is_string($team['liendivision']) && $team['liendivision'] !== '') {
                         $qs = strpos($team['liendivision'], '?') !== false
-                            ? parse_url($team['liendivision'], PHP_URL_QUERY)
+                            ? wp_parse_url($team['liendivision'], PHP_URL_QUERY)
                             : $team['liendivision'];
                         $params = array();
                         parse_str((string) $qs, $params);

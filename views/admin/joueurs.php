@@ -1,5 +1,5 @@
+<?php if ( ! defined( 'ABSPATH' ) ) exit; ?>
 <div class="wrap">
-if ( ! defined( 'ABSPATH' ) ) exit;
     <h1 class="DataPing_title">Les joueurs </h1>
     <h2>Shortcodes</h2>
     <p>Insérez le shortcode dans la page ou l'article où vous désirez afficher la liste des joueurs</p>
@@ -39,7 +39,7 @@ if ( ! defined( 'ABSPATH' ) ) exit;
     $updatedAt = $api->getCacheUpdatedAt('joueurs_club', array('numclu' => $numClub));
     if ($updatedAt !== false):
     ?>
-        <p><em>Dernière mise à jour du cache : <?php echo date('d/m/Y à H:i:s', $updatedAt); ?></em></p>
+        <p><em>Dernière mise à jour du cache : <?php echo esc_html(date_i18n('d/m/Y à H:i:s', $updatedAt)); ?></em></p>
     <?php endif; ?>
     <table class="wp-list-table widefat fixed striped posts">
         <thead>

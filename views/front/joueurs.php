@@ -2,9 +2,9 @@
 if ( ! defined( 'ABSPATH' ) ) exit;
 require_once(__DIR__ . '/header.php'); ?><?php
 $mois_fr    = ['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
-$moisLabel  = ucfirst($mois_fr[(int)date('n') - 1]) . ' ' . date('Y');
-$annee      = (int) date('Y');
-$saisonDebut = ((int)date('n') >= 9) ? $annee : $annee - 1;
+$moisLabel  = ucfirst($mois_fr[(int)date_i18n('n') - 1]) . ' ' . date_i18n('Y');
+$annee      = (int) date_i18n('Y');
+$saisonDebut = ((int)date_i18n('n') >= 9) ? $annee : $annee - 1;
 $saisonLabel = 'Saison ' . $saisonDebut . '–' . ($saisonDebut + 1);
 
 $joueursList = [];
@@ -38,7 +38,7 @@ var DataPingTopProg = {
 
     <?php if ($updatedAt !== false): ?>
         <p class="dataping-updated-at">
-            Dernière mise à jour : <?php echo esc_html(date('d/m/Y à H:i:s', $updatedAt)); ?>
+            Dernière mise à jour : <?php echo esc_html(date_i18n('d/m/Y à H:i:s', $updatedAt)); ?>
         </p>
     <?php endif; ?>
 

@@ -1,7 +1,7 @@
 <?php
 if ( ! defined( 'ABSPATH' ) ) exit;
 // Afficher un message de succès après la sauvegarde des paramètres
-if (isset($_GET['settings-updated']) && $_GET['settings-updated']) {
+if (isset($_GET['settings-updated']) && filter_input(INPUT_GET, 'settings-updated', FILTER_SANITIZE_NUMBER_INT)) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
     echo '<div class="notice notice-success is-dismissible"><p><strong>Paramètres enregistrés avec succès !</strong></p></div>';
 }
 ?>
@@ -67,7 +67,7 @@ if (isset($_GET['settings-updated']) && $_GET['settings-updated']) {
 
                 echo '<div style="margin-bottom: 5px; padding: 5px; border-left: 3px solid ' . esc_attr($color) . '; background: #fff;">';
                 echo '<span style="color: #666;">[' . esc_html($log['time']) . ']</span> ';
-                echo '<span style="color: ' . esc_attr($color) . '; font-weight: bold;">' . $icon . '</span> ';
+                echo '<span style="color: ' . esc_attr($color) . '; font-weight: bold;">' . esc_html($icon) . '</span> ';
                 echo '<span>' . esc_html($log['message']) . '</span>';
                 echo '</div>';
             }
@@ -121,7 +121,7 @@ jQuery(document).ready(function($) {
             type: 'POST',
             data: {
                 action: 'dataping_sync',
-                nonce: '<?php echo wp_create_nonce('dataping_sync_nonce'); ?>'
+                nonce: '<?php echo esc_js(wp_create_nonce('dataping_sync_nonce')); ?>'
             },
             success: function(response) {
                 $button.prop('disabled', false).removeClass('is-loading');
