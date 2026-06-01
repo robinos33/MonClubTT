@@ -516,7 +516,7 @@ th.headerSortUp {
 .dataping-top-prog .tp-nameplates {
     display: flex;
     width: 720px;
-    padding: 8px 48px 20px;
+    padding: 8px 48px 36px;
     gap: 12px;
     box-sizing: border-box;
 }
