@@ -496,7 +496,7 @@ th.headerSortUp {
 .dataping-top-prog .tp-stage-host {
     display: flex;
     justify-content: center;
-    padding: 6px 10px 0;
+    padding: 24px 10px 0;
 }
 
 /* Wrapper scalable : contient le stage SVG + les plaques de noms */
