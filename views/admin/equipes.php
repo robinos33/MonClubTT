@@ -1,5 +1,6 @@
 <?php
 if ( ! defined( 'ABSPATH' ) ) exit;
+// phpcs:disable WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 $equipes      = new Equipes();
 $listeEquipes = $equipes->getEquipesSeniorChampionnat('MF');
 $nonce        = wp_create_nonce('monclubtt_generate_pages_nonce');

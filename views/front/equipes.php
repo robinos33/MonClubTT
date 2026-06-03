@@ -1,5 +1,6 @@
 <?php
 if ( ! defined( 'ABSPATH' ) ) exit;
+// phpcs:disable WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 require_once(__DIR__ . '/header.php'); ?>
 <div class="monclubtt-div">
     <?php
