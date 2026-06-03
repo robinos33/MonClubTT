@@ -6,11 +6,11 @@ jQuery(document).ready(function ($) {
     // ===== Feuilles de match =====
 
     // Clic sur une ligne de rencontre expandable
-    $(document).on('click', '.dataping-expandable', function () {
+    $(document).on('click', '.monclubtt-expandable', function () {
         var $row       = $(this);
-        var $detailRow = $row.next('.dataping-feuille-row');
-        var $icon      = $row.find('.dataping-expand-icon');
-        var $content   = $detailRow.find('.dataping-feuille-content');
+        var $detailRow = $row.next('.monclubtt-feuille-row');
+        var $icon      = $row.find('.monclubtt-expand-icon');
+        var $content   = $detailRow.find('.monclubtt-feuille-content');
 
         if ($detailRow.is(':visible')) {
             // Réduire
@@ -24,31 +24,31 @@ jQuery(document).ready(function ($) {
         $icon.text('▼');
 
         // Déjà chargé ?
-        if ($content.hasClass('dataping-loaded')) {
+        if ($content.hasClass('monclubtt-loaded')) {
             return;
         }
 
         // Indiquer le chargement
-        $content.html('<p class="dataping-feuille-loading">Chargement de la feuille de match…</p>');
+        $content.html('<p class="monclubtt-feuille-loading">Chargement de la feuille de match…</p>');
 
         $.ajax({
-            url:  DataPingAjax.ajaxurl,
+            url:  MonClubTTAjax.ajaxurl,
             type: 'POST',
             data: {
-                action:     'dataping_feuille_match',
+                action:     'monclubtt_feuille_match',
                 renc_id:    $row.data('renc-id'),
                 is_retour:  $row.data('is-retour')
             },
             success: function (response) {
                 if (response.success) {
                     $content.html(buildFeuilleHtml(response.data));
-                    $content.addClass('dataping-loaded');
+                    $content.addClass('monclubtt-loaded');
                 } else {
-                    $content.html('<p class="dataping-feuille-error">Feuille de match non disponible.</p>');
+                    $content.html('<p class="monclubtt-feuille-error">Feuille de match non disponible.</p>');
                 }
             },
             error: function () {
-                $content.html('<p class="dataping-feuille-error">Erreur de chargement.</p>');
+                $content.html('<p class="monclubtt-feuille-error">Erreur de chargement.</p>');
             }
         });
     });
@@ -59,17 +59,17 @@ jQuery(document).ready(function ($) {
      * @returns {string}
      */
     function buildFeuilleHtml(data) {
-        var html = '<div class="dataping-feuille">';
+        var html = '<div class="monclubtt-feuille">';
 
         // --- Score global ---
         if (data.resultat) {
             var r    = data.resultat;
             var resA = parseInt(r.resa, 10);
             var resB = parseInt(r.resb, 10);
-            html += '<div class="dataping-feuille-resultat">';
-            html += '<span class="dataping-feuille-equipe' + (resA > resB ? ' dataping-winner' : '') + '">' + esc(r.equa) + '</span>';
-            html += '<span class="dataping-feuille-score"> ' + esc(r.resa) + ' – ' + esc(r.resb) + ' </span>';
-            html += '<span class="dataping-feuille-equipe' + (resB > resA ? ' dataping-winner' : '') + '">' + esc(r.equb) + '</span>';
+            html += '<div class="monclubtt-feuille-resultat">';
+            html += '<span class="monclubtt-feuille-equipe' + (resA > resB ? ' monclubtt-winner' : '') + '">' + esc(r.equa) + '</span>';
+            html += '<span class="monclubtt-feuille-score"> ' + esc(r.resa) + ' – ' + esc(r.resb) + ' </span>';
+            html += '<span class="monclubtt-feuille-equipe' + (resB > resA ? ' monclubtt-winner' : '') + '">' + esc(r.equb) + '</span>';
             html += '</div>';
         }
 
@@ -77,8 +77,8 @@ jQuery(document).ready(function ($) {
         if (data.joueur) {
             var joueurs = Array.isArray(data.joueur) ? data.joueur : [data.joueur];
             if (joueurs.length > 0) {
-                html += '<h6 class="dataping-feuille-section">Composition</h6>';
-                html += '<table class="dataping-table dataping-feuille-compo"><thead><tr>';
+                html += '<h6 class="monclubtt-feuille-section">Composition</h6>';
+                html += '<table class="monclubtt-table monclubtt-feuille-compo"><thead><tr>';
                 html += '<th>Équipe A</th><th>Classement</th><th>Équipe B</th><th>Classement</th>';
                 html += '</tr></thead><tbody>';
                 joueurs.forEach(function (j) {
@@ -97,20 +97,20 @@ jQuery(document).ready(function ($) {
         if (data.partie) {
             var parties = Array.isArray(data.partie) ? data.partie : [data.partie];
             if (parties.length > 0) {
-                html += '<h6 class="dataping-feuille-section">Résultats des parties</h6>';
-                html += '<table class="dataping-table dataping-feuille-parties"><thead><tr>';
+                html += '<h6 class="monclubtt-feuille-section">Résultats des parties</h6>';
+                html += '<table class="monclubtt-table monclubtt-feuille-parties"><thead><tr>';
                 html += '<th class="left">Joueur A</th><th>Sc.</th><th></th><th>Sc.</th><th class="left">Joueur B</th><th>Détail</th>';
                 html += '</tr></thead><tbody>';
                 parties.forEach(function (p) {
                     var wonA = String(p.scorea) === '1';
                     var wonB = String(p.scoreb) === '1';
                     html += '<tr>';
-                    html += '<td class="' + (wonA ? 'dataping-winner' : '') + '">' + esc(p.ja  || '') + '</td>';
-                    html += '<td class="center dataping-score">' + esc(String(p.scorea)) + '</td>';
-                    html += '<td class="center dataping-tiret">–</td>';
-                    html += '<td class="center dataping-score">' + esc(String(p.scoreb)) + '</td>';
-                    html += '<td class="' + (wonB ? 'dataping-winner' : '') + '">' + esc(p.jb  || '') + '</td>';
-                    html += '<td class="dataping-sets">'  + esc(p.detail || '') + '</td>';
+                    html += '<td class="' + (wonA ? 'monclubtt-winner' : '') + '">' + esc(p.ja  || '') + '</td>';
+                    html += '<td class="center monclubtt-score">' + esc(String(p.scorea)) + '</td>';
+                    html += '<td class="center monclubtt-tiret">–</td>';
+                    html += '<td class="center monclubtt-score">' + esc(String(p.scoreb)) + '</td>';
+                    html += '<td class="' + (wonB ? 'monclubtt-winner' : '') + '">' + esc(p.jb  || '') + '</td>';
+                    html += '<td class="monclubtt-sets">'  + esc(p.detail || '') + '</td>';
                     html += '</tr>';
                 });
                 html += '</tbody></table>';
@@ -135,11 +135,11 @@ jQuery(document).ready(function ($) {
 /* ===================== TOP PROGRESSION ===================== */
 (function () {
     'use strict';
-    if (typeof DataPingTopProg === 'undefined') return;
+    if (typeof MonClubTTTopProg === 'undefined') return;
 
-    var players     = DataPingTopProg.players;
-    var moisLabel   = DataPingTopProg.moisLabel;
-    var saisonLabel = DataPingTopProg.saisonLabel;
+    var players     = MonClubTTTopProg.players;
+    var moisLabel   = MonClubTTTopProg.moisLabel;
+    var saisonLabel = MonClubTTTopProg.saisonLabel;
 
     /* ---- Géométrie du podium ---- */
     var COLS = {
@@ -236,7 +236,7 @@ jQuery(document).ready(function ($) {
     }
 
     function buildPodiumSvg() {
-        var svg = document.getElementById('dataping-tp-podium-svg');
+        var svg = document.getElementById('monclubtt-tp-podium-svg');
         if (!svg) return;
         svg.innerHTML =
             '<defs>' +
@@ -272,8 +272,8 @@ jQuery(document).ready(function ($) {
         /* ordre visuel : 2e gauche, 1er centre, 3e droite */
         var order = [winners[1], winners[0], winners[2]];
         var ranks = [2, 1, 3];
-        var stage      = document.getElementById('dataping-tp-stage');
-        var nameplates = document.getElementById('dataping-tp-nameplates');
+        var stage      = document.getElementById('monclubtt-tp-stage');
+        var nameplates = document.getElementById('monclubtt-tp-nameplates');
         if (!stage || !nameplates) return;
 
         /* Nettoyer figures + médailles dans le stage */
@@ -330,23 +330,23 @@ jQuery(document).ready(function ($) {
     }
 
     function setMode(mode) {
-        var toggle = document.getElementById('dataping-tp-toggle');
+        var toggle = document.getElementById('monclubtt-tp-toggle');
         if (toggle) {
             var btns = toggle.querySelectorAll('button');
             for (var b = 0; b < btns.length; b++) {
                 btns[b].classList.toggle('tp-on', btns[b].dataset.mode === mode);
             }
         }
-        var subtitle = document.getElementById('dataping-tp-subtitle');
-        var tag      = document.getElementById('dataping-tp-tag');
+        var subtitle = document.getElementById('monclubtt-tp-subtitle');
+        var tag      = document.getElementById('monclubtt-tp-tag');
         if (subtitle) subtitle.textContent = mode === 'mens' ? 'Top 3 — gains sur le mois' : 'Top 3 — gains sur la saison';
         if (tag)      tag.textContent      = mode === 'mens' ? moisLabel : saisonLabel;
         renderPodium(mode);
     }
 
     function scalePodium() {
-        var host     = document.getElementById('dataping-tp-stage-host');
-        var scalable = document.getElementById('dataping-tp-scalable');
+        var host     = document.getElementById('monclubtt-tp-stage-host');
+        var scalable = document.getElementById('monclubtt-tp-scalable');
         if (!host || !scalable) return;
         var scale = Math.min(1, host.offsetWidth / 720);
         scalable.style.transform = 'scale(' + scale + ')';
@@ -358,7 +358,7 @@ jQuery(document).ready(function ($) {
     }
 
     function init() {
-        var toggle = document.getElementById('dataping-tp-toggle');
+        var toggle = document.getElementById('monclubtt-tp-toggle');
         if (!toggle) return;
         buildPodiumSvg();
         setMode('mens');

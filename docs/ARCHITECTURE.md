@@ -1,10 +1,10 @@
-# Architecture de DataPing
+# Architecture de MonClubTT
 
 ## Structure réelle du projet
 
 ```
-DataPing/
-├── DataPing.php          # Point d'entrée : registration WP, shortcodes, AJAX handlers
+MonClubTT/
+├── mon-club-tt.php       # Point d'entrée : registration WP, shortcodes, AJAX handlers
 ├── Utils.php             # Autoloader PSR-like (require_once sur chaque classe)
 │
 ├── models/               # Couche domaine + infrastructure
@@ -14,7 +14,7 @@ DataPing/
 │   ├── Joueurs.php       # Collection de joueurs
 │   ├── Joueur.php        # Modèle joueur (getters)
 │   ├── Classement.php    # Modèle classement (points, progressions)
-│   ├── ParametresDataPing.php  # Accès aux options WP (ID app, mdp, num club)
+│   ├── ParametresPlugin.php  # Accès aux options WP (ID app, mdp, num club)
 │   └── ...
 │
 ├── views/
@@ -29,8 +29,8 @@ DataPing/
 │       └── header.php
 │
 └── assets/
-    ├── DataPing.css      # Styles front + admin
-    ├── DataPing.js       # Interactions : tri tableau, feuilles de match AJAX
+    ├── mon-club-tt.css      # Styles front + admin
+    ├── mon-club-tt.js       # Interactions : tri tableau, feuilles de match AJAX
     └── tablesorter/      # Bibliothèque jQuery tablesorter
 ```
 
@@ -40,7 +40,7 @@ DataPing/
 
 ```
 Clic "Synchroniser"
-    → AJAX POST wp_ajax_dataping_sync
+    → AJAX POST wp_ajax_monclubtt_sync
     → AccesFFTTApi : effacement cache + appels API FFTT
     → Stockage transients WordPress (8h)
     → Réponse JSON (compteurs + logs)
@@ -50,7 +50,7 @@ Clic "Synchroniser"
 
 ```
 [joueurs] ou [equipe iddiv=X idpoule=Y]
-    → DataPing::joueurs_front() / equipes_front()
+    → MonClubTT::joueurs_front() / equipes_front()
     → AccesFFTTApi : lecture transients (ou appel API si cache expiré)
     → require views/front/joueurs.php | equipes.php
 ```
@@ -59,16 +59,16 @@ Clic "Synchroniser"
 
 ```
 Clic sur une ligne de résultat (front)
-    → AJAX POST wp_ajax_nopriv_dataping_feuille_match
+    → AJAX POST wp_ajax_nopriv_monclubtt_feuille_match
     → AccesFFTTApi::getRencontreDetail() — cache 7 jours
-    → Réponse JSON → rendu HTML côté client (DataPing.js)
+    → Réponse JSON → rendu HTML côté client (mon-club-tt.js)
 ```
 
 ## Couche cache
 
 Toutes les données transitent par les **transients WordPress** (`wp_options`) :
 
-| Clé (préfixe `dataping_*`) | Durée | Données |
+| Clé (préfixe `monclubtt_*`) | Durée | Données |
 |----------------------------|-------|---------|
 | `joueurs_club` | Jusqu'à sync manuelle | Licenciés du club |
 | `poule_classement` | 8 h | Classement d'une poule |

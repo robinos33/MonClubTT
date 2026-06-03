@@ -1,4 +1,4 @@
-# DataPing
+# MonClubTT
 
 Plugin WordPress non-officiel pour afficher les données d'un club issues de l'[API Smartping](https://www.fftt.com) de la Fédération Française de Tennis de Table (FFTT).
 
@@ -25,9 +25,9 @@ Plugin WordPress non-officiel pour afficher les données d'un club issues de l'[
 
 ## Installation
 
-1. Cloner ou télécharger ce dépôt dans `wp-content/plugins/DataPing/`
+1. Cloner ou télécharger ce dépôt dans `wp-content/plugins/MonClubTT/`
 2. Activer le plugin dans *Extensions → Extensions installées*
-3. Renseigner les identifiants API dans *DataPing → Paramètres* :
+3. Renseigner les identifiants API dans *MonClubTT → Paramètres* :
    - **ID Application** et **Mot de passe** fournis par la FFTT
    - **Numéro de club** (8 chiffres, ex. `10330011`)
 4. Lancer une première synchronisation via le bouton *Synchroniser les données*
@@ -52,14 +52,14 @@ Plugin WordPress non-officiel pour afficher les données d'un club issues de l'[
 [equipe iddiv="198511" idpoule="1140384"]
 ```
 
-Les valeurs `iddiv` et `idpoule` sont générées automatiquement dans *DataPing → Équipes*.  
+Les valeurs `iddiv` et `idpoule` sont générées automatiquement dans *MonClubTT → Équipes*.  
 Copier le shortcode affiché dans le tableau et le coller dans la page WordPress souhaitée.
 
 ---
 
 ## Génération automatique de pages
 
-Dans *DataPing → Équipes* :
+Dans *MonClubTT → Équipes* :
 
 1. Cocher les équipes à publier, décocher celles à supprimer
 2. Cliquer sur **Appliquer la sélection**
@@ -87,19 +87,19 @@ D'autres plugins peuvent consommer les données sans appel API supplémentaire :
 
 ```php
 // Joueurs (retourne un tableau d'objets Joueur)
-$joueurs = apply_filters('dataping_get_joueurs', 'MF'); // 'M', 'F' ou 'MF'
+$joueurs = apply_filters('monclubtt_get_joueurs', 'MF'); // 'M', 'F' ou 'MF'
 
 // Équipes (retourne un tableau d'objets Equipe)
-$equipes = apply_filters('dataping_get_equipes', 'MF');
+$equipes = apply_filters('monclubtt_get_equipes', 'MF');
 
 // Classement d'une poule
-$classement = apply_filters('dataping_get_classement_poule', null, [
+$classement = apply_filters('monclubtt_get_classement_poule', null, [
     'division' => '198511',
     'poule'    => '1140384',
 ]);
 
 // Rencontres d'une poule
-$rencontres = apply_filters('dataping_get_rencontres_poule', null, [
+$rencontres = apply_filters('monclubtt_get_rencontres_poule', null, [
     'division' => '198511',
     'poule'    => '1140384',
 ]);

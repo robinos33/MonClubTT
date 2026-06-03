@@ -20,4 +20,4 @@ jobs:
           svn-username: ${{ secrets.WORDPRESS_USERNAME }}
           svn-password: ${{ secrets.WORDPRESS_PASSWORD }}
           # Slug du plugin sur WordPress.org — à confirmer après approbation
-          slug: dataping
+          slug: mon-club-tt

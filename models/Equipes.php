@@ -14,8 +14,8 @@ class Equipes {
 	public function __construct() {
 		$this->_api = AccesFFTTApi::getInstance();
 
-		$listeEquipesM = $this->_api->getEquipesByClub( ParametresDataPing::getNumClub(), 'M' );
-		$listeEquipesF = $this->_api->getEquipesByClub( ParametresDataPing::getNumClub(), 'F' );
+		$listeEquipesM = $this->_api->getEquipesByClub( ParametresPlugin::getNumClub(), 'M' );
+		$listeEquipesF = $this->_api->getEquipesByClub( ParametresPlugin::getNumClub(), 'F' );
 		$this->_setEquipesFromApi( $listeEquipesM, $listeEquipesF );
 	}
 

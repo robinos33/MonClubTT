@@ -1,9 +1,9 @@
 <?php if ( ! defined( 'ABSPATH' ) ) exit; ?>
 <div class="wrap">
-    <h1 class="DataPing_title">Les joueurs </h1>
+    <h1 class="monclubtt-title">Les joueurs </h1>
     <h2>Shortcodes</h2>
     <p>Insérez le shortcode dans la page ou l'article où vous désirez afficher la liste des joueurs</p>
-    <form class="DataPing_liste_admin">
+    <form class="monclubtt-liste-admin">
         <table class="wp-list-table widefat fixed striped posts">
             <thead>
                 <tr>
@@ -35,7 +35,7 @@
     <h2>Liste des joueurs</h2>
     <?php
     $api = AccesFFTTApi::getInstance();
-    $numClub = ParametresDataPing::getNumClub();
+    $numClub = ParametresPlugin::getNumClub();
     $updatedAt = $api->getCacheUpdatedAt('joueurs_club', array('numclu' => $numClub));
     if ($updatedAt !== false):
     ?>

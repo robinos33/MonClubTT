@@ -1,13 +1,13 @@
-# Architecture DDD - DataPing
+# Architecture DDD - MonClubTT
 
 ## Vue d'ensemble
 
-DataPing suit une architecture **Domain-Driven Design (DDD)** stricte avec une approche **Test-Driven Development (TDD)**.
+MonClubTT suit une architecture **Domain-Driven Design (DDD)** stricte avec une approche **Test-Driven Development (TDD)**.
 
 ## Structure du projet
 
 ```
-DataPing/
+MonClubTT/
 ├── src/
 │   ├── Domain/                 # Couche Domaine (cœur métier)
 │   │   ├── Model/             # Entités et Agrégats
@@ -291,7 +291,7 @@ final class WordPressJoueurRepository implements JoueurRepositoryInterface
     public function findByLicence(Licence $licence): ?Joueur
     {
         // Logique WordPress spécifique
-        $data = get_option('dataping_joueur_' . $licence->getValue());
+        $data = get_option('monclubtt_joueur_' . $licence->getValue());
 
         if (!$data) {
             return null;

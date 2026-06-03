@@ -1,11 +1,11 @@
-# Guide de diagnostic - Problème de synchronisation DataPing
+# Guide de diagnostic - Problème de synchronisation MonClubTT
 
 ## Symptôme
 Les listings de joueurs et équipes sont vides après synchronisation.
 
 ## Architecture du système
 
-DataPing utilise **WordPress Transients** (cache temporaire) au lieu d'une base de données persistante :
+MonClubTT utilise **WordPress Transients** (cache temporaire) au lieu d'une base de données persistante :
 - Les données sont stockées dans `wp_options` via `set_transient()`
 - Le cache expire toutes les 8 heures (8h00, 13h00, lendemain 8h00)
 - La synchronisation est **manuelle** via un bouton dans l'admin WordPress
@@ -15,7 +15,7 @@ DataPing utilise **WordPress Transients** (cache temporaire) au lieu d'une base 
 
 ### 1. Vérifier la configuration API FFTT
 
-Dans WordPress Admin > DataPing :
+Dans WordPress Admin > MonClubTT :
 - **ID Application** : doit être fourni par la FFTT (format: `AM001`)
 - **Mot de passe** : clé API fournie par la FFTT
 - **Numéro de club** : numéro du club à synchroniser
@@ -24,7 +24,7 @@ Dans WordPress Admin > DataPing :
 
 ### 2. Lancer la synchronisation manuelle
 
-1. Aller dans WordPress Admin > DataPing
+1. Aller dans WordPress Admin > MonClubTT
 2. Cliquer sur "Synchroniser les données"
 3. Observer le message de retour :
    - ✅ **Succès** : affiche le nombre de joueurs et équipes récupérés
@@ -33,12 +33,12 @@ Dans WordPress Admin > DataPing :
 ### 3. Vérifier la console du navigateur
 
 Ouvrir la console développeur (F12) et observer :
-- `DataPing Sync - Résultats:` → montre les nombres de joueurs/équipes
-- `DataPing Sync - Debug:` → logs détaillés du processus
+- `MonClubTT Sync - Résultats:` → montre les nombres de joueurs/équipes
+- `MonClubTT Sync - Debug:` → logs détaillés du processus
 
 **Exemples de logs attendus :**
 ```
-DataPing Sync - Debug: [
+MonClubTT Sync - Debug: [
   "Numéro de club: 08350194",
   "ID Application: AM001",
   "Cache joueurs effacé",
@@ -56,14 +56,14 @@ Les erreurs d'API sont maintenant loggées dans les logs PHP de WordPress :
 ```bash
 # Localiser le fichier de logs WordPress
 # Généralement dans wp-content/debug.log
-tail -f wp-content/debug.log | grep "DataPing"
+tail -f wp-content/debug.log | grep "MonClubTT"
 ```
 
 **Types d'erreurs possibles :**
-- `DataPing - Erreur cURL` : problème de connexion réseau
-- `DataPing - Code HTTP XXX` : l'API FFTT a retourné une erreur
-- `DataPing - RÉPONSE VIDE de l'API FFTT` : **l'API retourne du vide (identifiants probablement invalides)**
-- `DataPing - Erreur parsing XML` : la réponse de l'API est invalide (sauf pour xml_initialisation.php qui est ignorée)
+- `MonClubTT - Erreur cURL` : problème de connexion réseau
+- `MonClubTT - Code HTTP XXX` : l'API FFTT a retourné une erreur
+- `MonClubTT - RÉPONSE VIDE de l'API FFTT` : **l'API retourne du vide (identifiants probablement invalides)**
+- `MonClubTT - Erreur parsing XML` : la réponse de l'API est invalide (sauf pour xml_initialisation.php qui est ignorée)
 
 ### 5. Cas d'erreur courants
 
@@ -103,7 +103,7 @@ tail -f wp-content/debug.log | grep "DataPing"
 
 ## Fichiers modifiés pour le debug
 
-### `DataPing.php` (lignes 285-343)
+### `MonClubTT.php` (lignes 285-343)
 - Ajout de vérification des paramètres avant synchronisation
 - Logs détaillés à chaque étape
 - Retour des informations de debug dans la réponse AJAX
@@ -124,7 +124,7 @@ Un script de test a été créé pour diagnostiquer rapidement les problèmes :
 
 ```bash
 # Depuis le navigateur, accéder à :
-http://votresite.com/wp-content/plugins/DataPing/test-api-fftt.php
+http://votresite.com/wp-content/plugins/MonClubTT/test-api-fftt.php
 ```
 
 Ce script affichera :
@@ -147,29 +147,29 @@ Pour consulter les logs en temps réel :
 
 ```bash
 # Sur le serveur WordPress
-tail -f /var/log/apache2/error.log | grep DataPing
+tail -f /var/log/apache2/error.log | grep MonClubTT
 
 # Ou selon la config PHP
-tail -f /var/log/php_errors.log | grep DataPing
+tail -f /var/log/php_errors.log | grep MonClubTT
 
 # Dans wp-content
-tail -f wp-content/debug.log | grep DataPing
+tail -f wp-content/debug.log | grep MonClubTT
 ```
 
 **Exemple de logs attendus lors d'une synchronisation réussie :**
 ```
-[07-Jan-2026 10:30:15] DataPing - Appel API: http://www.fftt.com/mobile/pxml/xml_liste_joueur.php?club=10330011&serie=ABC123&id=SX059&tm=20260107103015123&tmc=a1b2c3d4e5f6...
-[07-Jan-2026 10:30:16] DataPing - getLicencesByClub(10330011) - getData result: {"joueur":[{"licence":"1234567",...}]}
-[07-Jan-2026 10:30:16] DataPing - getLicencesByClub(10330011) - getCollection result count: 25
+[07-Jan-2026 10:30:15] MonClubTT - Appel API: http://www.fftt.com/mobile/pxml/xml_liste_joueur.php?club=10330011&serie=ABC123&id=SX059&tm=20260107103015123&tmc=a1b2c3d4e5f6...
+[07-Jan-2026 10:30:16] MonClubTT - getLicencesByClub(10330011) - getData result: {"joueur":[{"licence":"1234567",...}]}
+[07-Jan-2026 10:30:16] MonClubTT - getLicencesByClub(10330011) - getCollection result count: 25
 ```
 
 **Exemple de logs en cas d'erreur :**
 ```
-[07-Jan-2026 10:30:15] DataPing - Appel API: http://www.fftt.com/mobile/pxml/xml_liste_joueur.php?club=10330011&serie=ABC123&id=SX059&tm=20260107103015123&tmc=a1b2c3d4e5f6...
-[07-Jan-2026 10:30:16] DataPing - Code HTTP 401 - URL: http://www.fftt.com/mobile/pxml/xml_liste_joueur.php?club=...
-[07-Jan-2026 10:30:16] DataPing - Erreur parsing XML - URL: http://www.fftt.com/mobile/pxml/xml_liste_joueur.php?club=... - Data: <?xml version="1.0"?><error>Identifiants invalides</error>
-[07-Jan-2026 10:30:16] DataPing - getLicencesByClub(10330011) - getData result: boolean
-[07-Jan-2026 10:30:16] DataPing - getLicencesByClub(10330011) - getCollection result count: 0
+[07-Jan-2026 10:30:15] MonClubTT - Appel API: http://www.fftt.com/mobile/pxml/xml_liste_joueur.php?club=10330011&serie=ABC123&id=SX059&tm=20260107103015123&tmc=a1b2c3d4e5f6...
+[07-Jan-2026 10:30:16] MonClubTT - Code HTTP 401 - URL: http://www.fftt.com/mobile/pxml/xml_liste_joueur.php?club=...
+[07-Jan-2026 10:30:16] MonClubTT - Erreur parsing XML - URL: http://www.fftt.com/mobile/pxml/xml_liste_joueur.php?club=... - Data: <?xml version="1.0"?><error>Identifiants invalides</error>
+[07-Jan-2026 10:30:16] MonClubTT - getLicencesByClub(10330011) - getData result: boolean
+[07-Jan-2026 10:30:16] MonClubTT - getLicencesByClub(10330011) - getCollection result count: 0
 ```
 
 ## Test rapide manuel

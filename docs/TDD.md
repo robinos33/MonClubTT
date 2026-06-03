@@ -33,10 +33,10 @@
 
 declare(strict_types=1);
 
-namespace DataPing\Tests\Unit\Domain\ValueObject;
+namespace MonClubTT\Tests\Unit\Domain\ValueObject;
 
-use DataPing\Domain\ValueObject\Licence;
-use DataPing\Domain\Exception\InvalidLicenceException;
+use MonClubTT\Domain\ValueObject\Licence;
+use MonClubTT\Domain\Exception\InvalidLicenceException;
 use PHPUnit\Framework\TestCase;
 
 final class LicenceTest extends TestCase
@@ -69,7 +69,7 @@ Time: 00:00.050, Memory: 6.00 MB
 There was 1 error:
 
 1) LicenceTest::test_should_create_licence_when_format_valid
-Error: Class "DataPing\Domain\ValueObject\Licence" not found
+Error: Class "MonClubTT\Domain\ValueObject\Licence" not found
 
 ERRORS!
 Tests: 1, Assertions: 0, Errors: 1.
@@ -94,7 +94,7 @@ Tests: 1, Assertions: 0, Errors: 1.
 
 declare(strict_types=1);
 
-namespace DataPing\Domain\ValueObject;
+namespace MonClubTT\Domain\ValueObject;
 
 final readonly class Licence
 {
@@ -171,9 +171,9 @@ Tests: 2, Assertions: 0, Failures: 2.
 
 declare(strict_types=1);
 
-namespace DataPing\Domain\ValueObject;
+namespace MonClubTT\Domain\ValueObject;
 
-use DataPing\Domain\Exception\InvalidLicenceException;
+use MonClubTT\Domain\Exception\InvalidLicenceException;
 
 final readonly class Licence
 {
@@ -221,9 +221,9 @@ OK (3 tests, 3 assertions)
 
 declare(strict_types=1);
 
-namespace DataPing\Domain\ValueObject;
+namespace MonClubTT\Domain\ValueObject;
 
-use DataPing\Domain\Exception\InvalidLicenceException;
+use MonClubTT\Domain\Exception\InvalidLicenceException;
 
 /**
  * Représente un numéro de licence FFTT
@@ -231,7 +231,7 @@ use DataPing\Domain\Exception\InvalidLicenceException;
  * Value Object immuable représentant une licence de joueur.
  * Une licence FFTT est composée de exactement 7 chiffres.
  *
- * @package DataPing\Domain\ValueObject
+ * @package MonClubTT\Domain\ValueObject
  */
 final readonly class Licence
 {

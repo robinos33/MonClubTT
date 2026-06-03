@@ -1,6 +1,6 @@
 # Changelog
 
-Toutes les modifications notables de DataPing sont documentées ici.  
+Toutes les modifications notables de MonClubTT sont documentées ici.  
 Format : [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/)
 
 ---
@@ -19,7 +19,7 @@ Première version stable. Refonte complète du plugin original.
 - **Badges de progression** mensuelle et annuelle sur la liste des joueurs
 - **Design tableau unifié** — classement, résultats et joueurs partagent le même style
 - **Cache transients** avec durées adaptées à chaque type de données
-- **Hooks WordPress** pour exposer les données aux autres plugins (`dataping_get_joueurs`, `dataping_get_equipes`, `dataping_get_classement_poule`, `dataping_get_rencontres_poule`)
+- **Hooks WordPress** pour exposer les données aux autres plugins (`monclubtt_get_joueurs`, `monclubtt_get_equipes`, `monclubtt_get_classement_poule`, `monclubtt_get_rencontres_poule`)
 - **AJAX public** pour les feuilles de match (visiteurs non connectés)
 
 ### Corrigé

@@ -1,4 +1,4 @@
-# Contribuer à DataPing
+# Contribuer à MonClubTT
 
 Merci de l'intérêt pour ce plugin ! Les contributions sont les bienvenues.
 
@@ -8,7 +8,7 @@ Merci de l'intérêt pour ce plugin ! Les contributions sont les bienvenues.
 
 ## Signaler un bug ou proposer une idée
 
-Ouvrez une [issue GitHub](https://github.com/robinos33/DataPing/issues) en précisant :
+Ouvrez une [issue GitHub](https://github.com/robinos33/MonClubTT/issues) en précisant :
 
 - **Bug** : étapes pour reproduire, comportement attendu vs observé, version de WordPress et PHP
 - **Suggestion** : contexte d'utilisation, cas concret que ça résoudrait
@@ -39,8 +39,8 @@ Pas besoin de formalisme excessif — une description claire suffit.
 ## Structure du projet
 
 ```
-DataPing/
-├── DataPing.php          # Point d'entrée : shortcodes, hooks, AJAX handlers
+MonClubTT/
+├── mon-club-tt.php       # Point d'entrée : shortcodes, hooks, AJAX handlers
 ├── Utils.php             # Autoloader des classes
 ├── models/
 │   ├── AccesFFTTApi.php  # Client API FFTT (auth HMAC-SHA1, cache transients)
@@ -53,8 +53,8 @@ DataPing/
 │   ├── admin/            # Templates administration
 │   └── front/            # Templates publics (joueurs, équipes)
 └── assets/
-    ├── DataPing.css       # Styles front et admin
-    └── DataPing.js        # Interactions (tri, feuilles de match AJAX)
+    ├── mon-club-tt.css       # Styles front et admin
+    └── mon-club-tt.js        # Interactions (tri, feuilles de match AJAX)
 ```
 
 ---
@@ -73,4 +73,4 @@ Quelques idées si vous cherchez par où commencer :
 
 ## Questions
 
-Pour toute question, ouvrez une [issue GitHub](https://github.com/robinos33/DataPing/issues).
+Pour toute question, ouvrez une [issue GitHub](https://github.com/robinos33/MonClubTT/issues).

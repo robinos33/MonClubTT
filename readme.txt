@@ -1,4 +1,4 @@
-=== DataPing ===
+=== Mon Club TT ===
 Contributors: robinos33
 Tags: table tennis, fftt, club, rankings, results
 Requires at least: 5.0
@@ -8,11 +8,11 @@ Requires PHP: 7.4
 License: GPLv2
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-Display your table tennis club data from the official FFTT Smartping API.
+Display your table tennis club's players, teams, and rankings from the official FFTT Smartping API. Not affiliated with or endorsed by the FFTT.
 
 == Description ==
 
-DataPing is an unofficial WordPress plugin that connects to the FFTT (Fédération Française de Tennis de Table) Smartping 2.0 API to display your club's data on your WordPress site.
+Mon Club TT is an unofficial WordPress plugin that connects to the FFTT (Fédération Française de Tennis de Table) Smartping 2.0 API to display your club's data on your WordPress site.
 
 **Features:**
 
@@ -35,13 +35,13 @@ DataPing is an unofficial WordPress plugin that connects to the FFTT (Fédérati
 * Valid FFTT API credentials (App ID + password, obtainable from the FFTT)
 * Your club number (8 digits, e.g. `10330011`)
 
-This plugin is not affiliated with or endorsed by the FFTT.
+This plugin is not affiliated with or endorsed by the FFTT or the Smartping platform.
 
 == Installation ==
 
-1. Upload the `DataPing` folder to `/wp-content/plugins/`
+1. Upload the `mon-club-tt` folder to `/wp-content/plugins/`
 2. Activate the plugin in *Plugins → Installed Plugins*
-3. Go to *DataPing → Settings* and enter your FFTT API credentials and club number
+3. Go to *Mon Club TT → Settings* and enter your FFTT API credentials and club number
 4. Click *Synchronize data* to fetch your club's data for the first time
 
 == Frequently Asked Questions ==
@@ -56,7 +56,7 @@ Contact the FFTT directly. An App ID and password are provided upon request.
 Player data is refreshed on manual sync only. League standings and results are cached and automatically refreshed at 08:00 and 13:00 each day. Match sheets are cached for 7 days (past results do not change).
 
 = Can I use the data in another plugin? =
-Yes. DataPing exposes four filters: `dataping_get_joueurs`, `dataping_get_equipes`, `dataping_get_classement_poule`, `dataping_get_rencontres_poule`. See the documentation for usage.
+Yes. The plugin exposes four filters: `monclubtt_get_joueurs`, `monclubtt_get_equipes`, `monclubtt_get_classement_poule`, `monclubtt_get_rencontres_poule`. See the documentation for usage.
 
 == Changelog ==
 

@@ -1,13 +1,13 @@
 <?php
 /*
-  Plugin Name: DataPing
-  Plugin URI: https://github.com/robinos33/DataPing
-  Description: Display your table tennis club data from the FFTT Smartping API.
+  Plugin Name: Mon Club TT
+  Plugin URI: https://github.com/robinos33/MonClubTT
+  Description: Display your table tennis club's players, teams, and rankings from the official FFTT Smartping API. Not affiliated with or endorsed by the FFTT.
   Version: 1.0.0
   Author: Robin Aldasoro
   Author URI: https://github.com/robinos33
   License: GPLv2
-  Text Domain: dataping
+  Text Domain: mon-club-tt
   Requires at least: 5.0
   Requires PHP: 7.4
  */
@@ -16,7 +16,7 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 
 require_once('Utils.php');
 
-class DataPing
+class MonClubTT
 {
 
     /**
@@ -29,33 +29,39 @@ class DataPing
 
     public function __construct()
     {
+        add_action('plugins_loaded', array($this, 'load_textdomain'));
         add_action('admin_menu', array($this, 'add_admin_menu'));
         add_action('admin_init', array($this, 'register_settings'));
-        add_action('init', array($this, 'dataping_style_scripts'));
+        add_action('init', array($this, 'monclubtt_style_scripts'));
         add_shortcode('equipe', array($this, 'equipes_front'));
         add_shortcode('joueurs', array($this, 'joueurs_front'));
 
         // Hooks pour exposer les données en cache aux autres plugins
-        add_filter('dataping_get_joueurs', array($this, 'get_joueurs_data'), 10, 1);
-        add_filter('dataping_get_equipes', array($this, 'get_equipes_data'), 10, 1);
-        add_filter('dataping_get_classement_poule', array($this, 'get_classement_poule_data'), 10, 2);
-        add_filter('dataping_get_rencontres_poule', array($this, 'get_rencontres_poule_data'), 10, 2);
+        add_filter('monclubtt_get_joueurs', array($this, 'get_joueurs_data'), 10, 1);
+        add_filter('monclubtt_get_equipes', array($this, 'get_equipes_data'), 10, 1);
+        add_filter('monclubtt_get_classement_poule', array($this, 'get_classement_poule_data'), 10, 2);
+        add_filter('monclubtt_get_rencontres_poule', array($this, 'get_rencontres_poule_data'), 10, 2);
 
         // AJAX handlers
-        add_action('wp_ajax_dataping_sync', array($this, 'handle_ajax_sync'));
-        add_action('wp_ajax_dataping_generate_pages', array($this, 'handle_ajax_generate_pages'));
-        add_action('wp_ajax_dataping_feuille_match',        array($this, 'handle_ajax_feuille_match'));
-        add_action('wp_ajax_nopriv_dataping_feuille_match', array($this, 'handle_ajax_feuille_match'));
+        add_action('wp_ajax_monclubtt_sync', array($this, 'handle_ajax_sync'));
+        add_action('wp_ajax_monclubtt_generate_pages', array($this, 'handle_ajax_generate_pages'));
+        add_action('wp_ajax_monclubtt_feuille_match',        array($this, 'handle_ajax_feuille_match'));
+        add_action('wp_ajax_nopriv_monclubtt_feuille_match', array($this, 'handle_ajax_feuille_match'));
 
         // Widget dashboard
         add_action('wp_dashboard_setup', array($this, 'add_dashboard_widget'));
     }
 
+    public function load_textdomain()
+    {
+        load_plugin_textdomain('mon-club-tt', false, dirname(plugin_basename(__FILE__)) . '/languages');
+    }
+
     public function add_admin_menu()
     {
-        add_menu_page('DataPing', 'DataPing', 'manage_options', 'parametres_DataPing', array($this, 'admin_module'));
-        add_submenu_page('parametres_DataPing', 'Equipes', 'Equipes', 'manage_options', 'equipes_DataPing', array($this, 'equipes_admin'));
-        add_submenu_page('parametres_DataPing', 'Joueurs', 'Joueurs', 'manage_options', 'joueurs_DataPing', array($this, 'joueurs_admin'));
+        add_menu_page('Mon Club TT', 'Mon Club TT', 'manage_options', 'monclubtt_parametres', array($this, 'admin_module'));
+        add_submenu_page('monclubtt_parametres', 'Equipes', 'Equipes', 'manage_options', 'monclubtt_equipes', array($this, 'equipes_admin'));
+        add_submenu_page('monclubtt_parametres', 'Joueurs', 'Joueurs', 'manage_options', 'monclubtt_joueurs', array($this, 'joueurs_admin'));
     }
 
     public function admin_module()
@@ -72,35 +78,35 @@ class DataPing
         return $datas;
     }
 
-    public function dataping_style_scripts()
+    public function monclubtt_style_scripts()
     {
         // Styles
-        $cssVer = filemtime(plugin_dir_path(__FILE__) . 'assets/DataPing.css');
-        $jsVer  = filemtime(plugin_dir_path(__FILE__) . 'assets/DataPing.js');
-        wp_register_style('admin-css', plugins_url('/assets/DataPing.css', __FILE__), array(), $cssVer);
-        wp_enqueue_style('admin-css');
+        $cssVer = filemtime(plugin_dir_path(__FILE__) . 'assets/mon-club-tt.css');
+        $jsVer  = filemtime(plugin_dir_path(__FILE__) . 'assets/mon-club-tt.js');
+        wp_register_style('mon-club-tt-css', plugins_url('/assets/mon-club-tt.css', __FILE__), array(), $cssVer);
+        wp_enqueue_style('mon-club-tt-css');
         // Javascript
-        wp_register_script('dataping-js', plugins_url('/assets/DataPing.js', __FILE__), array('jquery'), $jsVer, true);
+        wp_register_script('monclubtt-js', plugins_url('/assets/mon-club-tt.js', __FILE__), array('jquery'), $jsVer, true);
         wp_register_script('table-sorter', plugins_url('/assets/tablesorter/jquery.tablesorter.min.js', __FILE__), array('jquery'), '1.0', true);
         wp_register_script('table-sorter-pager', plugins_url('/assets/tablesorter/jquery.tablesorter.pager.js', __FILE__), array('jquery', 'table-sorter'), '1.0', true);
-        wp_enqueue_script('dataping-js');
+        wp_enqueue_script('monclubtt-js');
         wp_enqueue_script('table-sorter');
         wp_enqueue_script('table-sorter-pager');
-        wp_localize_script('dataping-js', 'DataPingAjax', array(
+        wp_localize_script('monclubtt-js', 'MonClubTTAjax', array(
             'ajaxurl' => admin_url('admin-ajax.php'),
         ));
     }
 
     public function register_settings()
     {
-        register_setting('DataPing_settings', ConstantesDataPing::DATAPING_ID_APPLICATION, array('sanitize_callback' => 'sanitize_text_field'));
-        register_setting('DataPing_settings', ConstantesDataPing::DATAPING_MOT_DE_PASSE,    array('sanitize_callback' => 'sanitize_text_field'));
-        register_setting('DataPing_settings', ConstantesDataPing::DATAPING_NUM_CLUB,        array('sanitize_callback' => 'sanitize_text_field'));
+        register_setting('monclubtt_settings', ConstantesMonClubTT::MONCLUBTT_ID_APPLICATION, array('sanitize_callback' => 'sanitize_text_field'));
+        register_setting('monclubtt_settings', ConstantesMonClubTT::MONCLUBTT_MOT_DE_PASSE,    array('sanitize_callback' => 'sanitize_text_field'));
+        register_setting('monclubtt_settings', ConstantesMonClubTT::MONCLUBTT_NUM_CLUB,        array('sanitize_callback' => 'sanitize_text_field'));
 
-        add_settings_section('DataPing_section', 'Paramètres du plugin', array($this, 'section_html'), 'DataPing_settings');
-        add_settings_field(ConstantesDataPing::DATAPING_ID_APPLICATION, 'Id Application', array($this, 'id_application_html'), 'DataPing_settings', 'DataPing_section');
-        add_settings_field(ConstantesDataPing::DATAPING_MOT_DE_PASSE, 'Mot de passe Application', array($this, 'mot_de_passe_html'), 'DataPing_settings', 'DataPing_section');
-        add_settings_field(ConstantesDataPing::DATAPING_NUM_CLUB, 'Numéro de club', array($this, 'equipe_num_html'), 'DataPing_settings', 'DataPing_section');
+        add_settings_section('monclubtt_section', '', array($this, 'section_html'), 'monclubtt_settings');
+        add_settings_field(ConstantesMonClubTT::MONCLUBTT_ID_APPLICATION, 'Id Application', array($this, 'id_application_html'), 'monclubtt_settings', 'monclubtt_section');
+        add_settings_field(ConstantesMonClubTT::MONCLUBTT_MOT_DE_PASSE, 'Mot de passe Application', array($this, 'mot_de_passe_html'), 'monclubtt_settings', 'monclubtt_section');
+        add_settings_field(ConstantesMonClubTT::MONCLUBTT_NUM_CLUB, 'Numéro de club', array($this, 'equipe_num_html'), 'monclubtt_settings', 'monclubtt_section');
     }
 
     public function section_html()
@@ -112,32 +118,32 @@ class DataPing
     public function id_application_html()
     {
         ?>
-        <input type="text" name="DataPing_id_application"
-               value="<?php echo esc_attr(get_option(ConstantesDataPing::DATAPING_ID_APPLICATION)); ?>"/>
+        <input type="text" name="monclubtt_id_application"
+               value="<?php echo esc_attr(get_option(ConstantesMonClubTT::MONCLUBTT_ID_APPLICATION)); ?>"/>
         <?php
     }
 
     public function mot_de_passe_html()
     {
         ?>
-        <input type="text" name="DataPing_mot_de_passe"
-               value="<?php echo esc_attr(get_option(ConstantesDataPing::DATAPING_MOT_DE_PASSE)); ?>"/>
+        <input type="text" name="monclubtt_mot_de_passe"
+               value="<?php echo esc_attr(get_option(ConstantesMonClubTT::MONCLUBTT_MOT_DE_PASSE)); ?>"/>
         <?php
     }
 
     public function equipe_num_html()
     {
         ?>
-        <input type="text" name="DataPing_num_club"
-               value="<?php echo esc_attr(get_option(ConstantesDataPing::DATAPING_NUM_CLUB)); ?>"/>
+        <input type="text" name="monclubtt_num_club"
+               value="<?php echo esc_attr(get_option(ConstantesMonClubTT::MONCLUBTT_NUM_CLUB)); ?>"/>
         <?php
     }
 
     public function getForm()
     {
-        echo '<form action="options.php" method="POST" name="DataPing_settings" class="DataPing_settings_form">';
-        do_settings_sections('DataPing_settings');
-        settings_fields('DataPing_settings');
+        echo '<form action="options.php" method="POST" name="monclubtt_settings" class="monclubtt_settings_form">';
+        do_settings_sections('monclubtt_settings');
+        settings_fields('monclubtt_settings');
         echo '<div>' . submit_button('Valider la saisie') . '</div>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
         echo '</form>';
     }
@@ -160,7 +166,7 @@ class DataPing
     {
         $api = AccesFFTTApi::getInstance();
         if (!is_object($api)) {
-            return __('Problème lors de la récupération des résultats', 'dataping'); // phpcs:ignore WordPress.WP.I18n.TextDomainMismatch
+            return __('Problème lors de la récupération des résultats', 'mon-club-tt'); // phpcs:ignore WordPress.WP.I18n.TextDomainMismatch
         }
 
         // Normalise et valide les attributs du shortcode
@@ -168,11 +174,11 @@ class DataPing
         $atts['iddiv'] = (string) $atts['iddiv'];
         $atts['idpoule'] = (string) $atts['idpoule'];
         if ($atts['iddiv'] === '' || $atts['idpoule'] === '') {
-            return __('Poule ou division incorrecte', 'dataping'); // phpcs:ignore WordPress.WP.I18n.TextDomainMismatch
+            return __('Poule ou division incorrecte', 'mon-club-tt'); // phpcs:ignore WordPress.WP.I18n.TextDomainMismatch
         }
 
-        $listeEquipesM = $api->getEquipesByClub(ParametresDataPing::getNumClub(), 'M');
-        $listeEquipesF = $api->getEquipesByClub(ParametresDataPing::getNumClub(), 'F');
+        $listeEquipesM = $api->getEquipesByClub(ParametresPlugin::getNumClub(), 'M');
+        $listeEquipesF = $api->getEquipesByClub(ParametresPlugin::getNumClub(), 'F');
         $listeEquipes = array_merge((array) $listeEquipesM, (array) $listeEquipesF);
 
         ob_start();
@@ -193,13 +199,13 @@ class DataPing
             $listeJoueurs = array();
             $joueurs = new Joueurs();
             $api = AccesFFTTApi::getInstance();
-            $numClub = ParametresDataPing::getNumClub();
+            $numClub = ParametresPlugin::getNumClub();
             $updatedAt = $api->getCacheUpdatedAt('joueurs_club', array('numclu' => $numClub));
             ob_start();
             require __DIR__ . '/views/front/joueurs.php';
             return ob_get_clean();
         }
-        return __('Erreur de paramètres du shortcode', 'dataping'); // phpcs:ignore WordPress.WP.I18n.TextDomainMismatch
+        return __('Erreur de paramètres du shortcode', 'mon-club-tt'); // phpcs:ignore WordPress.WP.I18n.TextDomainMismatch
     }
 
     private function getTypeListeJoueurs()
@@ -209,7 +215,7 @@ class DataPing
 
     /**
      * Hook pour récupérer les données des joueurs en cache
-     * Usage: $joueurs = apply_filters('dataping_get_joueurs', 'MF');
+     * Usage: $joueurs = apply_filters('monclubtt_get_joueurs', 'MF');
      * @param string $type Type de joueurs ('M', 'F', ou 'MF')
      * @return array Tableau d'objets Joueur
      */
@@ -224,7 +230,7 @@ class DataPing
 
     /**
      * Hook pour récupérer les données des équipes en cache
-     * Usage: $equipes = apply_filters('dataping_get_equipes', 'M');
+     * Usage: $equipes = apply_filters('monclubtt_get_equipes', 'M');
      * @param string $type Type d'équipes ('M' ou 'F', null pour toutes)
      * @return array Tableau d'équipes
      */
@@ -236,18 +242,18 @@ class DataPing
         }
 
         if ($type === 'M' || $type === 'F') {
-            return $api->getEquipesByClub(ParametresDataPing::getNumClub(), $type);
+            return $api->getEquipesByClub(ParametresPlugin::getNumClub(), $type);
         }
 
         // Retourne toutes les équipes (M et F)
-        $equipesM = $api->getEquipesByClub(ParametresDataPing::getNumClub(), 'M');
-        $equipesF = $api->getEquipesByClub(ParametresDataPing::getNumClub(), 'F');
+        $equipesM = $api->getEquipesByClub(ParametresPlugin::getNumClub(), 'M');
+        $equipesF = $api->getEquipesByClub(ParametresPlugin::getNumClub(), 'F');
         return array_merge((array) $equipesM, (array) $equipesF);
     }
 
     /**
      * Hook pour récupérer le classement d'une poule en cache
-     * Usage: $classement = apply_filters('dataping_get_classement_poule', null, array('division' => 'D1', 'poule' => 'A'));
+     * Usage: $classement = apply_filters('monclubtt_get_classement_poule', null, array('division' => 'D1', 'poule' => 'A'));
      * @param mixed $value Valeur par défaut (ignorée)
      * @param array $params Paramètres avec 'division' et 'poule'
      * @return array Classement de la poule
@@ -263,7 +269,7 @@ class DataPing
 
     /**
      * Hook pour récupérer les rencontres d'une poule en cache
-     * Usage: $rencontres = apply_filters('dataping_get_rencontres_poule', null, array('division' => 'D1', 'poule' => 'A'));
+     * Usage: $rencontres = apply_filters('monclubtt_get_rencontres_poule', null, array('division' => 'D1', 'poule' => 'A'));
      * @param mixed $value Valeur par défaut (ignorée)
      * @param array $params Paramètres avec 'division' et 'poule'
      * @return array Rencontres de la poule
@@ -307,7 +313,7 @@ class DataPing
      */
     public function handle_ajax_sync()
     {
-        check_ajax_referer('dataping_sync_nonce', 'nonce');
+        check_ajax_referer('monclubtt_sync_nonce', 'nonce');
 
         if (!current_user_can('manage_options')) {
             wp_send_json_error(array('message' => 'Permissions insuffisantes'));
@@ -321,7 +327,7 @@ class DataPing
         }
 
         try {
-            $numClub = ParametresDataPing::getNumClub();
+            $numClub = ParametresPlugin::getNumClub();
             $syncResults = array();
             $debugLog = array();
 
@@ -331,8 +337,8 @@ class DataPing
             }
             $debugLog[] = "Numéro de club: " . $numClub;
 
-            $idApp = ParametresDataPing::getIdApplication();
-            $motDePasse = ParametresDataPing::getMotDePasse();
+            $idApp = ParametresPlugin::getIdApplication();
+            $motDePasse = ParametresPlugin::getMotDePasse();
             if (empty($idApp) || empty($motDePasse)) {
                 throw new Exception('Identifiants API FFTT non configurés');
             }
@@ -373,7 +379,7 @@ class DataPing
             }
 
             // Enregistrer l'horodatage de la dernière synchronisation
-            update_option('dataping_last_sync', time());
+            update_option('monclubtt_last_sync', time());
 
             wp_send_json_success(array(
                 'message' => 'Synchronisation réussie',
@@ -393,11 +399,11 @@ class DataPing
      * Handler AJAX : synchronise les pages WordPress avec la sélection d'équipes.
      * - Crée ou remet en ligne les pages des équipes cochées.
      * - Met à la corbeille les pages des équipes décochées.
-     * Les pages générées sont tracées via le meta _dataping_iddiv / _dataping_idpoule.
+     * Les pages générées sont tracées via le meta _monclubtt_iddiv / _monclubtt_idpoule.
      */
     public function handle_ajax_generate_pages()
     {
-        check_ajax_referer('dataping_generate_pages_nonce', 'nonce');
+        check_ajax_referer('monclubtt_generate_pages_nonce', 'nonce');
 
         if (!current_user_can('manage_options')) {
             wp_send_json_error(array('message' => 'Permissions insuffisantes'));
@@ -424,7 +430,7 @@ class DataPing
             if (empty($iddiv)) {
                 continue;
             }
-            $page = $this->findDataPingPage($iddiv, $idpoule);
+            $page = $this->findMonClubTTPage($iddiv, $idpoule);
             if ($page) {
                 wp_trash_post($page->ID);
                 $deleted++;
@@ -441,8 +447,8 @@ class DataPing
             }
 
             $content = '[equipe iddiv="' . $iddiv . '" idpoule="' . $idpoule . '"]';
-            // Chercher d'abord par meta (page déjà gérée par DataPing, y.c. à la corbeille)
-            $page = $this->findDataPingPage($iddiv, $idpoule, true);
+            // Chercher d'abord par meta (page déjà gérée par MonClubTT, y.c. à la corbeille)
+            $page = $this->findMonClubTTPage($iddiv, $idpoule, true);
 
             if ($page) {
                 wp_update_post(array(
@@ -461,15 +467,15 @@ class DataPing
                     'post_type'    => 'page',
                     'post_parent'  => $parentId,
                 ));
-                update_post_meta($pageId, '_dataping_iddiv',   $iddiv);
-                update_post_meta($pageId, '_dataping_idpoule', $idpoule);
+                update_post_meta($pageId, '_monclubtt_iddiv',   $iddiv);
+                update_post_meta($pageId, '_monclubtt_idpoule', $idpoule);
                 $created++;
                 continue; // meta déjà posé, on passe
             }
 
             // Mettre à jour les metas (au cas où elles manquaient)
-            update_post_meta($page->ID, '_dataping_iddiv',   $iddiv);
-            update_post_meta($page->ID, '_dataping_idpoule', $idpoule);
+            update_post_meta($page->ID, '_monclubtt_iddiv',   $iddiv);
+            update_post_meta($page->ID, '_monclubtt_idpoule', $idpoule);
         }
 
         $parentUrl = get_permalink($parentId);
@@ -489,14 +495,14 @@ class DataPing
     }
 
     /**
-     * Recherche une page WP générée par DataPing via ses metas iddiv/idpoule.
+     * Recherche une page WP générée par MonClubTT via ses metas iddiv/idpoule.
      *
      * @param string $iddiv
      * @param string $idpoule
      * @param bool   $includeTrashed Inclure les pages à la corbeille
      * @return WP_Post|null
      */
-    private function findDataPingPage($iddiv, $idpoule, $includeTrashed = false)
+    private function findMonClubTTPage($iddiv, $idpoule, $includeTrashed = false)
     {
         $statuses = array('publish', 'draft', 'private');
         if ($includeTrashed) {
@@ -507,8 +513,8 @@ class DataPing
             'post_status'    => $statuses,
             'posts_per_page' => 1,
             'meta_query'     => array( // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
-                array('key' => '_dataping_iddiv',   'value' => $iddiv),
-                array('key' => '_dataping_idpoule', 'value' => $idpoule),
+                array('key' => '_monclubtt_iddiv',   'value' => $iddiv),
+                array('key' => '_monclubtt_idpoule', 'value' => $idpoule),
             ),
         ));
         return $query->have_posts() ? $query->posts[0] : null;
@@ -540,7 +546,7 @@ class DataPing
      */
     public static function getLastSyncTimestamp()
     {
-        return get_option('dataping_last_sync', false);
+        return get_option('monclubtt_last_sync', false);
     }
 
     /**
@@ -549,8 +555,8 @@ class DataPing
     public function add_dashboard_widget()
     {
         wp_add_dashboard_widget(
-            'dataping_sync_widget',
-            'DataPing - Synchronisation',
+            'monclubtt_sync_widget',
+            'Mon Club TT - Synchronisation',
             array($this, 'render_dashboard_widget')
         );
     }
@@ -562,7 +568,7 @@ class DataPing
     {
         $lastSync = self::getLastSyncTimestamp();
         ?>
-        <div class="dataping-dashboard-widget">
+        <div class="monclubtt-dashboard-widget">
             <?php if ($lastSync): ?>
                 <?php
                 $syncDate = date_i18n(get_option('date_format') . ' à ' . get_option('time_format'), $lastSync);
@@ -578,92 +584,60 @@ class DataPing
             <?php endif; ?>
 
             <p>
-                <button id="dataping-dashboard-sync-button" class="button button-primary button-large" style="width:100%; display:inline-flex; align-items:center; justify-content:center; gap:6px; line-height:1;">
+                <button id="monclubtt-dashboard-sync-button" class="button button-primary button-large" style="width:100%; display:inline-flex; align-items:center; justify-content:center; gap:6px; line-height:1;">
                     <span aria-hidden="true" style="font-family:dashicons; display:inline-block; font-size:20px; line-height:1; width:20px; height:20px; flex-shrink:0; speak:none; -webkit-font-smoothing:antialiased;">&#xf463;</span>
                     Synchroniser les données
                 </button>
             </p>
 
-            <div id="dataping-dashboard-sync-loading" style="display: none; text-align: center; margin: 10px 0;">
+            <div id="monclubtt-dashboard-sync-loading" style="display: none; text-align: center; margin: 10px 0;">
                 <span class="spinner is-active" style="float: none; margin: 0;"></span>
                 <span style="vertical-align: middle; margin-left: 5px;">Synchronisation en cours...</span>
             </div>
 
-            <div id="dataping-dashboard-sync-message" style="margin-top: 10px;"></div>
+            <div id="monclubtt-dashboard-sync-message" style="margin-top: 10px;"></div>
         </div>
 
-        <script type="text/javascript">
-        jQuery(document).ready(function($) {
-            $('#dataping-dashboard-sync-button').on('click', function(e) {
+        <?php
+        wp_add_inline_script('monclubtt-js', 'jQuery(document).ready(function($) {
+            $("#monclubtt-dashboard-sync-button").on("click", function(e) {
                 e.preventDefault();
                 var $button = $(this);
-                var $loading = $('#dataping-dashboard-sync-loading');
-                var $message = $('#dataping-dashboard-sync-message');
-
-                $button.prop('disabled', true);
+                var $loading = $("#monclubtt-dashboard-sync-loading");
+                var $message = $("#monclubtt-dashboard-sync-message");
+                $button.prop("disabled", true);
                 $loading.show();
-                $message.html('');
-
+                $message.html("");
                 $.ajax({
-                    url: ajaxurl,
-                    type: 'POST',
-                    data: {
-                        action: 'dataping_sync',
-                        nonce: '<?php echo esc_js(wp_create_nonce('dataping_sync_nonce')); ?>'
-                    },
+                    url: ajaxurl, type: "POST",
+                    data: { action: "monclubtt_sync", nonce: ' . wp_json_encode(wp_create_nonce('monclubtt_sync_nonce')) . ' },
                     success: function(response) {
                         $loading.hide();
-                        $button.prop('disabled', false);
-
+                        $button.prop("disabled", false);
                         if (response.success) {
-                            $message.html('<div class="notice notice-success inline"><p><strong>Succès !</strong> ' + response.data.message + '</p></div>');
-                            setTimeout(function() {
-                                location.reload();
-                            }, 1500);
+                            $message.html("<div class=\"notice notice-success inline\"><p><strong>Succès !</strong> " + response.data.message + "</p></div>");
+                            setTimeout(function() { location.reload(); }, 1500);
                         } else {
-                            $message.html('<div class="notice notice-error inline"><p><strong>Erreur :</strong> ' + response.data.message + '</p></div>');
+                            $message.html("<div class=\"notice notice-error inline\"><p><strong>Erreur :</strong> " + response.data.message + "</p></div>");
                         }
                     },
                     error: function() {
                         $loading.hide();
-                        $button.prop('disabled', false);
-                        $message.html('<div class="notice notice-error inline"><p><strong>Erreur :</strong> Erreur de communication avec le serveur</p></div>');
+                        $button.prop("disabled", false);
+                        $message.html("<div class=\"notice notice-error inline\"><p><strong>Erreur :</strong> Erreur de communication avec le serveur</p></div>");
                     }
                 });
             });
-        });
-        </script>
+        });');
 
-        <style>
-        .dataping-dashboard-widget p {
-            margin: 10px 0;
-        }
-        .dataping-dashboard-widget .notice.inline {
-            margin: 10px 0 0 0;
-            padding: 8px 12px;
-        }
-        .dataping-dashboard-widget .spinner {
-            visibility: visible;
-        }
-        /* Icône bouton : même rendu que .dashicons mais hors portée de la règle
-           .wp-core-ui .button .dashicons { line-height:1.9; vertical-align:top } */
-        .dataping-icon {
-            font-family: dashicons;
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            font-size: 20px;
-            line-height: 1;
-            font-weight: 400;
-            font-style: normal;
-            speak: never;
-            -webkit-font-smoothing: antialiased;
-            flex-shrink: 0;
-        }
-        </style>
-        <?php
+        wp_add_inline_style('mon-club-tt-css', '
+            .monclubtt-dashboard-widget p { margin: 10px 0; }
+            .monclubtt-dashboard-widget .notice.inline { margin: 10px 0 0 0; padding: 8px 12px; }
+            .monclubtt-dashboard-widget .spinner { visibility: visible; }
+            .monclubtt-icon { font-family: dashicons; display: inline-block; width: 20px; height: 20px; font-size: 20px; line-height: 1; font-weight: 400; font-style: normal; speak: never; -webkit-font-smoothing: antialiased; flex-shrink: 0; }
+        ');
     }
 }
 
-new DataPing();
+new MonClubTT();
 

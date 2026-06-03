@@ -1,19 +1,19 @@
 <?php
 if ( ! defined( 'ABSPATH' ) ) exit;
 require_once(__DIR__ . '/header.php'); ?>
-<div class="DataPing_div">
+<div class="monclubtt-div">
     <?php
     foreach ($listeEquipes as $equipe) {
         if ($atts['iddiv'] === $equipe['iddiv'] && $atts['idpoule'] === $equipe['idpoule']) {
             $classementPoule = $api->getPouleClassement($equipe['iddiv'], $equipe['idpoule']);
             ?>
-            <h4 class="dataping-equipe-titre">
+            <h4 class="monclubtt-equipe-titre">
                 <?php echo esc_html($equipe['libdivision']); ?>
-                <span class="dataping-equipe-sous-titre">— <?php echo esc_html($equipe['libequipe']); ?></span>
+                <span class="monclubtt-equipe-sous-titre">— <?php echo esc_html($equipe['libequipe']); ?></span>
             </h4>
 
-            <h5 class="dataping-section-titre">Classement</h5>
-            <table class="dataping-table">
+            <h5 class="monclubtt-section-titre">Classement</h5>
+            <table class="monclubtt-table">
                 <thead>
                 <tr>
                     <th class="classement">Class.</th>
@@ -46,7 +46,7 @@ require_once(__DIR__ . '/header.php'); ?>
             </table>
 
             <?php $rencontresPoule = $api->getPouleRencontres($equipe['iddiv'], $equipe['idpoule']); ?>
-            <h5 class="dataping-section-titre">Résultats par journée</h5>
+            <h5 class="monclubtt-section-titre">Résultats par journée</h5>
             <?php
             $numJournee = 0;
             $journee    = '';
@@ -72,12 +72,12 @@ require_once(__DIR__ . '/header.php'); ?>
                     }
                     $journee = $rencontre['libelle'];
                     $numJournee++;
-                    echo '<table class="dataping-table dataping-rencontres" id="journee' . esc_attr($numJournee) . '">';
+                    echo '<table class="monclubtt-table monclubtt-rencontres" id="journee' . esc_attr($numJournee) . '">';
                     echo '<caption>' . esc_html($journee) . '</caption>';
                     echo '<tbody>';
                 }
                 ?>
-                <tr class="dataping-rencontre-row<?php echo $hasDetail ? ' dataping-expandable' : ''; ?>"
+                <tr class="monclubtt-rencontre-row<?php echo $hasDetail ? ' monclubtt-expandable' : ''; ?>"
                     <?php if ($hasDetail): ?>
                         data-renc-id="<?php echo esc_attr($rencId); ?>"
                         data-is-retour="<?php echo esc_attr($isRetour); ?>"
@@ -85,19 +85,19 @@ require_once(__DIR__ . '/header.php'); ?>
                     <?php endif; ?>>
                     <td class="equipes left">
                         <?php if ($hasDetail): ?>
-                            <span class="dataping-expand-icon" aria-hidden="true">▶</span>
+                            <span class="monclubtt-expand-icon" aria-hidden="true">▶</span>
                         <?php endif; ?>
                         <?php echo esc_html($rencontre['equa']); ?>
                     </td>
-                    <td class="score center dataping-score"><?php echo esc_html($scoreA); ?></td>
-                    <td class="tiret center dataping-tiret"> - </td>
-                    <td class="score center dataping-score"><?php echo esc_html($scoreB); ?></td>
+                    <td class="score center monclubtt-score"><?php echo esc_html($scoreA); ?></td>
+                    <td class="tiret center monclubtt-tiret"> - </td>
+                    <td class="score center monclubtt-score"><?php echo esc_html($scoreB); ?></td>
                     <td class="equipes right"><?php echo esc_html($rencontre['equb']); ?></td>
                 </tr>
                 <?php if ($hasDetail): ?>
-                <tr class="dataping-feuille-row">
+                <tr class="monclubtt-feuille-row">
                     <td colspan="5">
-                        <div class="dataping-feuille-content"></div>
+                        <div class="monclubtt-feuille-content"></div>
                     </td>
                 </tr>
                 <?php endif; ?>
@@ -116,7 +116,7 @@ require_once(__DIR__ . '/header.php'); ?>
                 if ($u2 !== false) { $updated = (int) max($updated, $u2); }
                 if ($updated > 0) {
                     $formatted = date_i18n('d/m/Y H:i', $updated, false);
-                    echo '<p class="dataping-updated-at">Dernière mise à jour : ' . esc_html($formatted) . '</p>';
+                    echo '<p class="monclubtt-updated-at">Dernière mise à jour : ' . esc_html($formatted) . '</p>';
                 }
             }
         }

@@ -25,32 +25,30 @@ foreach ($joueurs->getJoueurs($atts['type']) as $joueur) {
     }
 }
 ?>
-<?php if (!empty($playersData)): ?>
-<script>
-var DataPingTopProg = {
-    players:     <?php echo wp_json_encode($playersData); ?>,
-    moisLabel:   <?php echo wp_json_encode($moisLabel); ?>,
-    saisonLabel: <?php echo wp_json_encode($saisonLabel); ?>
-};
-</script>
-<?php endif; ?>
-<div class="DataPing_div">
+<?php if (!empty($playersData)):
+    wp_localize_script('monclubtt-js', 'MonClubTTTopProg', array(
+        'players'     => $playersData,
+        'moisLabel'   => $moisLabel,
+        'saisonLabel' => $saisonLabel,
+    ));
+endif; ?>
+<div class="monclubtt-div">
 
     <?php if ($updatedAt !== false): ?>
-        <p class="dataping-updated-at">
+        <p class="monclubtt-updated-at">
             Dernière mise à jour : <?php echo esc_html(date_i18n('d/m/Y à H:i:s', $updatedAt)); ?>
         </p>
     <?php endif; ?>
 
     <?php if (!empty($playersData)): ?>
-    <div class="dataping-top-prog">
+    <div class="monclubtt-top-prog">
 
         <div class="tp-head">
             <div>
                 <h2 class="tp-h1">Top Progression</h2>
                 <p class="tp-sub">Les joueurs qui grimpent le plus au classement officiel</p>
             </div>
-            <div class="tp-toggle" id="dataping-tp-toggle">
+            <div class="tp-toggle" id="monclubtt-tp-toggle">
                 <button data-mode="mens" class="tp-on">📈 Progression mensuelle</button>
                 <button data-mode="ann">🗓️ Progression annuelle</button>
             </div>
@@ -62,21 +60,21 @@ var DataPingTopProg = {
                 <svg class="tp-icn" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M3 17l5-6 4 3 5-7 4 5"></path>
                 </svg>
-                <h3 id="dataping-tp-subtitle">Top 3 — gains sur le mois</h3>
-                <span class="tp-tag" id="dataping-tp-tag"><?php echo esc_html($moisLabel); ?></span>
+                <h3 id="monclubtt-tp-subtitle">Top 3 — gains sur le mois</h3>
+                <span class="tp-tag" id="monclubtt-tp-tag"><?php echo esc_html($moisLabel); ?></span>
             </div>
-            <div class="tp-stage-host" id="dataping-tp-stage-host">
-                <div class="tp-scalable" id="dataping-tp-scalable">
-                    <div class="tp-stage" id="dataping-tp-stage">
+            <div class="tp-stage-host" id="monclubtt-tp-stage-host">
+                <div class="tp-scalable" id="monclubtt-tp-scalable">
+                    <div class="tp-stage" id="monclubtt-tp-stage">
                         <svg class="tp-watermark" viewBox="0 0 100 100">
                             <circle cx="50" cy="50" r="47" fill="#2b3a4f"/>
                             <g transform="rotate(-32 50 52)">
                                 <ellipse cx="44" cy="42" rx="18" ry="20" fill="#2b3a4f"/>
                             </g>
                         </svg>
-                        <svg class="tp-podium" id="dataping-tp-podium-svg" viewBox="0 0 720 498" aria-label="Podium"></svg>
+                        <svg class="tp-podium" id="monclubtt-tp-podium-svg" viewBox="0 0 720 498" aria-label="Podium"></svg>
                     </div>
-                    <div class="tp-nameplates" id="dataping-tp-nameplates"></div>
+                    <div class="tp-nameplates" id="monclubtt-tp-nameplates"></div>
                 </div>
             </div>
         </div>
@@ -84,7 +82,7 @@ var DataPingTopProg = {
     </div>
     <?php endif; ?>
 
-    <table class="dataping-table listeJoueurs sortableTable">
+    <table class="monclubtt-table listeJoueurs sortableTable">
         <thead>
         <tr>
             <th>Nom</th>
@@ -107,27 +105,27 @@ var DataPingTopProg = {
                 $progAnn  = $joueur->getClassement()->getProgressionAnnuelle();
                 ?>
                 <tr class="<?php echo esc_attr($class); ?>">
-                    <td class="dataping-nom"><?php echo esc_html($joueur->getNom()); ?></td>
+                    <td class="monclubtt-nom"><?php echo esc_html($joueur->getNom()); ?></td>
                     <td><?php echo esc_html($joueur->getPrenom()); ?></td>
                     <td class="center"><?php echo esc_html($joueur->getClassement()->getClassementOfficiel()); ?></td>
                     <td class="center"><?php echo esc_html($joueur->getClassement()->getPointsOfficiels()); ?></td>
                     <td class="center"><?php echo esc_html($joueur->getClassement()->getPointsMensuels()); ?></td>
                     <td class="center">
                         <?php if ($progMens > 0): ?>
-                            <span class="dataping-badge dataping-badge--up">+<?php echo esc_html($progMens); ?></span>
+                            <span class="monclubtt-badge monclubtt-badge--up">+<?php echo esc_html($progMens); ?></span>
                         <?php elseif ($progMens < 0): ?>
-                            <span class="dataping-badge dataping-badge--down"><?php echo esc_html($progMens); ?></span>
+                            <span class="monclubtt-badge monclubtt-badge--down"><?php echo esc_html($progMens); ?></span>
                         <?php else: ?>
-                            <span class="dataping-badge dataping-badge--neutral">—</span>
+                            <span class="monclubtt-badge monclubtt-badge--neutral">—</span>
                         <?php endif; ?>
                     </td>
                     <td class="center">
                         <?php if ($progAnn > 0): ?>
-                            <span class="dataping-badge dataping-badge--up">+<?php echo esc_html($progAnn); ?></span>
+                            <span class="monclubtt-badge monclubtt-badge--up">+<?php echo esc_html($progAnn); ?></span>
                         <?php elseif ($progAnn < 0): ?>
-                            <span class="dataping-badge dataping-badge--down"><?php echo esc_html($progAnn); ?></span>
+                            <span class="monclubtt-badge monclubtt-badge--down"><?php echo esc_html($progAnn); ?></span>
                         <?php else: ?>
-                            <span class="dataping-badge dataping-badge--neutral">—</span>
+                            <span class="monclubtt-badge monclubtt-badge--neutral">—</span>
                         <?php endif; ?>
                     </td>
                 </tr>

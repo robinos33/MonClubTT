@@ -1,22 +1,34 @@
 <?php
 if ( ! defined( 'ABSPATH' ) ) exit;
+
+// Handle log clearing before any output
+if (isset($_POST['monclubtt_clear_logs']) && check_admin_referer('monclubtt_clear_logs', 'monclubtt_clear_logs_nonce')) {
+    AccesFFTTApi::clearApiLogs();
+    wp_safe_redirect(add_query_arg(array('page' => 'monclubtt_parametres', 'logs_cleared' => '1'), admin_url('admin.php')));
+    exit;
+}
+
 // Afficher un message de succès après la sauvegarde des paramètres
 if (isset($_GET['settings-updated']) && filter_input(INPUT_GET, 'settings-updated', FILTER_SANITIZE_NUMBER_INT)) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
     echo '<div class="notice notice-success is-dismissible"><p><strong>Paramètres enregistrés avec succès !</strong></p></div>';
 }
 ?>
 
-<div class="DataPing_right_box" style="display: none">
+<div class="monclubtt-right-box" style="display: none">
     <p>N'hésitez pas à m'envoyer vos remarques et suggestions à contact@robin-aldasoro.com<br />
         Ceci est un plugin non-officiel et GRATUIT.
     </p>
 </div>
 
-<div class="wrap">
+<div class="wrap monclubtt-wrap">
+    <p></p>
+    <h2>Paramètres de l'API FFTT</h2>
+    <?php $this->getForm(); ?>
+
     <h2>Synchronisation des données</h2>
-    <div class="dataping-sync-section">
+    <div class="monclubtt-sync-section">
         <?php
-        $lastSync = DataPing::getLastSyncTimestamp();
+        $lastSync = MonClubTT::getLastSyncTimestamp();
         if ($lastSync) {
             $syncDate = date_i18n(get_option('date_format') . ' à ' . get_option('time_format'), $lastSync);
             $timeDiff = human_time_diff($lastSync, current_time('timestamp'));
@@ -25,15 +37,31 @@ if (isset($_GET['settings-updated']) && filter_input(INPUT_GET, 'settings-update
             echo '<p><em>Aucune synchronisation manuelle effectuée</em></p>';
         }
         ?>
-        <button id="dataping-sync-button" class="button button-primary" style="display:inline-flex; align-items:center; gap:6px; line-height:1;">
-            <span class="dataping-icon dataping-sync-icon" aria-hidden="true">&#xf463;</span>
-            <span class="dataping-sync-label">Synchroniser les données</span>
+        <button id="monclubtt-sync-button" class="button button-primary" style="display:inline-flex; align-items:center; gap:6px; line-height:1;">
+            <span class="monclubtt-icon monclubtt-sync-icon" aria-hidden="true">&#xf463;</span>
+            <span class="monclubtt-sync-label">Synchroniser les données</span>
         </button>
-        <div id="dataping-sync-message" style="margin-top: 10px;"></div>
-    </div>
+        <div id="monclubtt-sync-message" style="margin-top: 10px;"></div>
 
-    <h2>Paramètres de l'API FFTT</h2>
-    <?php $this->getForm(); ?>
+        <details style="margin-top: 12px;">
+            <summary style="cursor:pointer; color:#2271b1; font-size:13px;">En cas d'erreur lors de la synchronisation…</summary>
+            <div style="margin-top:8px; padding:10px 14px; background:#f0f6fc; border-left:4px solid #72aee6; font-size:13px;">
+                <ol style="margin:.5em 0 .5em 1.2em; padding:0;">
+                    <li>Vérifiez que tous les paramètres ci-dessus sont correctement renseignés</li>
+                    <li>Assurez-vous que le numéro de club est correct (format: 8 chiffres, ex: 10330011)</li>
+                    <li>Vérifiez que vos identifiants API sont valides (obtenus auprès de la FFTT)</li>
+                    <li><strong>Consultez les "Logs de l'API FFTT" ci-dessous pour voir les détails des appels API</strong></li>
+                </ol>
+                <p style="margin:.5em 0;"><strong>Erreurs fréquentes :</strong></p>
+                <ul style="margin:.3em 0 0 1.2em; padding:0;">
+                    <li><em>RÉPONSE VIDE de l'API FFTT</em> : <strong>Identifiants API invalides</strong> — Vérifiez votre ID et mot de passe</li>
+                    <li><em>Aucune donnée récupérée</em> : Identifiants API invalides ou numéro de club incorrect</li>
+                    <li><em>Erreur parsing XML</em> : L'API FFTT a retourné une réponse vide (vérifiez que le club existe)</li>
+                    <li><em>Erreur cURL</em> : Problème de connexion réseau du serveur</li>
+                </ul>
+            </div>
+        </details>
+    </div>
 
     <h2>Logs de l'API FFTT</h2>
     <div style="background: #fff; border: 1px solid #ccd0d4; padding: 15px; margin-bottom: 20px;">
@@ -45,8 +73,8 @@ if (isset($_GET['settings-updated']) && filter_input(INPUT_GET, 'settings-update
             echo '<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">';
             echo '<p style="margin: 0;"><strong>' . count($logs) . ' logs d\'API</strong></p>';
             echo '<form method="post" style="margin: 0;">';
-            echo '<input type="hidden" name="dataping_clear_logs" value="1">';
-            wp_nonce_field('dataping_clear_logs', 'dataping_clear_logs_nonce');
+            echo '<input type="hidden" name="monclubtt_clear_logs" value="1">';
+            wp_nonce_field('monclubtt_clear_logs', 'monclubtt_clear_logs_nonce');
             echo '<button type="submit" class="button">Effacer les logs</button>';
             echo '</form>';
             echo '</div>';
@@ -75,101 +103,61 @@ if (isset($_GET['settings-updated']) && filter_input(INPUT_GET, 'settings-update
             echo '</div>';
         }
 
-        // Gestion de l'effacement des logs
-        if (isset($_POST['dataping_clear_logs']) && check_admin_referer('dataping_clear_logs', 'dataping_clear_logs_nonce')) {
-            AccesFFTTApi::clearApiLogs();
-            echo '<script>window.location.href = window.location.href.split("?")[0] + "?page=parametres_DataPing&logs_cleared=1";</script>';
-        }
-
         if (isset($_GET['logs_cleared'])) {
             echo '<div class="notice notice-success" style="margin-top: 10px;"><p>Logs effacés avec succès.</p></div>';
         }
         ?>
     </div>
 
-    <h2>Aide et diagnostic</h2>
-    <div class="notice notice-info">
-        <p><strong>En cas d'erreur lors de la synchronisation :</strong></p>
-        <ol>
-            <li>Vérifiez que tous les paramètres ci-dessus sont correctement renseignés</li>
-            <li>Assurez-vous que le numéro de club est correct (format: 8 chiffres, ex: 10330011)</li>
-            <li>Vérifiez que vos identifiants API sont valides (obtenus auprès de la FFTT)</li>
-            <li><strong>Consultez les "Logs de l'API FFTT" ci-dessus pour voir les détails des appels API</strong></li>
-        </ol>
-        <p><strong>Erreurs fréquentes :</strong></p>
-        <ul>
-            <li><em>RÉPONSE VIDE de l'API FFTT</em> : <strong>Identifiants API invalides</strong> - Vérifiez votre ID et mot de passe</li>
-            <li><em>Aucune donnée récupérée</em> : Identifiants API invalides ou numéro de club incorrect</li>
-            <li><em>Erreur parsing XML</em> : L'API FFTT a retourné une réponse vide (vérifiez que le club existe)</li>
-            <li><em>Erreur cURL</em> : Problème de connexion réseau du serveur</li>
-        </ul>
-    </div>
 </div>
 
-<script type="text/javascript">
-jQuery(document).ready(function($) {
-    $('#dataping-sync-button').on('click', function() {
+<?php
+wp_add_inline_script('monclubtt-js', 'jQuery(document).ready(function($) {
+    $("#monclubtt-sync-button").on("click", function() {
         var $button = $(this);
-        var $message = $('#dataping-sync-message');
+        var $message = $("#monclubtt-sync-message");
 
-        $button.prop('disabled', true).addClass('is-loading');
-        $button.find('.dataping-sync-label').text('Synchronisation en cours…');
-        $message.html('');
+        $button.prop("disabled", true).addClass("is-loading");
+        $button.find(".monclubtt-sync-label").text("Synchronisation en cours…");
+        $message.html("");
 
         $.ajax({
             url: ajaxurl,
-            type: 'POST',
+            type: "POST",
             data: {
-                action: 'dataping_sync',
-                nonce: '<?php echo esc_js(wp_create_nonce('dataping_sync_nonce')); ?>'
+                action: "monclubtt_sync",
+                nonce: ' . wp_json_encode(wp_create_nonce('monclubtt_sync_nonce')) . '
             },
             success: function(response) {
-                $button.prop('disabled', false).removeClass('is-loading');
-                $button.find('.dataping-sync-label').text('Synchroniser les données');
+                $button.prop("disabled", false).removeClass("is-loading");
+                $button.find(".monclubtt-sync-label").text("Synchroniser les données");
 
                 if (response.success) {
-                    console.log('DataPing Sync - Résultats:', response.data.results);
-                    if (response.data.debug) {
-                        console.log('DataPing Sync - Debug:', response.data.debug);
-                    }
-
-                    var details = '';
+                    var details = "";
                     if (response.data.results) {
-                        details = '<br><small>Joueurs: ' + (response.data.results.joueurs || 0) +
-                                 ' | Équipes: ' + (response.data.results.equipes || 0) + '</small>';
+                        details = "<br><small>Joueurs: " + (response.data.results.joueurs || 0) +
+                                 " | Équipes: " + (response.data.results.equipes || 0) + "</small>";
                     }
-
-                    $message.html('<div class="notice notice-success is-dismissible"><p><strong>Succès !</strong> ' + response.data.message + details + '</p></div>');
-                    setTimeout(function() {
-                        location.reload();
-                    }, 1500);
+                    $message.html("<div class=\"notice notice-success is-dismissible\"><p><strong>Succès !</strong> " + response.data.message + details + "</p></div>");
+                    setTimeout(function() { location.reload(); }, 1500);
                 } else {
-                    console.error('DataPing Sync - Erreur:', response.data);
-                    var errorHtml = '<div class="notice notice-error is-dismissible"><p><strong>Erreur :</strong> ' + response.data.message + '</p>';
-                    if (response.data.debug) {
-                        errorHtml += '<p><small>Consultez les logs pour plus de détails</small></p>';
-                        console.error('DataPing Sync - Debug:', response.data.debug);
-                    }
-                    errorHtml += '</div>';
+                    var errorHtml = "<div class=\"notice notice-error is-dismissible\"><p><strong>Erreur :</strong> " + response.data.message + "</p></div>";
                     $message.html(errorHtml);
                 }
             },
             error: function() {
-                $button.prop('disabled', false).removeClass('is-loading');
-                $button.find('.dataping-sync-label').text('Synchroniser les données');
-                $message.html('<div class="notice notice-error is-dismissible"><p><strong>Erreur :</strong> Erreur de communication avec le serveur</p></div>');
+                $button.prop("disabled", false).removeClass("is-loading");
+                $button.find(".monclubtt-sync-label").text("Synchroniser les données");
+                $message.html("<div class=\"notice notice-error is-dismissible\"><p><strong>Erreur :</strong> Erreur de communication avec le serveur</p></div>");
             }
         });
     });
 
-    // Gestion de la notification de succès auto-dismissible
-    $('.notice.is-dismissible').each(function() {
+    $(".notice.is-dismissible").each(function() {
         var $notice = $(this);
-        setTimeout(function() {
-            $notice.fadeOut();
-        }, 5000);
+        setTimeout(function() { $notice.fadeOut(); }, 5000);
     });
-});
-</script>
+});');
+?>
 
 

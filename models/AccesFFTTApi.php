@@ -36,10 +36,10 @@ if (!class_exists('AccesFFTTApi')) {
 
         public function __construct()
         {
-            if (!is_null(ParametresDataPing::getIdApplication()) && !is_null(ParametresDataPing::getMotDePasse())) {
+            if (!is_null(ParametresPlugin::getIdApplication()) && !is_null(ParametresPlugin::getMotDePasse())) {
 
-                $this->appId = ParametresDataPing::getIdApplication();
-                $this->appKey = ParametresDataPing::getMotDePasse();
+                $this->appId = ParametresPlugin::getIdApplication();
+                $this->appKey = ParametresPlugin::getMotDePasse();
 
                 // Démarre une session si nécessaire (certaines installations WP n'utilisent pas les sessions par défaut)
                 if (function_exists('session_status') && session_status() !== PHP_SESSION_ACTIVE && !headers_sent()) {
@@ -62,7 +62,7 @@ if (!class_exists('AccesFFTTApi')) {
         public static function getInstance()
         {
             if (is_null(self::$_instance)
-                || (is_null(self::$_instance->appId) && !is_null(ParametresDataPing::getIdApplication()))) {
+                || (is_null(self::$_instance->appId) && !is_null(ParametresPlugin::getIdApplication()))) {
                 self::$_instance = new AccesFFTTApi();
             }
 
@@ -292,7 +292,7 @@ if (!class_exists('AccesFFTTApi')) {
         {
             ksort($params);
             $base = $prefix . '|' . http_build_query($params);
-            return 'dataping_' . md5($base);
+            return 'monclubtt_' . md5($base);
         }
 
         public function buildCacheKeyPublic($prefix, array $params)
@@ -511,7 +511,7 @@ if (!class_exists('AccesFFTTApi')) {
          */
         private function addApiLog($message, $type = 'info')
         {
-            $logs = get_option('dataping_api_logs', array());
+            $logs = get_option('monclubtt_api_logs', array());
 
             // Ne garder que les 50 derniers logs
             if (count($logs) >= 50) {
@@ -524,7 +524,7 @@ if (!class_exists('AccesFFTTApi')) {
                 'message' => $message
             );
 
-            update_option('dataping_api_logs', $logs);
+            update_option('monclubtt_api_logs', $logs);
         }
 
         /**
@@ -532,7 +532,7 @@ if (!class_exists('AccesFFTTApi')) {
          */
         public static function getApiLogs()
         {
-            return get_option('dataping_api_logs', array());
+            return get_option('monclubtt_api_logs', array());
         }
 
         /**
@@ -540,7 +540,7 @@ if (!class_exists('AccesFFTTApi')) {
          */
         public static function clearApiLogs()
         {
-            delete_option('dataping_api_logs');
+            delete_option('monclubtt_api_logs');
         }
 
         public static function generateSerial()

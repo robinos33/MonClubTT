@@ -1,6 +1,6 @@
 # Référence API FFTT Smartping
 
-Endpoints utilisés par DataPing. Tous les appels passent par `AccesFFTTApi::getData()` qui gère l'authentification HMAC-SHA1 automatiquement.
+Endpoints utilisés par MonClubTT. Tous les appels passent par `AccesFFTTApi::getData()` qui gère l'authentification HMAC-SHA1 automatiquement.
 
 Base URL : `https://www.fftt.com/mobile/pxml/`
 

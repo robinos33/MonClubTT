@@ -1,5 +1,5 @@
 {
-  "name": "dataping/dataping",
+  "name": "monclubtt/monclubtt",
   "description": "Plugin WordPress pour afficher les données de la FFTT avec architecture DDD",
   "type": "wordpress-plugin",
   "license": "GPL-2.0-or-later",
@@ -14,14 +14,14 @@
   },
   "autoload": {
     "psr-4": {
-      "DataPing\\Domain\\": "src/Domain/",
-      "DataPing\\Application\\": "src/Application/",
-      "DataPing\\Infrastructure\\": "src/Infrastructure/"
+      "MonClubTT\\Domain\\": "src/Domain/",
+      "MonClubTT\\Application\\": "src/Application/",
+      "MonClubTT\\Infrastructure\\": "src/Infrastructure/"
     }
   },
   "autoload-dev": {
     "psr-4": {
-      "DataPing\\Tests\\": "tests/"
+      "MonClubTT\\Tests\\": "tests/"
     }
   },
   "scripts": {

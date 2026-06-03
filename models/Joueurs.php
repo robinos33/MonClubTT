@@ -23,7 +23,7 @@ if (!class_exists('joueurs')) {
         }
 
         private function loadJoueurs() {
-            $club = ParametresDataPing::getNumClub();
+            $club = ParametresPlugin::getNumClub();
             $cacheKey = $this->_api->buildCacheKeyPublic('joueurs_club', array('numclu' => $club));
             $lifeTime = $this->_api->computeHalfDayTtlPublic();
 

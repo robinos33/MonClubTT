@@ -1,62 +1,62 @@
 /* FRONT-OFFICE */
-.DataPing_div{
+.monclubtt-div{
     margin: 0;
     width: 100%;
     text-align: center;
 }
 
-.DataPing_div table{
+.monclubtt-div table{
     width: 100%;
 }
-.DataPing_div th.classement{
+.monclubtt-div th.classement{
     width:80px;
 }
-.DataPing_div th.equipe{
+.monclubtt-div th.equipe{
     width:100%;
 }
-.DataPing_div th.joues{
+.monclubtt-div th.joues{
     width:80px;
 }
-.DataPing_div th.points{
+.monclubtt-div th.points{
     width:80px;
 }
-.DataPing_div .center{
+.monclubtt-div .center{
     text-align:center;
 }
 
-.DataPing_div .left{
+.monclubtt-div .left{
     text-align:left;
 }
 
-.DataPing_div .right{
+.monclubtt-div .right{
     text-align:right;
 }
-.DataPing_div .equipe_club{
+.monclubtt-div .equipe_club{
     font-weight: bolder;
     color:blue;
 }
 
-.DataPing_div .DataPing_rencontres_table{
+.monclubtt-div .MonClubTT_rencontres_table{
     margin:20px auto;
     width:100%;
     text-align: center;
 }
 
-.DataPing_div .equipes{
+.monclubtt-div .equipes{
     width:40%;
     word-wrap: normal;
 }
 
-.DataPing_div .score{
+.monclubtt-div .score{
     width:8%;
 }
 
-.DataPing_div .center.tiret{
+.monclubtt-div .center.tiret{
     width:4%;
 }
 
-/* ===== Design commun à tous les tableaux DataPing ===== */
-.DataPing_div .dataping-table {
+/* ===== Design commun à tous les tableaux MonClubTT ===== */
+.monclubtt-div .monclubtt-table {
     border-collapse: collapse;
     border-spacing: 0;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
@@ -66,11 +66,11 @@
     margin-bottom: 28px;
 }
 
-.DataPing_div .dataping-table thead tr {
+.monclubtt-div .monclubtt-table thead tr {
     background-color: #2c3e50;
 }
 
-.DataPing_div .dataping-table th {
+.monclubtt-div .monclubtt-table th {
     background-color: #2c3e50;
     color: #fff;
     font-size: 11px;
@@ -83,7 +83,7 @@
     border: none;
 }
 
-.DataPing_div .dataping-table td {
+.monclubtt-div .monclubtt-table td {
     padding: 9px 14px;
     font-size: 13px;
     border-right: none;
@@ -91,7 +91,7 @@
     vertical-align: middle;
 }
 
-.DataPing_div .dataping-table caption {
+.monclubtt-div .monclubtt-table caption {
     background-color: #34495e;
     color: #fff;
     font-size: 12px;
@@ -103,15 +103,15 @@
     border: none;
 }
 
-.DataPing_div .dataping-table tr.odd {
+.monclubtt-div .monclubtt-table tr.odd {
     background-color: #ffffff;
 }
 
-.DataPing_div .dataping-table tr.even {
+.monclubtt-div .monclubtt-table tr.even {
     background-color: #f7f9fb;
 }
 
-.DataPing_div .dataping-table tbody tr:hover {
+.monclubtt-div .monclubtt-table tbody tr:hover {
     background-color: #eaf3fb !important;
     transition: background-color 0.15s ease;
 }
@@ -119,35 +119,35 @@
 /* ===== Tableaux équipes ===== */
 
 /* Équipe du club mise en évidence */
-.DataPing_div .dataping-table tr.equipe_club td {
+.monclubtt-div .monclubtt-table tr.equipe_club td {
     font-weight: 700;
     color: #1a5276 !important;
     background-color: #d6eaf8 !important;
 }
 
 /* Colonne scores et tiret */
-.DataPing_div .dataping-score {
+.monclubtt-div .monclubtt-score {
     font-weight: 600;
     min-width: 28px;
 }
 
-.DataPing_div .dataping-tiret {
+.monclubtt-div .monclubtt-tiret {
     color: #bbb;
 }
 
 /* Titres de section équipe */
-.DataPing_div .dataping-equipe-titre {
+.monclubtt-div .monclubtt-equipe-titre {
     margin: 20px 0 4px;
     font-size: 16px;
 }
 
-.DataPing_div .dataping-equipe-sous-titre {
+.monclubtt-div .monclubtt-equipe-sous-titre {
     font-weight: normal;
     font-size: 14px;
     color: #666;
 }
 
-.DataPing_div .dataping-section-titre {
+.monclubtt-div .monclubtt-section-titre {
     margin: 20px 0 6px;
     font-size: 14px;
     text-transform: uppercase;
@@ -158,22 +158,22 @@
 /* ===== Joueurs — spécificités ===== */
 
 /* Couleurs par sexe */
-.DataPing_div .listeJoueurs tr.F td {
+.monclubtt-div .listeJoueurs tr.F td {
     color: #c0392b;
 }
 
-.DataPing_div .listeJoueurs tr.M td {
+.monclubtt-div .listeJoueurs tr.M td {
     color: #2980b9;
 }
 
 /* Nom du joueur */
-.DataPing_div .listeJoueurs .dataping-nom {
+.monclubtt-div .listeJoueurs .monclubtt-nom {
     font-weight: 600;
     text-align: left;
 }
 
 /* ===== Badges de progression ===== */
-.dataping-badge {
+.monclubtt-badge {
     display: inline-block;
     padding: 2px 8px;
     border-radius: 999px;
@@ -183,17 +183,17 @@
     white-space: nowrap;
 }
 
-.dataping-badge--up {
+.monclubtt-badge--up {
     background-color: #e8f5e9;
     color: #2e7d32;
 }
 
-.dataping-badge--down {
+.monclubtt-badge--down {
     background-color: #fdecea;
     color: #c62828;
 }
 
-.dataping-badge--neutral {
+.monclubtt-badge--neutral {
     background-color: #f0f0f0;
     color: #999;
 }
@@ -201,16 +201,16 @@
 /* ===== Feuilles de match ===== */
 
 /* Ligne rencontre cliquable */
-.DataPing_div .dataping-expandable {
+.monclubtt-div .monclubtt-expandable {
     cursor: pointer;
 }
 
-.DataPing_div .dataping-expandable:hover td {
+.monclubtt-div .monclubtt-expandable:hover td {
     background-color: #ddeeff !important;
 }
 
 /* Icône d'expansion */
-.DataPing_div .dataping-expand-icon {
+.monclubtt-div .monclubtt-expand-icon {
     display: inline-block;
     margin-right: 5px;
     font-size: 9px;
@@ -220,24 +220,24 @@
 }
 
 /* Ligne de détail (cachée par défaut) */
-.DataPing_div .dataping-feuille-row {
+.monclubtt-div .monclubtt-feuille-row {
     display: none;
 }
 
-.DataPing_div .dataping-feuille-row > td {
+.monclubtt-div .monclubtt-feuille-row > td {
     padding: 0;
     border-top: none;
 }
 
 /* Contenu de la feuille de match */
-.DataPing_div .dataping-feuille {
+.monclubtt-div .monclubtt-feuille {
     padding: 14px 16px;
     background: #f9fbfd;
     border-top: 2px solid #2c3e50;
 }
 
 /* Score global */
-.DataPing_div .dataping-feuille-resultat {
+.monclubtt-div .monclubtt-feuille-resultat {
     text-align: center;
     font-size: 14px;
     margin-bottom: 14px;
@@ -247,12 +247,12 @@
     border: 1px solid #e0e0e0;
 }
 
-.DataPing_div .dataping-feuille-equipe {
+.monclubtt-div .monclubtt-feuille-equipe {
     font-size: 13px;
     color: #444;
 }
 
-.DataPing_div .dataping-feuille-score {
+.monclubtt-div .monclubtt-feuille-score {
     font-size: 18px;
     font-weight: 700;
     color: #2c3e50;
@@ -260,7 +260,7 @@
 }
 
 /* Titre de section interne */
-.DataPing_div .dataping-feuille-section {
+.monclubtt-div .monclubtt-feuille-section {
     font-size: 11px;
     text-transform: uppercase;
     letter-spacing: 0.07em;
@@ -269,33 +269,33 @@
     font-weight: 600;
 }
 
-/* Tables internes (composition + parties) — héritent de dataping-table */
-.DataPing_div .dataping-feuille-compo,
-.DataPing_div .dataping-feuille-parties {
+/* Tables internes (composition + parties) — héritent de monclubtt-table */
+.monclubtt-div .monclubtt-feuille-compo,
+.monclubtt-div .monclubtt-feuille-parties {
     font-size: 12px;
     margin-bottom: 10px;
 }
 
-.DataPing_div .dataping-feuille-compo th,
-.DataPing_div .dataping-feuille-parties th {
+.monclubtt-div .monclubtt-feuille-compo th,
+.monclubtt-div .monclubtt-feuille-parties th {
     font-size: 10px;
     padding: 7px 10px;
 }
 
-.DataPing_div .dataping-feuille-compo td,
-.DataPing_div .dataping-feuille-parties td {
+.monclubtt-div .monclubtt-feuille-compo td,
+.monclubtt-div .monclubtt-feuille-parties td {
     font-size: 12px;
     padding: 6px 10px;
 }
 
 /* Joueur / équipe gagnant·e */
-.DataPing_div .dataping-winner {
+.monclubtt-div .monclubtt-winner {
     font-weight: 700;
     color: #1a5276;
 }
 
 /* Détail des sets */
-.DataPing_div .dataping-sets {
+.monclubtt-div .monclubtt-sets {
     font-family: 'Courier New', monospace;
     font-size: 11px;
     color: #666;
@@ -303,8 +303,8 @@
 }
 
 /* Indicateurs de chargement / erreur */
-.DataPing_div .dataping-feuille-loading,
-.DataPing_div .dataping-feuille-error {
+.monclubtt-div .monclubtt-feuille-loading,
+.monclubtt-div .monclubtt-feuille-error {
     margin: 8px 0;
     font-size: 12px;
     font-style: italic;
@@ -312,12 +312,12 @@
     padding: 6px 12px;
 }
 
-.DataPing_div .dataping-feuille-error {
+.monclubtt-div .monclubtt-feuille-error {
     color: #c0392b;
 }
 
 /* ===== Horodatage ===== */
-.dataping-updated-at {
+.monclubtt-updated-at {
     font-size: 12px;
     color: #aaa;
     text-align: right;
@@ -346,17 +346,17 @@ th.headerSortUp {
 } 
 
 /* Rotation de l'icône sync pendant le chargement */
-@keyframes dataping-spin {
+@keyframes monclubtt-spin {
     from { transform: rotate(0deg); }
     to   { transform: rotate(-360deg); }
 }
 
-.button.is-loading .dataping-sync-icon {
-    animation: dataping-spin 0.8s linear infinite;
+.button.is-loading .monclubtt-sync-icon {
+    animation: monclubtt-spin 0.8s linear infinite;
 }
 
 /* Icône dans les boutons admin — hors portée de .wp-core-ui .button .dashicons */
-.dataping-icon {
+.monclubtt-icon {
     font-family: dashicons;
     display: inline-block;
     width: 20px;
@@ -372,7 +372,7 @@ th.headerSortUp {
 
 /* ===== Top Progression ===== */
 
-.dataping-top-prog {
+.monclubtt-top-prog {
     --dtp-navy:      #2b3a4f;
     --dtp-navy2:     #34465e;
     --dtp-blue:      #2b7cb5;
@@ -387,7 +387,7 @@ th.headerSortUp {
 }
 
 /* --- En-tête + toggle --- */
-.dataping-top-prog .tp-head {
+.monclubtt-top-prog .tp-head {
     display: flex;
     align-items: flex-end;
     justify-content: space-between;
@@ -396,7 +396,7 @@ th.headerSortUp {
     margin: 0 0 8px;
 }
 
-.dataping-top-prog .tp-h1 {
+.monclubtt-top-prog .tp-h1 {
     margin: 0 !important;
     font-size: 26px !important;
     font-weight: 900 !important;
@@ -405,14 +405,14 @@ th.headerSortUp {
     line-height: 1.1;
 }
 
-.dataping-top-prog .tp-sub {
+.monclubtt-top-prog .tp-sub {
     margin: 4px 0 0;
     font-size: 14px;
     color: #8794a1;
     font-weight: 600;
 }
 
-.dataping-top-prog .tp-toggle {
+.monclubtt-top-prog .tp-toggle {
     display: inline-flex;
     background: #dde3e9;
     border-radius: 999px;
@@ -421,7 +421,7 @@ th.headerSortUp {
     flex-shrink: 0;
 }
 
-.dataping-top-prog .tp-toggle button {
+.monclubtt-top-prog .tp-toggle button {
     appearance: none;
     border: 0;
     cursor: pointer;
@@ -436,14 +436,14 @@ th.headerSortUp {
     white-space: nowrap;
 }
 
-.dataping-top-prog .tp-toggle button.tp-on {
+.monclubtt-top-prog .tp-toggle button.tp-on {
     background: var(--dtp-navy);
     color: #fff;
     box-shadow: 0 4px 12px rgba(43, 58, 79, 0.28);
 }
 
 /* --- Carte podium --- */
-.dataping-top-prog .tp-podium-card {
+.monclubtt-top-prog .tp-podium-card {
     position: relative;
     background: #fff;
     border-radius: 16px;
@@ -452,34 +452,34 @@ th.headerSortUp {
     border: 1px solid #eef1f4;
 }
 
-.dataping-top-prog .tp-pc-band {
+.monclubtt-top-prog .tp-pc-band {
     height: 7px;
     width: 100%;
     background: linear-gradient(90deg, var(--dtp-blue), var(--dtp-navy));
 }
 
-.dataping-top-prog .tp-pc-title {
+.monclubtt-top-prog .tp-pc-title {
     display: flex;
     align-items: center;
     gap: 10px;
     padding: 16px 22px 0;
 }
 
-.dataping-top-prog .tp-icn {
+.monclubtt-top-prog .tp-icn {
     width: 22px;
     height: 22px;
     color: var(--dtp-blue);
     flex-shrink: 0;
 }
 
-.dataping-top-prog .tp-pc-title h3 {
+.monclubtt-top-prog .tp-pc-title h3 {
     margin: 0 !important;
     font-size: 17px !important;
     font-weight: 800 !important;
     color: var(--dtp-navy) !important;
 }
 
-.dataping-top-prog .tp-tag {
+.monclubtt-top-prog .tp-tag {
     margin-left: auto;
     font-size: 12px;
     font-weight: 700;
@@ -493,7 +493,7 @@ th.headerSortUp {
 }
 
 /* --- Scène du podium --- */
-.dataping-top-prog .tp-stage-host {
+.monclubtt-top-prog .tp-stage-host {
     display: flex;
     justify-content: center;
     align-items: flex-start;
@@ -501,20 +501,20 @@ th.headerSortUp {
 }
 
 /* Wrapper scalable : contient le stage SVG + les plaques de noms */
-.dataping-top-prog .tp-scalable {
+.monclubtt-top-prog .tp-scalable {
     width: 720px;
     flex: none;
     transform-origin: top center;
 }
 
-.dataping-top-prog .tp-stage {
+.monclubtt-top-prog .tp-stage {
     position: relative;
     width: 720px;
     height: 498px;
 }
 
 /* Rangée de plaques en flux normal sous le podium */
-.dataping-top-prog .tp-nameplates {
+.monclubtt-top-prog .tp-nameplates {
     display: flex;
     width: 720px;
     padding: 8px 48px 36px;
@@ -522,14 +522,14 @@ th.headerSortUp {
     box-sizing: border-box;
 }
 
-.dataping-top-prog .tp-podium {
+.monclubtt-top-prog .tp-podium {
     position: absolute;
     inset: 0;
     width: 720px;
     height: 498px;
 }
 
-.dataping-top-prog .tp-watermark {
+.monclubtt-top-prog .tp-watermark {
     position: absolute;
     left: 50%;
     top: 150px;
@@ -541,21 +541,21 @@ th.headerSortUp {
 }
 
 /* --- Avatars (injectés par JS) --- */
-.dataping-top-prog .tp-figure {
+.monclubtt-top-prog .tp-figure {
     position: absolute;
     width: 128px;
     transform: translateX(-50%);
     opacity: 1;
 }
 
-.dataping-top-prog .tp-figure svg {
+.monclubtt-top-prog .tp-figure svg {
     display: block;
     width: 128px;
     height: auto;
     filter: drop-shadow(0 8px 10px rgba(43, 58, 79, 0.18));
 }
 
-.dataping-top-prog .tp-figure--anim {
+.monclubtt-top-prog .tp-figure--anim {
     animation: dtpRise 0.5s cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
 }
 
@@ -565,20 +565,20 @@ th.headerSortUp {
 }
 
 /* --- Médaille (injectée par JS comme <svg class="tp-medal">) --- */
-.dataping-top-prog .tp-medal {
+.monclubtt-top-prog .tp-medal {
     position: absolute;
     width: 46px;
     height: 46px;
 }
 
 /* --- Plaque nom/progression (flex child dans tp-nameplates) --- */
-.dataping-top-prog .tp-plate {
+.monclubtt-top-prog .tp-plate {
     flex: 0 0 200px;
     width: 200px;
     text-align: center;
 }
 
-.dataping-top-prog .tp-name {
+.monclubtt-top-prog .tp-name {
     font-weight: 800;
     font-size: 15px;
     color: var(--dtp-navy);
@@ -586,16 +586,16 @@ th.headerSortUp {
     line-height: 1.2;
 }
 
-.dataping-top-prog .tp-name--f { color: var(--dtp-red); }
-.dataping-top-prog .tp-name--m { color: var(--dtp-blue-dk); }
+.monclubtt-top-prog .tp-name--f { color: var(--dtp-red); }
+.monclubtt-top-prog .tp-name--m { color: var(--dtp-blue-dk); }
 
-.dataping-top-prog .tp-first {
+.monclubtt-top-prog .tp-first {
     font-size: 12.5px;
     color: #909aa6;
     margin-top: 2px;
 }
 
-.dataping-top-prog .tp-pill {
+.monclubtt-top-prog .tp-pill {
     display: inline-flex;
     align-items: center;
     gap: 5px;
@@ -608,7 +608,7 @@ th.headerSortUp {
     color: var(--dtp-green);
 }
 
-.dataping-top-prog .tp-pill svg {
+.monclubtt-top-prog .tp-pill svg {
     width: 11px;
     height: 11px;
     flex-shrink: 0;
@@ -616,28 +616,28 @@ th.headerSortUp {
 
 /* --- Mobile : réduction de l'en-tête --- */
 @media (max-width: 600px) {
-    .dataping-top-prog .tp-head {
+    .monclubtt-top-prog .tp-head {
         flex-direction: column;
         align-items: flex-start;
         gap: 10px;
     }
-    .dataping-top-prog .tp-toggle button {
+    .monclubtt-top-prog .tp-toggle button {
         font-size: 12px;
         padding: 7px 12px;
     }
 }
 
 /* ADMIN */
-.DataPing_nonoff{
+.MonClubTT_nonoff{
     font-size: 15px;
 }
 
-.DataPing_version{
+.monclubtt-version{
     font-size: 10px;
     color:grey;
 }
 
-.DataPing_right_box{
+.monclubtt-right-box{
     float:right;
     padding: 10px;
     margin:77px 20px;
@@ -647,7 +647,7 @@ th.headerSortUp {
     border-radius: 5px;
 }
 
-.DataPing_settings_form{
+.monclubtt_settings_form{
     border:1px solid grey;
     border-radius: 5px;
     background: #fff;
@@ -655,16 +655,16 @@ th.headerSortUp {
     width:70%;
 }
 
-.dataping_page_joueurs_DataPing tr.F td{
+.monclubtt_page_monclubtt_joueurs tr.F td{
     color: #e74c3c;
 }
 
-.dataping_page_joueurs_DataPing tr.M td{
+.monclubtt_page_monclubtt_joueurs tr.M td{
     color: #3498db;
 }
 
 /* Synchronisation */
-.dataping-sync-section {
+.monclubtt-sync-section {
     background: #fff;
     border: 1px solid #ccc;
     border-radius: 5px;
@@ -673,15 +673,15 @@ th.headerSortUp {
     max-width: 600px;
 }
 
-.dataping-sync-section p {
+.monclubtt-sync-section p {
     margin-bottom: 15px;
 }
 
-.dataping-sync-section .spinner {
+.monclubtt-sync-section .spinner {
     visibility: visible;
 }
 
-#dataping-sync-message .notice {
+#monclubtt-sync-message .notice {
     margin: 10px 0 0 0;
     padding: 10px;
 }

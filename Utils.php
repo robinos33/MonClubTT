@@ -1,18 +1,18 @@
 <?php
 if ( ! defined( 'ABSPATH' ) ) exit;
 
-class ConstantesDataPing {
+class ConstantesMonClubTT {
 
-    const DATAPING_ID_APPLICATION = 'DataPing_id_application';
-    const DATAPING_MOT_DE_PASSE = 'DataPing_mot_de_passe';
-    const DATAPING_NUM_CLUB = 'DataPing_num_club';
+    const MONCLUBTT_ID_APPLICATION = 'monclubtt_id_application';
+    const MONCLUBTT_MOT_DE_PASSE = 'monclubtt_mot_de_passe';
+    const MONCLUBTT_NUM_CLUB = 'monclubtt_num_club';
 
 }
 
 /**
  * Autoloading des models
  */
-function autoload_dataPing_models() {
+function autoload_monclubtt_models() {
     $repertoireModels = __DIR__ . '/models/';
     $models = glob($repertoireModels . "*.php");
     foreach ($models as $model) {
@@ -20,4 +20,4 @@ function autoload_dataPing_models() {
     }
 }
 
-autoload_dataPing_models();
+autoload_monclubtt_models();
