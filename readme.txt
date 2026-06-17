@@ -27,8 +27,8 @@ Mon Club TT is an unofficial WordPress plugin that connects to the FFTT (Fédér
 
 **Shortcodes:**
 
-* `[joueurs type="MF"]` — display club players (M, F, or MF)
-* `[equipe iddiv="198511" idpoule="1140384"]` — display a team's standings and results
+* `[monclubtt_joueurs type="MF"]` — display club players (M, F, or MF)
+* `[monclubtt_equipe iddiv="198511" idpoule="1140384"]` — display a team's standings and results
 
 **Requirements:**
 

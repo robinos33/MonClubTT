@@ -39,7 +39,7 @@ Plugin WordPress non-officiel pour afficher les données d'un club issues de l'[
 ### Liste des joueurs
 
 ```
-[joueurs type="MF"]
+[monclubtt_joueurs type="MF"]
 ```
 
 | Attribut | Valeurs | Défaut | Description |
@@ -49,7 +49,7 @@ Plugin WordPress non-officiel pour afficher les données d'un club issues de l'[
 ### Page d'équipe
 
 ```
-[equipe iddiv="198511" idpoule="1140384"]
+[monclubtt_equipe iddiv="198511" idpoule="1140384"]
 ```
 
 Les valeurs `iddiv` et `idpoule` sont générées automatiquement dans *MonClubTT → Équipes*.  

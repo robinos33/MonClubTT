@@ -41,7 +41,7 @@ $nonce        = wp_create_nonce('monclubtt_generate_pages_nonce');
             $idpoule   = $equipe->getIdpoule() ?? '';
             $hasIds    = !empty( $iddiv );
             $checkId   = 'monclubtt-cb-' . esc_attr( $iddiv ) . '-' . esc_attr( $idpoule );
-            $shortcode = '[equipe iddiv="' . esc_attr( $iddiv ) . '" idpoule="' . esc_attr( $idpoule ) . '"]';
+            $shortcode = '[monclubtt_equipe iddiv="' . esc_attr( $iddiv ) . '" idpoule="' . esc_attr( $idpoule ) . '"]';
             ?>
             <tr class="<?php echo $hasIds ? '' : 'monclubtt-row-disabled'; ?>">
                 <th scope="row" class="check-column">

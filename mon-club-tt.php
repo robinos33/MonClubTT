@@ -32,8 +32,8 @@ class MonClubTT
         add_action('admin_menu', array($this, 'add_admin_menu'));
         add_action('admin_init', array($this, 'register_settings'));
         add_action('init', array($this, 'monclubtt_style_scripts'));
-        add_shortcode('equipe', array($this, 'equipes_front'));
-        add_shortcode('joueurs', array($this, 'joueurs_front'));
+        add_shortcode('monclubtt_equipe', array($this, 'equipes_front'));
+        add_shortcode('monclubtt_joueurs', array($this, 'joueurs_front'));
 
         // Hooks pour exposer les données en cache aux autres plugins
         add_filter('monclubtt_get_joueurs', array($this, 'get_joueurs_data'), 10, 1);
@@ -164,7 +164,7 @@ class MonClubTT
         }
 
         // Normalise et valide les attributs du shortcode
-        $atts = shortcode_atts(array('iddiv' => '', 'idpoule' => ''), (array) $atts, 'equipe');
+        $atts = shortcode_atts(array('iddiv' => '', 'idpoule' => ''), (array) $atts, 'monclubtt_equipe');
         $atts['iddiv'] = (string) $atts['iddiv'];
         $atts['idpoule'] = (string) $atts['idpoule'];
         if ($atts['iddiv'] === '' || $atts['idpoule'] === '') {
@@ -188,7 +188,7 @@ class MonClubTT
      */
     public function joueurs_front($atts, $content)
     {
-        $atts = shortcode_atts(array('type' => 'MF'), (array) $atts, 'joueurs');
+        $atts = shortcode_atts(array('type' => 'MF'), (array) $atts, 'monclubtt_joueurs');
         if (in_array($atts['type'], $this->getTypeListeJoueurs(), true)) {
             $listeJoueurs = array();
             $joueurs = new Joueurs();
@@ -440,7 +440,7 @@ class MonClubTT
                 continue;
             }
 
-            $content = '[equipe iddiv="' . $iddiv . '" idpoule="' . $idpoule . '"]';
+            $content = '[monclubtt_equipe iddiv="' . $iddiv . '" idpoule="' . $idpoule . '"]';
             // Chercher d'abord par meta (page déjà gérée par MonClubTT, y.c. à la corbeille)
             $page = $this->findMonClubTTPage($iddiv, $idpoule, true);
 

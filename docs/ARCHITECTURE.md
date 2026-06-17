@@ -24,8 +24,8 @@ MonClubTT/
 │   │   ├── joueurs.php   # Liste des licenciés
 │   │   └── header.php
 │   └── front/
-│       ├── equipes.php   # Shortcode [equipe] — classement + résultats + feuilles
-│       ├── joueurs.php   # Shortcode [joueurs] — tableau trié
+│       ├── equipes.php   # Shortcode [monclubtt_equipe] — classement + résultats + feuilles
+│       ├── joueurs.php   # Shortcode [monclubtt_joueurs] — tableau trié
 │       └── header.php
 │
 └── assets/
@@ -49,7 +49,7 @@ Clic "Synchroniser"
 ### Affichage public (shortcodes)
 
 ```
-[joueurs] ou [equipe iddiv=X idpoule=Y]
+[monclubtt_joueurs] ou [monclubtt_equipe iddiv=X idpoule=Y]
     → MonClubTT::joueurs_front() / equipes_front()
     → AccesFFTTApi : lecture transients (ou appel API si cache expiré)
     → require views/front/joueurs.php | equipes.php

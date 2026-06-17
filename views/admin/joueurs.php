@@ -16,17 +16,17 @@
                 <tr>
                     <th scope="row" class="check-column"></th>
                     <td>Ensemble des joueurs et joueuses</td>
-                    <td>[joueurs]</td>
+                    <td>[monclubtt_joueurs]</td>
                 </tr>
                 <tr>
                     <th scope="row" class="check-column"></th>
                     <td>Ensemble des joueuses</td>
-                    <td>[joueurs type='F']</td>
+                    <td>[monclubtt_joueurs type='F']</td>
                 </tr>
                 <tr>
                     <th scope="row" class="check-column"></th>
                     <td>Ensemble des joueurs</td>
-                    <td>[joueurs type='M']</td>
+                    <td>[monclubtt_joueurs type='M']</td>
                 </tr>
             </tbody>
         </table>
