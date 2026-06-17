@@ -160,7 +160,7 @@ class MonClubTT
     {
         $api = AccesFFTTApi::getInstance();
         if (!is_object($api)) {
-            return __('Problème lors de la récupération des résultats', 'mon-club-tt'); // phpcs:ignore WordPress.WP.I18n.TextDomainMismatch
+            return esc_html__('Problème lors de la récupération des résultats', 'mon-club-tt'); // phpcs:ignore WordPress.WP.I18n.TextDomainMismatch
         }
 
         // Normalise et valide les attributs du shortcode
@@ -168,7 +168,7 @@ class MonClubTT
         $atts['iddiv'] = (string) $atts['iddiv'];
         $atts['idpoule'] = (string) $atts['idpoule'];
         if ($atts['iddiv'] === '' || $atts['idpoule'] === '') {
-            return __('Poule ou division incorrecte', 'mon-club-tt'); // phpcs:ignore WordPress.WP.I18n.TextDomainMismatch
+            return esc_html__('Poule ou division incorrecte', 'mon-club-tt'); // phpcs:ignore WordPress.WP.I18n.TextDomainMismatch
         }
 
         $listeEquipesM = $api->getEquipesByClub(ParametresPlugin::getNumClub(), 'M');
@@ -199,7 +199,7 @@ class MonClubTT
             require __DIR__ . '/views/front/joueurs.php';
             return ob_get_clean();
         }
-        return __('Erreur de paramètres du shortcode', 'mon-club-tt'); // phpcs:ignore WordPress.WP.I18n.TextDomainMismatch
+        return esc_html__('Erreur de paramètres du shortcode', 'mon-club-tt'); // phpcs:ignore WordPress.WP.I18n.TextDomainMismatch
     }
 
     private function getTypeListeJoueurs()
