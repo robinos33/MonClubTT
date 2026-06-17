@@ -29,7 +29,6 @@ class MonClubTT
 
     public function __construct()
     {
-        add_action('plugins_loaded', array($this, 'load_textdomain'));
         add_action('admin_menu', array($this, 'add_admin_menu'));
         add_action('admin_init', array($this, 'register_settings'));
         add_action('init', array($this, 'monclubtt_style_scripts'));
@@ -50,11 +49,6 @@ class MonClubTT
 
         // Widget dashboard
         add_action('wp_dashboard_setup', array($this, 'add_dashboard_widget'));
-    }
-
-    public function load_textdomain()
-    {
-        load_plugin_textdomain('mon-club-tt', false, dirname(plugin_basename(__FILE__)) . '/languages');
     }
 
     public function add_admin_menu()
