@@ -1,14 +1,14 @@
 <?php
 if ( ! defined( 'ABSPATH' ) ) exit;
-$pluginData = MonClubTT::getPluginData();
-if (isset($pluginData)) { ?>
-    <h1 class="monclubtt-title"><?php echo esc_html($pluginData['Name']); ?> <span class="monclubtt-version">v<?php echo esc_html($pluginData['Version']); ?></span></h1>
-    <p class="monclubtt-author">Par <?php echo wp_kses($pluginData['Author'], array('a' => array('href' => array(), 'rel' => array()))); ?></p>
+$monclubtt_pluginData = MonClubTT::getPluginData();
+if (isset($monclubtt_pluginData)) { ?>
+    <h1 class="monclubtt-title"><?php echo esc_html($monclubtt_pluginData['Name']); ?> <span class="monclubtt-version">v<?php echo esc_html($monclubtt_pluginData['Version']); ?></span></h1>
+    <p class="monclubtt-author">Par <?php echo wp_kses($monclubtt_pluginData['Author'], array('a' => array('href' => array(), 'rel' => array()))); ?></p>
     <?php
 }
 
-$current_page = isset($_GET['page']) ? sanitize_text_field(wp_unslash($_GET['page'])) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-if (!is_object(AccesFFTTApi::getInstance()) && $current_page !== 'monclubtt_parametres') {
+$monclubtt_current_page = isset($_GET['page']) ? sanitize_text_field(wp_unslash($_GET['page'])) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+if (!is_object(AccesFFTTApi::getInstance()) && $monclubtt_current_page !== 'monclubtt_parametres') {
     ?>
     <div class="wrap">
         <h1 class="monclubtt-title">Les équipes </h1>
@@ -17,7 +17,6 @@ if (!is_object(AccesFFTTApi::getInstance()) && $current_page !== 'monclubtt_para
     <?php
 
 }
-$api = AccesFFTTApi::getInstance();
-
+$monclubtt_api = AccesFFTTApi::getInstance();
 
 

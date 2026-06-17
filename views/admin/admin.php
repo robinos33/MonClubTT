@@ -28,11 +28,11 @@ if (isset($_GET['settings-updated']) && filter_input(INPUT_GET, 'settings-update
     <h2>Synchronisation des données</h2>
     <div class="monclubtt-sync-section">
         <?php
-        $lastSync = MonClubTT::getLastSyncTimestamp();
-        if ($lastSync) {
-            $syncDate = date_i18n(get_option('date_format') . ' à ' . get_option('time_format'), $lastSync);
-            $timeDiff = human_time_diff($lastSync, current_time('timestamp'));
-            echo '<p><strong>Dernière synchronisation :</strong><br>' . esc_html($syncDate) . '<br><small style="color: #666;">(il y a ' . esc_html($timeDiff) . ')</small></p>';
+        $monclubtt_lastSync = MonClubTT::getLastSyncTimestamp();
+        if ($monclubtt_lastSync) {
+            $monclubtt_syncDate = date_i18n(get_option('date_format') . ' à ' . get_option('time_format'), $monclubtt_lastSync);
+            $monclubtt_timeDiff = human_time_diff($monclubtt_lastSync, current_time('timestamp'));
+            echo '<p><strong>Dernière synchronisation :</strong><br>' . esc_html($monclubtt_syncDate) . '<br><small style="color: #666;">(il y a ' . esc_html($monclubtt_timeDiff) . ')</small></p>';
         } else {
             echo '<p><em>Aucune synchronisation manuelle effectuée</em></p>';
         }
@@ -66,12 +66,12 @@ if (isset($_GET['settings-updated']) && filter_input(INPUT_GET, 'settings-update
     <h2>Logs de l'API FFTT</h2>
     <div style="background: #fff; border: 1px solid #ccd0d4; padding: 15px; margin-bottom: 20px;">
         <?php
-        $logs = AccesFFTTApi::getApiLogs();
-        if (empty($logs)) {
+        $monclubtt_logs = AccesFFTTApi::getApiLogs();
+        if (empty($monclubtt_logs)) {
             echo '<p><em>Aucun log disponible. Lancez une synchronisation pour voir les logs.</em></p>';
         } else {
             echo '<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">';
-            echo '<p style="margin: 0;"><strong>' . count($logs) . ' logs d\'API</strong></p>';
+            echo '<p style="margin: 0;"><strong>' . count($monclubtt_logs) . ' logs d\'API</strong></p>';
             echo '<form method="post" style="margin: 0;">';
             echo '<input type="hidden" name="monclubtt_clear_logs" value="1">';
             wp_nonce_field('monclubtt_clear_logs', 'monclubtt_clear_logs_nonce');
@@ -82,21 +82,21 @@ if (isset($_GET['settings-updated']) && filter_input(INPUT_GET, 'settings-update
             echo '<div style="max-height: 400px; overflow-y: auto; font-family: monospace; font-size: 12px; background: #f8f8f8; padding: 10px; border: 1px solid #ddd;">';
 
             // Afficher les logs en ordre inverse (plus récent d'abord)
-            foreach (array_reverse($logs) as $log) {
-                $color = '#333';
-                $icon = '●';
-                if ($log['type'] === 'error') {
-                    $color = '#dc3232';
-                    $icon = '✖';
-                } elseif ($log['type'] === 'success') {
-                    $color = '#46b450';
-                    $icon = '✓';
+            foreach (array_reverse($monclubtt_logs) as $monclubtt_log) {
+                $monclubtt_color = '#333';
+                $monclubtt_icon = '●';
+                if ($monclubtt_log['type'] === 'error') {
+                    $monclubtt_color = '#dc3232';
+                    $monclubtt_icon = '✖';
+                } elseif ($monclubtt_log['type'] === 'success') {
+                    $monclubtt_color = '#46b450';
+                    $monclubtt_icon = '✓';
                 }
 
-                echo '<div style="margin-bottom: 5px; padding: 5px; border-left: 3px solid ' . esc_attr($color) . '; background: #fff;">';
-                echo '<span style="color: #666;">[' . esc_html($log['time']) . ']</span> ';
-                echo '<span style="color: ' . esc_attr($color) . '; font-weight: bold;">' . esc_html($icon) . '</span> ';
-                echo '<span>' . esc_html($log['message']) . '</span>';
+                echo '<div style="margin-bottom: 5px; padding: 5px; border-left: 3px solid ' . esc_attr($monclubtt_color) . '; background: #fff;">';
+                echo '<span style="color: #666;">[' . esc_html($monclubtt_log['time']) . ']</span> ';
+                echo '<span style="color: ' . esc_attr($monclubtt_color) . '; font-weight: bold;">' . esc_html($monclubtt_icon) . '</span> ';
+                echo '<span>' . esc_html($monclubtt_log['message']) . '</span>';
                 echo '</div>';
             }
 

@@ -34,12 +34,12 @@
 
     <h2>Liste des joueurs</h2>
     <?php
-    $api = AccesFFTTApi::getInstance();
-    $numClub = ParametresPlugin::getNumClub();
-    $updatedAt = $api->getCacheUpdatedAt('joueurs_club', array('numclu' => $numClub));
-    if ($updatedAt !== false):
+    $monclubtt_api     = AccesFFTTApi::getInstance();
+    $monclubtt_numClub = ParametresPlugin::getNumClub();
+    $monclubtt_updatedAt = $monclubtt_api->getCacheUpdatedAt('joueurs_club', array('numclu' => $monclubtt_numClub));
+    if ($monclubtt_updatedAt !== false):
     ?>
-        <p><em>Dernière mise à jour du cache : <?php echo esc_html(date_i18n('d/m/Y à H:i:s', $updatedAt)); ?></em></p>
+        <p><em>Dernière mise à jour du cache : <?php echo esc_html(date_i18n('d/m/Y à H:i:s', $monclubtt_updatedAt)); ?></em></p>
     <?php endif; ?>
     <table class="wp-list-table widefat fixed striped posts">
         <thead>
@@ -53,17 +53,17 @@
         </thead>
         <tbody id="the-list">
         <?php
-        $joueurs = new Joueurs();
-        foreach($joueurs->getJoueurs('MF') as $joueur):?>
+        $monclubtt_joueurs = new Joueurs();
+        foreach($monclubtt_joueurs->getJoueurs('MF') as $monclubtt_joueur):?>
             <?php
-                /** @var Joueur $joueur */
+                /** @var Joueur $monclubtt_joueur */
             ?>
-        <tr class="<?php echo esc_attr($joueur->getSexe()); ?>">
-            <td class="bold"><?php echo esc_html($joueur->getNom()); ?></td>
-            <td class="bold"><?php echo esc_html($joueur->getPrenom()); ?></td>
-            <td><?php echo esc_html($joueur->getClassement()->getClassementOfficiel()); ?></td>
-            <td><?php echo esc_html($joueur->getClassement()->getPointsOfficiels()); ?></td>
-            <td><?php echo esc_html($joueur->getClassement()->getPointsMensuels()); ?></td>
+        <tr class="<?php echo esc_attr($monclubtt_joueur->getSexe()); ?>">
+            <td class="bold"><?php echo esc_html($monclubtt_joueur->getNom()); ?></td>
+            <td class="bold"><?php echo esc_html($monclubtt_joueur->getPrenom()); ?></td>
+            <td><?php echo esc_html($monclubtt_joueur->getClassement()->getClassementOfficiel()); ?></td>
+            <td><?php echo esc_html($monclubtt_joueur->getClassement()->getPointsOfficiels()); ?></td>
+            <td><?php echo esc_html($monclubtt_joueur->getClassement()->getPointsMensuels()); ?></td>
         </tr>
         <?php endforeach; ?>
         </tbody>
