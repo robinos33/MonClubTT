@@ -8,6 +8,7 @@ composer.json   export-ignore
 phpstan.neon    export-ignore
 phpunit.xml     export-ignore
 docs/           export-ignore
+.wordpress-org/ export-ignore
 .claude/        export-ignore
 .github/        export-ignore
 .idea/          export-ignore
