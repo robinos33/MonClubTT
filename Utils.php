@@ -1,8 +1,7 @@
 <?php
 if ( ! defined( 'ABSPATH' ) ) exit;
-// phpcs:disable WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedFunctionFound
 
-class ConstantesMonClubTT {
+class MonClubTT_Constantes {
 
     const MONCLUBTT_ID_APPLICATION = 'monclubtt_id_application';
     const MONCLUBTT_MOT_DE_PASSE = 'monclubtt_mot_de_passe';
@@ -13,7 +12,7 @@ class ConstantesMonClubTT {
 /**
  * Autoloading des models
  */
-function autoload_monclubtt_models() {
+function monclubtt_autoload_models() {
     $repertoireModels = __DIR__ . '/models/';
     $models = glob($repertoireModels . "*.php");
     foreach ($models as $model) {
@@ -21,4 +20,4 @@ function autoload_monclubtt_models() {
     }
 }
 
-autoload_monclubtt_models();
+monclubtt_autoload_models();

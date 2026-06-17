@@ -3,7 +3,7 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 
 if (!class_exists('joueur')) {
 
-    class Joueur {
+    class MonClubTT_Joueur {
 
         private $nom;
         private $prenom;
@@ -50,7 +50,7 @@ if (!class_exists('joueur')) {
         }
 
         /**
-         * @return Classement
+         * @return MonClubTT_Classement
          */
         public function getClassement() {
             return $this->classement;
@@ -77,7 +77,7 @@ if (!class_exists('joueur')) {
         }
 
         public function setClassement($donnees) {
-            $this->classement = new Classement($donnees);
+            $this->classement = new MonClubTT_Classement($donnees);
         }
 
         public function getCategorie() {

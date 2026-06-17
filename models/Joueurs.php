@@ -8,22 +8,22 @@ if (!class_exists('joueurs')) {
      *
      * @author robin
      */
-    class Joueurs {
+    class MonClubTT_Joueurs {
 
         private $_api;
         /**
          * Tableau contenant les joueurs du club
-         * @var array Joueur
+         * @var array MonClubTT_Joueur
          */
         private $joueurs = [];
 
         public function __construct() {
-            $this->_api = AccesFFTTApi::getInstance();
+            $this->_api = MonClubTT_AccesFFTTApi::getInstance();
             $this->loadJoueurs();
         }
 
         private function loadJoueurs() {
-            $club = ParametresPlugin::getNumClub();
+            $club = MonClubTT_ParametresPlugin::getNumClub();
             $cacheKey = $this->_api->buildCacheKeyPublic('joueurs_club', array('numclu' => $club));
             $lifeTime = $this->_api->computeHalfDayTtlPublic();
 
@@ -37,7 +37,7 @@ if (!class_exists('joueurs')) {
 
             foreach ($joueursData as $joueurData) {
                 if (!empty($joueurData)) {
-                    $this->joueurs[] = new Joueur($joueurData);
+                    $this->joueurs[] = new MonClubTT_Joueur($joueurData);
                 }
             }
         }

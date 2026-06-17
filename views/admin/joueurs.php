@@ -34,8 +34,8 @@
 
     <h2>Liste des joueurs</h2>
     <?php
-    $monclubtt_api     = AccesFFTTApi::getInstance();
-    $monclubtt_numClub = ParametresPlugin::getNumClub();
+    $monclubtt_api     = MonClubTT_AccesFFTTApi::getInstance();
+    $monclubtt_numClub = MonClubTT_ParametresPlugin::getNumClub();
     $monclubtt_updatedAt = $monclubtt_api->getCacheUpdatedAt('joueurs_club', array('numclu' => $monclubtt_numClub));
     if ($monclubtt_updatedAt !== false):
     ?>
@@ -53,10 +53,10 @@
         </thead>
         <tbody id="the-list">
         <?php
-        $monclubtt_joueurs = new Joueurs();
+        $monclubtt_joueurs = new MonClubTT_Joueurs();
         foreach($monclubtt_joueurs->getJoueurs('MF') as $monclubtt_joueur):?>
             <?php
-                /** @var Joueur $monclubtt_joueur */
+                /** @var MonClubTT_Joueur $monclubtt_joueur */
             ?>
         <tr class="<?php echo esc_attr($monclubtt_joueur->getSexe()); ?>">
             <td class="bold"><?php echo esc_html($monclubtt_joueur->getNom()); ?></td>

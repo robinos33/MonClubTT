@@ -1,10 +1,10 @@
 <?php
 if ( ! defined( 'ABSPATH' ) ) exit;
 
-if (!class_exists('ParametresPlugin')) {
+if (!class_exists('MonClubTT_ParametresPlugin')) {
 
 
-    class ParametresPlugin
+    class MonClubTT_ParametresPlugin
     {
 
         /**
@@ -13,9 +13,9 @@ if (!class_exists('ParametresPlugin')) {
         private static function getParametresFromDatabase()
         {
             global $wpdb;
-            $params['idApplication'] = get_option(ConstantesMonClubTT::MONCLUBTT_ID_APPLICATION);
-            $params['motDePasse'] = get_option(ConstantesMonClubTT::MONCLUBTT_MOT_DE_PASSE);
-            $params['numClub'] = get_option(ConstantesMonClubTT::MONCLUBTT_NUM_CLUB);
+            $params['idApplication'] = get_option(MonClubTT_Constantes::MONCLUBTT_ID_APPLICATION);
+            $params['motDePasse'] = get_option(MonClubTT_Constantes::MONCLUBTT_MOT_DE_PASSE);
+            $params['numClub'] = get_option(MonClubTT_Constantes::MONCLUBTT_NUM_CLUB);
             return $params;
         }
 

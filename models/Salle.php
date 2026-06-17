@@ -1,7 +1,7 @@
 <?php
 if ( ! defined( 'ABSPATH' ) ) exit;
 
-class Salle {
+class MonClubTT_Salle {
 
     private $nom;
     private $adresse1;

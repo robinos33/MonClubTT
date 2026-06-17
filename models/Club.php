@@ -12,7 +12,7 @@ if ( ! defined( 'ABSPATH' ) ) exit;
  *
  * @author robin
  */
-class Club {
+class MonClubTT_Club {
 
     private $joueurs;
     private $equipes;
@@ -22,7 +22,7 @@ class Club {
     private $site;
 
     public function __construct($numClub) {
-        $api = AccesFFTTApi::getInstance();
+        $api = MonClubTT_AccesFFTTApi::getInstance();
         $club = $api->getClub($numClub);
         //$this->initSalle($club);
         $this->setSite($club['web']);
@@ -30,7 +30,7 @@ class Club {
     }
 
     public function initSalle($club) {
-        $this->setSalle(new Salle($club));
+        $this->setSalle(new MonClubTT_Salle($club));
     }
 
     public function getJoueurs() {

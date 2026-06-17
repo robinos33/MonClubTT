@@ -16,7 +16,7 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 
 require_once('Utils.php');
 
-class MonClubTT
+class MonClubTT_Plugin
 {
 
     /**
@@ -93,14 +93,14 @@ class MonClubTT
 
     public function register_settings()
     {
-        register_setting('monclubtt_settings', ConstantesMonClubTT::MONCLUBTT_ID_APPLICATION, array('sanitize_callback' => 'sanitize_text_field'));
-        register_setting('monclubtt_settings', ConstantesMonClubTT::MONCLUBTT_MOT_DE_PASSE,    array('sanitize_callback' => 'sanitize_text_field'));
-        register_setting('monclubtt_settings', ConstantesMonClubTT::MONCLUBTT_NUM_CLUB,        array('sanitize_callback' => 'sanitize_text_field'));
+        register_setting('monclubtt_settings', MonClubTT_Constantes::MONCLUBTT_ID_APPLICATION, array('sanitize_callback' => 'sanitize_text_field'));
+        register_setting('monclubtt_settings', MonClubTT_Constantes::MONCLUBTT_MOT_DE_PASSE,    array('sanitize_callback' => 'sanitize_text_field'));
+        register_setting('monclubtt_settings', MonClubTT_Constantes::MONCLUBTT_NUM_CLUB,        array('sanitize_callback' => 'sanitize_text_field'));
 
         add_settings_section('monclubtt_section', '', array($this, 'section_html'), 'monclubtt_settings');
-        add_settings_field(ConstantesMonClubTT::MONCLUBTT_ID_APPLICATION, 'Id Application', array($this, 'id_application_html'), 'monclubtt_settings', 'monclubtt_section');
-        add_settings_field(ConstantesMonClubTT::MONCLUBTT_MOT_DE_PASSE, 'Mot de passe Application', array($this, 'mot_de_passe_html'), 'monclubtt_settings', 'monclubtt_section');
-        add_settings_field(ConstantesMonClubTT::MONCLUBTT_NUM_CLUB, 'Numéro de club', array($this, 'equipe_num_html'), 'monclubtt_settings', 'monclubtt_section');
+        add_settings_field(MonClubTT_Constantes::MONCLUBTT_ID_APPLICATION, 'Id Application', array($this, 'id_application_html'), 'monclubtt_settings', 'monclubtt_section');
+        add_settings_field(MonClubTT_Constantes::MONCLUBTT_MOT_DE_PASSE, 'Mot de passe Application', array($this, 'mot_de_passe_html'), 'monclubtt_settings', 'monclubtt_section');
+        add_settings_field(MonClubTT_Constantes::MONCLUBTT_NUM_CLUB, 'Numéro de club', array($this, 'equipe_num_html'), 'monclubtt_settings', 'monclubtt_section');
     }
 
     public function section_html()
@@ -113,7 +113,7 @@ class MonClubTT
     {
         ?>
         <input type="text" name="monclubtt_id_application"
-               value="<?php echo esc_attr(get_option(ConstantesMonClubTT::MONCLUBTT_ID_APPLICATION)); ?>"/>
+               value="<?php echo esc_attr(get_option(MonClubTT_Constantes::MONCLUBTT_ID_APPLICATION)); ?>"/>
         <?php
     }
 
@@ -121,7 +121,7 @@ class MonClubTT
     {
         ?>
         <input type="text" name="monclubtt_mot_de_passe"
-               value="<?php echo esc_attr(get_option(ConstantesMonClubTT::MONCLUBTT_MOT_DE_PASSE)); ?>"/>
+               value="<?php echo esc_attr(get_option(MonClubTT_Constantes::MONCLUBTT_MOT_DE_PASSE)); ?>"/>
         <?php
     }
 
@@ -129,7 +129,7 @@ class MonClubTT
     {
         ?>
         <input type="text" name="monclubtt_num_club"
-               value="<?php echo esc_attr(get_option(ConstantesMonClubTT::MONCLUBTT_NUM_CLUB)); ?>"/>
+               value="<?php echo esc_attr(get_option(MonClubTT_Constantes::MONCLUBTT_NUM_CLUB)); ?>"/>
         <?php
     }
 
@@ -158,7 +158,7 @@ class MonClubTT
 
     public function equipes_front($atts, $content)
     {
-        $api = AccesFFTTApi::getInstance();
+        $api = MonClubTT_AccesFFTTApi::getInstance();
         if (!is_object($api)) {
             return esc_html__('Problème lors de la récupération des résultats', 'mon-club-tt'); // phpcs:ignore WordPress.WP.I18n.TextDomainMismatch
         }
@@ -171,8 +171,8 @@ class MonClubTT
             return esc_html__('Poule ou division incorrecte', 'mon-club-tt'); // phpcs:ignore WordPress.WP.I18n.TextDomainMismatch
         }
 
-        $listeEquipesM = $api->getEquipesByClub(ParametresPlugin::getNumClub(), 'M');
-        $listeEquipesF = $api->getEquipesByClub(ParametresPlugin::getNumClub(), 'F');
+        $listeEquipesM = $api->getEquipesByClub(MonClubTT_ParametresPlugin::getNumClub(), 'M');
+        $listeEquipesF = $api->getEquipesByClub(MonClubTT_ParametresPlugin::getNumClub(), 'F');
         $listeEquipes = array_merge((array) $listeEquipesM, (array) $listeEquipesF);
 
         ob_start();
@@ -191,9 +191,9 @@ class MonClubTT
         $atts = shortcode_atts(array('type' => 'MF'), (array) $atts, 'monclubtt_joueurs');
         if (in_array($atts['type'], $this->getTypeListeJoueurs(), true)) {
             $listeJoueurs = array();
-            $joueurs = new Joueurs();
-            $api = AccesFFTTApi::getInstance();
-            $numClub = ParametresPlugin::getNumClub();
+            $joueurs = new MonClubTT_Joueurs();
+            $api = MonClubTT_AccesFFTTApi::getInstance();
+            $numClub = MonClubTT_ParametresPlugin::getNumClub();
             $updatedAt = $api->getCacheUpdatedAt('joueurs_club', array('numclu' => $numClub));
             ob_start();
             require __DIR__ . '/views/front/joueurs.php';
@@ -218,7 +218,7 @@ class MonClubTT
         if (!in_array($type, $this->typeListeJoueurs, true)) {
             $type = 'MF';
         }
-        $joueurs = new Joueurs($type);
+        $joueurs = new MonClubTT_Joueurs($type);
         return $joueurs->getJoueurs($type);
     }
 
@@ -230,18 +230,18 @@ class MonClubTT
      */
     public function get_equipes_data($type = null)
     {
-        $api = AccesFFTTApi::getInstance();
+        $api = MonClubTT_AccesFFTTApi::getInstance();
         if (!is_object($api)) {
             return array();
         }
 
         if ($type === 'M' || $type === 'F') {
-            return $api->getEquipesByClub(ParametresPlugin::getNumClub(), $type);
+            return $api->getEquipesByClub(MonClubTT_ParametresPlugin::getNumClub(), $type);
         }
 
         // Retourne toutes les équipes (M et F)
-        $equipesM = $api->getEquipesByClub(ParametresPlugin::getNumClub(), 'M');
-        $equipesF = $api->getEquipesByClub(ParametresPlugin::getNumClub(), 'F');
+        $equipesM = $api->getEquipesByClub(MonClubTT_ParametresPlugin::getNumClub(), 'M');
+        $equipesF = $api->getEquipesByClub(MonClubTT_ParametresPlugin::getNumClub(), 'F');
         return array_merge((array) $equipesM, (array) $equipesF);
     }
 
@@ -254,7 +254,7 @@ class MonClubTT
      */
     public function get_classement_poule_data($value, $params)
     {
-        $api = AccesFFTTApi::getInstance();
+        $api = MonClubTT_AccesFFTTApi::getInstance();
         if (!is_object($api) || !isset($params['division']) || !isset($params['poule'])) {
             return array();
         }
@@ -270,7 +270,7 @@ class MonClubTT
      */
     public function get_rencontres_poule_data($value, $params)
     {
-        $api = AccesFFTTApi::getInstance();
+        $api = MonClubTT_AccesFFTTApi::getInstance();
         if (!is_object($api) || !isset($params['division']) || !isset($params['poule'])) {
             return array();
         }
@@ -291,7 +291,7 @@ class MonClubTT
             return;
         }
 
-        $api  = AccesFFTTApi::getInstance();
+        $api  = MonClubTT_AccesFFTTApi::getInstance();
         $data = $api->getRencontreDetail($rencId, $isRetour);
 
         if (!$data) {
@@ -314,14 +314,14 @@ class MonClubTT
             return;
         }
 
-        $api = AccesFFTTApi::getInstance();
+        $api = MonClubTT_AccesFFTTApi::getInstance();
         if (!is_object($api)) {
             wp_send_json_error(array('message' => 'Erreur de connexion à l\'API FFTT'));
             return;
         }
 
         try {
-            $numClub = ParametresPlugin::getNumClub();
+            $numClub = MonClubTT_ParametresPlugin::getNumClub();
             $syncResults = array();
             $debugLog = array();
 
@@ -331,8 +331,8 @@ class MonClubTT
             }
             $debugLog[] = "Numéro de club: " . $numClub;
 
-            $idApp = ParametresPlugin::getIdApplication();
-            $motDePasse = ParametresPlugin::getMotDePasse();
+            $idApp = MonClubTT_ParametresPlugin::getIdApplication();
+            $motDePasse = MonClubTT_ParametresPlugin::getMotDePasse();
             if (empty($idApp) || empty($motDePasse)) {
                 throw new Exception('Identifiants API FFTT non configurés');
             }
@@ -342,7 +342,7 @@ class MonClubTT
             $api->clearJoueursCache($numClub);
             $debugLog[] = "Cache joueurs effacé";
 
-            $joueurs = new Joueurs();
+            $joueurs = new MonClubTT_Joueurs();
             $joueursListe = $joueurs->getJoueurs('MF');
             $syncResults['joueurs'] = count($joueursListe);
             $debugLog[] = "Joueurs récupérés: " . $syncResults['joueurs'];
@@ -633,5 +633,5 @@ class MonClubTT
     }
 }
 
-new MonClubTT();
+new MonClubTT_Plugin();
 

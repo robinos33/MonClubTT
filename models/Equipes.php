@@ -7,15 +7,15 @@ if ( ! defined( 'ABSPATH' ) ) exit;
  * Date: 06/09/2017
  * Time: 22:00
  */
-class Equipes {
+class MonClubTT_Equipes {
 	private $_api;
 	private $_equipes = array();
 
 	public function __construct() {
-		$this->_api = AccesFFTTApi::getInstance();
+		$this->_api = MonClubTT_AccesFFTTApi::getInstance();
 
-		$listeEquipesM = $this->_api->getEquipesByClub( ParametresPlugin::getNumClub(), 'M' );
-		$listeEquipesF = $this->_api->getEquipesByClub( ParametresPlugin::getNumClub(), 'F' );
+		$listeEquipesM = $this->_api->getEquipesByClub( MonClubTT_ParametresPlugin::getNumClub(), 'M' );
+		$listeEquipesF = $this->_api->getEquipesByClub( MonClubTT_ParametresPlugin::getNumClub(), 'F' );
 		$this->_setEquipesFromApi( $listeEquipesM, $listeEquipesF );
 	}
 
@@ -33,14 +33,14 @@ class Equipes {
 
 		foreach ( $listeEquipesM as $equipe ) {
 			$key = $equipe['libequipe'];
-			$equipesUniques[$key] = new Equipe( $equipe, 'M' );
+			$equipesUniques[$key] = new MonClubTT_Equipe( $equipe, 'M' );
 		}
 
 		foreach ( $listeEquipesF as $equipe ) {
 			$key = $equipe['libequipe'];
 			// Si l'équipe existe déjà (même nom), on ne l'ajoute pas
 			if (!isset($equipesUniques[$key])) {
-				$equipesUniques[$key] = new Equipe( $equipe, 'F' );
+				$equipesUniques[$key] = new MonClubTT_Equipe( $equipe, 'F' );
 			}
 		}
 
@@ -85,7 +85,7 @@ class Equipes {
 	 * Filtre les épreuves dont le libellé contient "coupe" (insensible à la casse).
 	 *
 	 * @param string $sexe 'MF', 'M' ou 'F'
-	 * @return Equipe[]
+	 * @return MonClubTT_Equipe[]
 	 */
 	public function getEquipesChampionnat( $sexe = 'MF' ) {
 		return array_values( array_filter(
@@ -102,7 +102,7 @@ class Equipes {
 	 * ce qui exclut les coupes, championnats jeunes et compétitions vétérans.
 	 *
 	 * @param string $sexe 'MF', 'M' ou 'F'
-	 * @return Equipe[]
+	 * @return MonClubTT_Equipe[]
 	 */
 	public function getEquipesSeniorChampionnat( $sexe = 'MF' ) {
 		return array_values( array_filter(

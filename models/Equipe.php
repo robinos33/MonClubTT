@@ -7,7 +7,7 @@ if ( ! defined( 'ABSPATH' ) ) exit;
  * Date: 06/09/2017
  * Time: 22:00
  */
-class Equipe {
+class MonClubTT_Equipe {
 	private $_libequipe;
 	private $_libdivision;
 	private $_liendivision;
@@ -38,7 +38,7 @@ class Equipe {
 	/**
 	 * @param mixed $libequipe
 	 *
-	 * @return Equipe
+	 * @return MonClubTT_Equipe
 	 */
 	public function setLibequipe( $libequipe ) {
 		$this->_libequipe = $libequipe;
@@ -56,7 +56,7 @@ class Equipe {
 	/**
 	 * @param mixed $libdivision
 	 *
-	 * @return Equipe
+	 * @return MonClubTT_Equipe
 	 */
 	public function setLibdivision( $libdivision ) {
 		$this->_libdivision = $libdivision;
@@ -74,7 +74,7 @@ class Equipe {
 	/**
 	 * @param mixed $liendivision
 	 *
-	 * @return Equipe
+	 * @return MonClubTT_Equipe
 	 */
 	public function setLiendivision( $liendivision ) {
 		$this->_liendivision = $liendivision;
@@ -92,7 +92,7 @@ class Equipe {
 	/**
 	 * @param mixed $idepr
 	 *
-	 * @return Equipe
+	 * @return MonClubTT_Equipe
 	 */
 	public function setIdepr( $idepr ) {
 		$this->_idepr = $idepr;
@@ -110,7 +110,7 @@ class Equipe {
 	/**
 	 * @param mixed $libepr
 	 *
-	 * @return Equipe
+	 * @return MonClubTT_Equipe
 	 */
 	public function setLibepr( $libepr ) {
 		$this->_libepr = $libepr;
@@ -128,7 +128,7 @@ class Equipe {
 	/**
 	 * @param mixed $idpoule
 	 *
-	 * @return Equipe
+	 * @return MonClubTT_Equipe
 	 */
 	public function setIdpoule( $idpoule ) {
 		$this->_idpoule = $idpoule;
@@ -146,7 +146,7 @@ class Equipe {
 	/**
 	 * @param mixed $iddiv
 	 *
-	 * @return Equipe
+	 * @return MonClubTT_Equipe
 	 */
 	public function setIddiv( $iddiv ) {
 		$this->_iddiv = $iddiv;
@@ -164,7 +164,7 @@ class Equipe {
 	/**
 	 * @param mixed $type
 	 *
-	 * @return Equipe
+	 * @return MonClubTT_Equipe
 	 */
 	public function setType( $type ) {
 		$this->_type = $type;

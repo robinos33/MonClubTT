@@ -7,7 +7,7 @@ if ( ! defined( 'ABSPATH' ) ) exit;
  *
  * @author robin
  */
-class Classement {
+class MonClubTT_Classement {
 
     private $pointsMensuels;
     private $pointsOfficiels;

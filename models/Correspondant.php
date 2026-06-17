@@ -12,7 +12,7 @@ if ( ! defined( 'ABSPATH' ) ) exit;
  *
  * @author robin
  */
-class Correspondant {
+class MonClubTT_Correspondant {
 
     private $nom;
     private $prenom;

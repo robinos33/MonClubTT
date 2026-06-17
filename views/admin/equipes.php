@@ -1,7 +1,7 @@
 <?php
 if ( ! defined( 'ABSPATH' ) ) exit;
 // phpcs:disable WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
-$equipes      = new Equipes();
+$equipes      = new MonClubTT_Equipes();
 $listeEquipes = $equipes->getEquipesSeniorChampionnat('MF');
 $nonce        = wp_create_nonce('monclubtt_generate_pages_nonce');
 ?>
@@ -35,7 +35,7 @@ $nonce        = wp_create_nonce('monclubtt_generate_pages_nonce');
         </tr>
         </thead>
         <tbody id="monclubtt-equipes-list">
-        <?php foreach ( $listeEquipes as $equipe ): /* @var Equipe $equipe */ ?>
+        <?php foreach ( $listeEquipes as $equipe ): /* @var MonClubTT_Equipe $equipe */ ?>
             <?php
             $iddiv     = $equipe->getIddiv()   ?? '';
             $idpoule   = $equipe->getIdpoule() ?? '';

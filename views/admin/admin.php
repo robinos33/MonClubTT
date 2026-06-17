@@ -3,7 +3,7 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 
 // Handle log clearing before any output
 if (isset($_POST['monclubtt_clear_logs']) && check_admin_referer('monclubtt_clear_logs', 'monclubtt_clear_logs_nonce')) {
-    AccesFFTTApi::clearApiLogs();
+    MonClubTT_AccesFFTTApi::clearApiLogs();
     wp_safe_redirect(add_query_arg(array('page' => 'monclubtt_parametres', 'logs_cleared' => '1'), admin_url('admin.php')));
     exit;
 }
@@ -28,7 +28,7 @@ if (isset($_GET['settings-updated']) && filter_input(INPUT_GET, 'settings-update
     <h2>Synchronisation des données</h2>
     <div class="monclubtt-sync-section">
         <?php
-        $monclubtt_lastSync = MonClubTT::getLastSyncTimestamp();
+        $monclubtt_lastSync = MonClubTT_Plugin::getLastSyncTimestamp();
         if ($monclubtt_lastSync) {
             $monclubtt_syncDate = date_i18n(get_option('date_format') . ' à ' . get_option('time_format'), $monclubtt_lastSync);
             $monclubtt_timeDiff = human_time_diff($monclubtt_lastSync, current_time('timestamp'));
@@ -66,7 +66,7 @@ if (isset($_GET['settings-updated']) && filter_input(INPUT_GET, 'settings-update
     <h2>Logs de l'API FFTT</h2>
     <div style="background: #fff; border: 1px solid #ccd0d4; padding: 15px; margin-bottom: 20px;">
         <?php
-        $monclubtt_logs = AccesFFTTApi::getApiLogs();
+        $monclubtt_logs = MonClubTT_AccesFFTTApi::getApiLogs();
         if (empty($monclubtt_logs)) {
             echo '<p><em>Aucun log disponible. Lancez une synchronisation pour voir les logs.</em></p>';
         } else {
