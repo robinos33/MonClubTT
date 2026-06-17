@@ -41,16 +41,17 @@ if (!class_exists('AccesFFTTApi')) {
                 $this->appId = ParametresPlugin::getIdApplication();
                 $this->appKey = ParametresPlugin::getMotDePasse();
 
-                // Démarre une session si nécessaire (certaines installations WP n'utilisent pas les sessions par défaut)
-                if (function_exists('session_status') && session_status() !== PHP_SESSION_ACTIVE && !headers_sent()) {
-                    session_start();
+                // Le "serial" (paramètre "serie") identifie l'application auprès de
+                // l'API FFTT. On le persiste dans une option WordPress plutôt que
+                // dans une session PHP : démarrer une session sur chaque page front
+                // rendrait chaque visiteur unique et contournerait les caches
+                // full-page (Nginx/Varnish) des hébergeurs mutualisés.
+                $serial = get_option('monclubtt_api_serial');
+                if (empty($serial)) {
+                    $serial = AccesFFTTApi::generateSerial();
+                    update_option('monclubtt_api_serial', $serial, false);
                 }
-
-                if (empty($_SESSION['serial'])) {
-                    $_SESSION['serial'] = AccesFFTTApi::generateSerial();
-                }
-
-                $this->setSerial(!empty($_SESSION['serial']) ? sanitize_text_field(wp_unslash($_SESSION['serial'])) : AccesFFTTApi::generateSerial());
+                $this->setSerial($serial);
                 // Initialise l'application si possible (les éventuelles erreurs XML sont gérées en interne)
                 $this->initialization();
             }
