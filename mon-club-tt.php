@@ -8,6 +8,7 @@
   Author URI: https://github.com/robinos33
   License: GPLv2
   Text Domain: mon-club-tt
+  Domain Path: /languages
   Requires at least: 5.0
   Requires PHP: 7.4
  */
