@@ -6,7 +6,7 @@ msgstr ""
 "Project-Id-Version: Mon Club TT 1.0.0\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-06-03\n"
-"PO-Revision-Date: 2026-06-03\n"
+"PO-Revision-Date: 2026-06-26\n"
 "Last-Translator: Robin Aldasoro\n"
 "Language-Team: French\n"
 "Language: fr_FR\n"
@@ -15,5 +15,18 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
 
+#. Plugin description shown in the admin plugins list and on WordPress.org.
 msgid "Display your table tennis club's players, teams, and rankings from the official FFTT Smartping API. Not affiliated with or endorsed by the FFTT."
 msgstr "Affichez les joueurs, équipes et classements de votre club de tennis de table depuis l'API officielle FFTT Smartping. Plugin non officiel, sans affiliation avec la FFTT."
+
+#. Shortcode error: the FFTT API could not be reached / instantiated.
+msgid "There was a problem retrieving the results"
+msgstr "Problème lors de la récupération des résultats"
+
+#. Shortcode error: missing or invalid iddiv/idpoule attributes.
+msgid "Invalid division or pool"
+msgstr "Poule ou division incorrecte"
+
+#. Shortcode error: the \"type\" attribute is not one of M, F, MF.
+msgid "Invalid shortcode parameters"
+msgstr "Erreur de paramètres du shortcode"
