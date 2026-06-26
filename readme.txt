@@ -3,7 +3,7 @@ Contributors: robinos33
 Tags: table tennis, fftt, club, rankings, results
 Requires at least: 5.0
 Tested up to: 7.0
-Stable tag: 1.0.0
+Stable tag: 1.0.1
 Requires PHP: 7.4
 License: GPLv2
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -60,6 +60,11 @@ Yes. The plugin exposes four filters: `monclubtt_get_joueurs`, `monclubtt_get_eq
 
 == Changelog ==
 
+= 1.0.1 =
+* Plugin header now declares Domain Path so the bundled French translation loads
+* Shortcode source strings switched to English with French translations in the .po/.mo
+* Removed obsolete text-domain mismatch annotations after the slug rename
+
 = 1.0.0 =
 * First stable release
 * Player list with monthly and annual progression badges
@@ -70,6 +75,9 @@ Yes. The plugin exposes four filters: `monclubtt_get_joueurs`, `monclubtt_get_eq
 * Automatic team page generation and deletion
 
 == Upgrade Notice ==
+
+= 1.0.1 =
+Loads the bundled French translation and aligns translatable strings with WordPress.org conventions.
 
 = 1.0.0 =
 First stable release.
