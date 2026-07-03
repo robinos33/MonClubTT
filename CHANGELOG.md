@@ -5,6 +5,14 @@ Format : [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/)
 
 ---
 
+## [1.1.0] — 2026-07-03
+
+### Modifié
+
+- Les joueurs sans points mensuels (0) sont désormais exclus de la synchronisation manuelle et des listes front/admin
+
+---
+
 ## [1.0.0] — 2026-05-30
 
 Première version stable. Refonte complète du plugin original.

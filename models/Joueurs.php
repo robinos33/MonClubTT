@@ -37,7 +37,13 @@ if (!class_exists('joueurs')) {
 
             foreach ($joueursData as $joueurData) {
                 if (!empty($joueurData)) {
-                    $this->joueurs[] = new MonClubTT_Joueur($joueurData);
+                    $joueur = new MonClubTT_Joueur($joueurData);
+                    // Exclure les joueurs sans points mensuels : ni comptabilisés
+                    // à la synchronisation, ni affichés côté front/admin.
+                    if ($joueur->getClassement()->getPointsMensuels() <= 0) {
+                        continue;
+                    }
+                    $this->joueurs[] = $joueur;
                 }
             }
         }
