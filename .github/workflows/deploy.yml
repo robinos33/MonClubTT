@@ -14,10 +14,16 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Deploy to WordPress.org
-        uses: 10up/action-wordpress-org-deploy@v2
-        with:
-          svn-username: ${{ secrets.WORDPRESS_USERNAME }}
-          svn-password: ${{ secrets.WORDPRESS_PASSWORD }}
-          # Slug du plugin sur WordPress.org — à confirmer après approbation
-          slug: mon-club-tt
+      # Déploiement WordPress.org désactivé tant que l'accès SVN n'est pas ouvert.
+      # Réactiver ce step une fois le plugin approuvé et les secrets
+      # WORDPRESS_USERNAME / WORDPRESS_PASSWORD configurés.
+      # NB: le nom correct de l'action est `10up/action-wordpress-org-plugin-deploy`.
+      # - name: Deploy to WordPress.org
+      #   uses: 10up/action-wordpress-org-plugin-deploy@v2
+      #   with:
+      #     svn-username: ${{ secrets.WORDPRESS_USERNAME }}
+      #     svn-password: ${{ secrets.WORDPRESS_PASSWORD }}
+      #     slug: mon-club-tt
+
+      - name: SVN access not open yet
+        run: echo "WordPress.org SVN deploy is disabled until access is granted."
