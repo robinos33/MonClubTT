@@ -328,7 +328,8 @@
 
 .monclubtt-div .monclubtt-introuvable-figure {
     display: block;
-    width: 120px;
+    width: 190px;
+    max-width: 100%;
     height: auto;
     margin: 0 auto 14px;
 }
