@@ -25,6 +25,11 @@ foreach ($joueurs->getJoueurs($atts['type']) as $joueur) {
         ];
     }
 }
+
+// Tri par défaut : points officiels décroissants (les mieux classés en premier).
+usort($joueursList, function ($a, $b) {
+    return (float) $b->getClassement()->getPointsOfficiels() <=> (float) $a->getClassement()->getPointsOfficiels();
+});
 ?>
 <?php if (!empty($playersData)):
     wp_localize_script('monclubtt-js', 'MonClubTTTopProg', array(
