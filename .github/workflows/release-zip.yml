@@ -1,0 +1,30 @@
+name: Attach plugin ZIP to release
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: write
+
+jobs:
+  build-zip:
+    name: Build and upload plugin ZIP
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build plugin ZIP
+        run: |
+          git archive --worktree-attributes \
+            --prefix=mon-club-tt/ \
+            -o mon-club-tt.zip \
+            "${GITHUB_REF_NAME}"
+
+      - name: Upload ZIP as release asset
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release upload "${GITHUB_REF_NAME}" mon-club-tt.zip --clobber
