@@ -176,6 +176,26 @@ class MonClubTT_Plugin
         $listeEquipesF = $api->getEquipesByClub(MonClubTT_ParametresPlugin::getNumClub(), 'F');
         $listeEquipes = array_merge((array) $listeEquipesM, (array) $listeEquipesF);
 
+        // Recherche de la poule référencée par le shortcode. En fin de saison ou
+        // entre deux phases, la FFTT supprime les poules : l'API ne les renvoie
+        // plus et le shortcode pointe alors vers des identifiants obsolètes. On
+        // affiche dans ce cas un message clair plutôt qu'un bloc vide.
+        $equipeTrouvee = null;
+        foreach ($listeEquipes as $equipeCourante) {
+            if (isset($equipeCourante['iddiv'], $equipeCourante['idpoule'])
+                && $atts['iddiv'] === (string) $equipeCourante['iddiv']
+                && $atts['idpoule'] === (string) $equipeCourante['idpoule']) {
+                $equipeTrouvee = $equipeCourante;
+                break;
+            }
+        }
+
+        if ($equipeTrouvee === null) {
+            ob_start();
+            require __DIR__ . '/views/front/equipe-introuvable.php';
+            return ob_get_clean();
+        }
+
         ob_start();
         require __DIR__ . '/views/front/equipes.php';
         return ob_get_clean();

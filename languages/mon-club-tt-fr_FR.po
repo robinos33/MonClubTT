@@ -30,3 +30,15 @@ msgstr "Poule ou division incorrecte"
 #. Shortcode error: the \"type\" attribute is not one of M, F, MF.
 msgid "Invalid shortcode parameters"
 msgstr "Erreur de paramètres du shortcode"
+
+#. Title of the notice shown when the FFTT pool referenced by the shortcode no longer exists.
+msgid "Poule not available"
+msgstr "Poule indisponible"
+
+#. Body of the notice shown when the FFTT pool referenced by the shortcode no longer exists.
+msgid "The standings and results for this team are not available at the moment. This usually happens between two phases of the championship or once the season is over, when the federation removes the pools from its database."
+msgstr "Le classement et les résultats de cette équipe ne sont pas disponibles pour le moment. Cela arrive généralement entre deux phases du championnat ou en fin de saison, lorsque la fédération retire les poules de sa base de données."
+
+#. Reassurance shown below the pool-not-available notice.
+msgid "This page will display the data again automatically as soon as a new pool is available."
+msgstr "Cette page réaffichera les données automatiquement dès qu'une nouvelle poule sera disponible."
