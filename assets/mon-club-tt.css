@@ -326,12 +326,11 @@
     background: #f8f9fa;
 }
 
-.monclubtt-div .monclubtt-introuvable-icon {
+.monclubtt-div .monclubtt-introuvable-figure {
     display: block;
-    font-size: 40px;
-    line-height: 1;
-    color: #d0842b;
-    margin-bottom: 12px;
+    width: 120px;
+    height: auto;
+    margin: 0 auto 14px;
 }
 
 .monclubtt-div .monclubtt-introuvable-titre {
