@@ -1,7 +1,8 @@
 jQuery(document).ready(function ($) {
 
     // ===== Tableau de joueurs triable =====
-    jQuery('.sortableTable').tablesorter();
+    // Tri par défaut : colonne « Pts Off. » (indice 3), décroissant.
+    jQuery('.sortableTable').tablesorter({ sortList: [[3, 1]] });
 
     // ===== Feuilles de match =====
 

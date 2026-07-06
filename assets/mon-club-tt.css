@@ -316,6 +316,37 @@
     color: #c0392b;
 }
 
+/* ===== Poule indisponible (404-like) ===== */
+.monclubtt-div .monclubtt-introuvable {
+    text-align: center;
+    padding: 32px 20px;
+    margin: 12px 0;
+    border: 1px solid #e2e4e7;
+    border-radius: 6px;
+    background: #f8f9fa;
+}
+
+.monclubtt-div .monclubtt-introuvable-figure {
+    display: block;
+    width: 190px;
+    max-width: 100%;
+    height: auto;
+    margin: 0 auto 14px;
+}
+
+.monclubtt-div .monclubtt-introuvable-titre {
+    margin: 0 0 10px;
+    font-size: 18px;
+    color: #23282d;
+}
+
+.monclubtt-div .monclubtt-introuvable-message {
+    margin: 6px auto;
+    max-width: 520px;
+    font-size: 14px;
+    color: #666;
+}
+
 /* ===== Horodatage ===== */
 .monclubtt-updated-at {
     font-size: 12px;
