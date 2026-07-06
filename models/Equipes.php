@@ -28,18 +28,24 @@ class MonClubTT_Equipes {
 	 * @internal param array $listeEquipes
 	 */
 	private function _setEquipesFromApi( $listeEquipesM, $listeEquipesF ) {
-		// Utiliser un tableau associatif pour dédupliquer par libequipe
+		// Dédupliquer par poule (iddiv + idpoule), et non par nom d'équipe :
+		// une même équipe apparaît sur plusieurs lignes (championnat, coupe, etc.),
+		// chacune avec un idpoule différent. Une dédup par nom écraserait ces
+		// épreuves entre elles et ferait disparaître des équipes de la synchro.
 		$equipesUniques = array();
 
 		foreach ( $listeEquipesM as $equipe ) {
-			$key = $equipe['libequipe'];
-			$equipesUniques[$key] = new MonClubTT_Equipe( $equipe, 'M' );
+			$key = $this->_buildEquipeKey( $equipe );
+			if ( ! isset( $equipesUniques[$key] ) ) {
+				$equipesUniques[$key] = new MonClubTT_Equipe( $equipe, 'M' );
+			}
 		}
 
 		foreach ( $listeEquipesF as $equipe ) {
-			$key = $equipe['libequipe'];
-			// Si l'équipe existe déjà (même nom), on ne l'ajoute pas
-			if (!isset($equipesUniques[$key])) {
+			$key = $this->_buildEquipeKey( $equipe );
+			// Ne pas réintroduire une poule déjà présente (équipe renvoyée par
+			// les requêtes M et F à la fois).
+			if ( ! isset( $equipesUniques[$key] ) ) {
 				$equipesUniques[$key] = new MonClubTT_Equipe( $equipe, 'F' );
 			}
 		}
@@ -58,6 +64,30 @@ class MonClubTT_Equipes {
 
 			return $numA - $numB;
 		});
+	}
+
+	/**
+	 * Construit une clé unique identifiant une équipe dans une épreuve/poule
+	 * donnée. On se base sur iddiv + idpoule (unique par poule). Si ces
+	 * informations sont absentes (pas de liendivision), on retombe sur une
+	 * combinaison nom + épreuve pour éviter de fusionner des lignes distinctes.
+	 *
+	 * @param array $equipe
+	 * @return string
+	 */
+	private function _buildEquipeKey( $equipe ) {
+		$iddiv   = isset( $equipe['iddiv'] ) ? $equipe['iddiv'] : null;
+		$idpoule = isset( $equipe['idpoule'] ) ? $equipe['idpoule'] : null;
+
+		if ( $iddiv !== null && $iddiv !== '' && $idpoule !== null && $idpoule !== '' ) {
+			return $iddiv . '|' . $idpoule;
+		}
+
+		$libequipe = isset( $equipe['libequipe'] ) ? $equipe['libequipe'] : '';
+		$idepr     = isset( $equipe['idepr'] ) ? $equipe['idepr'] : '';
+		$libepr    = isset( $equipe['libepr'] ) ? $equipe['libepr'] : '';
+
+		return 'name|' . $libequipe . '|' . $idepr . '|' . $libepr;
 	}
 
 	public function getEquipes( $sexe ) {
