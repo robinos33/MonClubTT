@@ -5,6 +5,14 @@ Format : [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/)
 
 ---
 
+## [1.2.1] — 2026-09-18
+
+### Corrigé
+
+- La création/suppression en masse des pages d'équipe depuis l'écran admin « Les équipes » ne faisait rien silencieusement : les données d'équipe étaient mal sanitizées (`sanitize_text_field()` appliqué sur des sous-tableaux entiers au lieu de chaque champ), ce qui vidait `iddiv` et faisait ignorer chaque ligne sans remonter d'erreur
+
+---
+
 ## [1.2.0] — 2026-07-06
 
 ### Corrigé
