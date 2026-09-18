@@ -411,6 +411,30 @@ class MonClubTT_Plugin
     }
 
     /**
+     * Sanitize un tableau d'équipes reçu en POST (chacune sous forme de tableau
+     * associatif iddiv/idpoule/libequipe). sanitize_text_field() attend une
+     * chaîne : on l'applique donc champ par champ, jamais sur le sous-tableau entier.
+     *
+     * @param array $teams
+     * @return array
+     */
+    private function sanitizeTeamsList($teams)
+    {
+        $sanitized = array();
+        foreach ((array) $teams as $team) {
+            if (!is_array($team)) {
+                continue;
+            }
+            $sanitized[] = array(
+                'iddiv'     => sanitize_text_field($team['iddiv']     ?? ''),
+                'idpoule'   => sanitize_text_field($team['idpoule']   ?? ''),
+                'libequipe' => sanitize_text_field($team['libequipe'] ?? ''),
+            );
+        }
+        return $sanitized;
+    }
+
+    /**
      * Handler AJAX : synchronise les pages WordPress avec la sélection d'équipes.
      * - Crée ou remet en ligne les pages des équipes cochées.
      * - Met à la corbeille les pages des équipes décochées.
@@ -425,8 +449,8 @@ class MonClubTT_Plugin
             return;
         }
 
-        $teamsCreate = isset($_POST['teams_create']) ? array_map('sanitize_text_field', wp_unslash((array) $_POST['teams_create'])) : array();
-        $teamsDelete = isset($_POST['teams_delete']) ? array_map('sanitize_text_field', wp_unslash((array) $_POST['teams_delete'])) : array();
+        $teamsCreate = isset($_POST['teams_create']) ? $this->sanitizeTeamsList(wp_unslash((array) $_POST['teams_create'])) : array();
+        $teamsDelete = isset($_POST['teams_delete']) ? $this->sanitizeTeamsList(wp_unslash((array) $_POST['teams_delete'])) : array();
 
         if (empty($teamsCreate) && empty($teamsDelete)) {
             wp_send_json_error(array('message' => 'Aucune équipe dans la liste'));
