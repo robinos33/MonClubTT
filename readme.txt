@@ -3,7 +3,7 @@ Contributors: robinos33
 Tags: table tennis, fftt, club, rankings, results
 Requires at least: 5.0
 Tested up to: 7.0
-Stable tag: 1.2.0
+Stable tag: 1.2.1
 Requires PHP: 7.4
 License: GPLv2
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -60,6 +60,9 @@ Yes. The plugin exposes four filters: `monclubtt_get_joueurs`, `monclubtt_get_eq
 
 == Changelog ==
 
+= 1.2.1 =
+* Fixed: bulk team page creation/deletion from the admin "Teams" screen silently did nothing — team data was mis-sanitized, causing every row to be skipped without any error being reported
+
 = 1.2.0 =
 * Fixed: some teams (e.g. 2, 3, 4) no longer appeared in the sync — teams are now de-duplicated per pool instead of per name
 * Added: a clear "pool not available" message (with illustration) when the federation removes the pools from its API
@@ -83,6 +86,9 @@ Yes. The plugin exposes four filters: `monclubtt_get_joueurs`, `monclubtt_get_eq
 * Automatic team page generation and deletion
 
 == Upgrade Notice ==
+
+= 1.2.1 =
+Fixes bulk team page creation/deletion from the admin screen, which silently did nothing.
 
 = 1.2.0 =
 Restores missing teams in the sync, adds a friendly message when pools are unavailable, and sorts players by points.
