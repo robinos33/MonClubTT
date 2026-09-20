@@ -5,6 +5,19 @@ Format : [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/)
 
 ---
 
+## [1.2.2] — 2026-09-20
+
+### Corrigé
+
+- La date de « Dernière synchronisation » (widget tableau de bord et page de réglages) ainsi que toutes les dates de « Dernière mise à jour » du cache s'affichaient en UTC et non dans le fuseau horaire du site : décalage de -2h à Paris en été, -1h en hiver. Le formatage passe désormais par `wp_date()`, qui applique l'option « Fuseau horaire » de WordPress (changement d'heure inclus)
+- Le délai « il y a X » affiché sous la dernière synchronisation était gonflé du même décalage (`human_time_diff()` comparait un horodatage UTC à un horodatage déjà décalé)
+
+### Modifié
+
+- Toutes les classes et fonctions du plugin sont protégées contre la redéclaration (`class_exists` / `function_exists`) : une seconde copie du plugin présente sur l'installation ne provoque plus d'erreur fatale. Les gardes obsolètes de `MonClubTT_Joueur` et `MonClubTT_Joueurs`, restées sur les anciens noms de classes après le renommage, sont corrigées
+
+---
+
 ## [1.2.1] — 2026-09-18
 
 ### Corrigé
