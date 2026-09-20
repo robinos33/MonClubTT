@@ -39,7 +39,7 @@
     $monclubtt_updatedAt = $monclubtt_api->getCacheUpdatedAt('joueurs_club', array('numclu' => $monclubtt_numClub));
     if ($monclubtt_updatedAt !== false):
     ?>
-        <p><em>Dernière mise à jour du cache : <?php echo esc_html(date_i18n('d/m/Y à H:i:s', $monclubtt_updatedAt)); ?></em></p>
+        <p><em>Dernière mise à jour du cache : <?php echo esc_html(monclubtt_date_locale($monclubtt_updatedAt, 'd/m/Y à H:i:s')); ?></em></p>
     <?php endif; ?>
     <table class="wp-list-table widefat fixed striped posts">
         <thead>

@@ -610,8 +610,8 @@ class MonClubTT_Plugin
         <div class="monclubtt-dashboard-widget">
             <?php if ($lastSync): ?>
                 <?php
-                $syncDate = date_i18n(get_option('date_format') . ' à ' . get_option('time_format'), $lastSync);
-                $timeDiff = human_time_diff($lastSync, current_time('timestamp'));
+                $syncDate = monclubtt_date_locale($lastSync);
+                $timeDiff = human_time_diff($lastSync);
                 ?>
                 <p>
                     <strong>Dernière synchronisation :</strong><br>
