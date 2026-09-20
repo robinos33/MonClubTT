@@ -48,6 +48,32 @@ if ( ! function_exists( 'monclubtt_date_locale' ) ) {
 
 }
 
+if ( ! function_exists( 'monclubtt_api_texte' ) ) {
+
+    /**
+     * Normalise un champ scalaire renvoye par l'API FFTT.
+     *
+     * Les reponses sont converties via json_decode(json_encode($xml), true) :
+     * un element XML vide (<equb/>, renvoye par exemple pour une equipe exempte)
+     * devient un tableau vide. esc_html() castant son argument en chaine, ce
+     * tableau s'affichait litteralement « Array ».
+     *
+     * @param mixed  $valeur Valeur issue de l'API.
+     * @param string $defaut Valeur de repli si le champ est vide.
+     * @return string
+     */
+    function monclubtt_api_texte($valeur, $defaut = '') {
+        if (is_array($valeur) || is_object($valeur) || null === $valeur) {
+            return $defaut;
+        }
+
+        $valeur = trim((string) $valeur);
+
+        return '' === $valeur ? $defaut : $valeur;
+    }
+
+}
+
 /**
  * Autoloading des models
  */
