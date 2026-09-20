@@ -3,7 +3,7 @@ Contributors: robinos33
 Tags: table tennis, fftt, club, rankings, results
 Requires at least: 5.0
 Tested up to: 7.0
-Stable tag: 1.2.3
+Stable tag: 1.2.4
 Requires PHP: 7.4
 License: GPLv2
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -60,6 +60,10 @@ Yes. The plugin exposes four filters: `monclubtt_get_joueurs`, `monclubtt_get_eq
 
 == Changelog ==
 
+= 1.2.4 =
+* Fixed: "Array" was displayed instead of the missing opponent when a team had a bye on a given round — the round now shows "Exempt"
+* Fixed: an empty team name in the standings highlighted every row as the club's own team
+
 = 1.2.3 =
 * Fixed: the plugin menu disappeared from the admin in 1.2.2 — the redeclaration guard added in that version was placed before the class declaration, and since PHP binds top-level classes at compile time the guard always matched, returning before the plugin was ever instantiated
 
@@ -94,6 +98,9 @@ Yes. The plugin exposes four filters: `monclubtt_get_joueurs`, `monclubtt_get_eq
 * Automatic team page generation and deletion
 
 == Upgrade Notice ==
+
+= 1.2.4 =
+Shows "Exempt" instead of "Array" when a team has a bye on a round.
 
 = 1.2.3 =
 Fixes the admin menu disappearing in 1.2.2. Upgrade immediately if you installed 1.2.2.

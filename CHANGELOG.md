@@ -5,6 +5,15 @@ Format : [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/)
 
 ---
 
+## [1.2.4] — 2026-09-20
+
+### Corrigé
+
+- Lorsqu'une équipe était exempte sur une journée, le nom de l'adversaire manquant s'affichait « Array » (avec un avertissement PHP `Array to string conversion`) au lieu de « Exempt ». L'API FFTT renvoie un élément `<equb/>` vide, que la conversion `json_decode(json_encode($xml), true)` transforme en tableau vide ; `esc_html()` castant son argument en chaîne, ce tableau s'affichait littéralement. Les champs scalaires venant de l'API passent désormais par `monclubtt_api_texte()`, qui les normalise et accepte une valeur de repli
+- Dans le classement, un nom d'équipe vide renvoyé par l'API faisait surligner **toutes** les lignes comme étant l'équipe du club : la comparaison `preg_match()` se réduisait à `//`, qui correspond à n'importe quelle chaîne. Elle est remplacée par une recherche de sous-chaîne explicite, sans effet de bord sur un champ vide
+
+---
+
 ## [1.2.3] — 2026-09-20
 
 ### Corrigé
