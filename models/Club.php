@@ -1,8 +1,9 @@
 <?php
 if ( ! defined( 'ABSPATH' ) ) exit;
 
-// Le plugin peut être présent en double sur une install : on ne redéclare jamais.
-if ( class_exists( 'MonClubTT_Club' ) ) { return; }
+// Le plugin peut être présent en double sur une install : la garde doit englober
+// la déclaration, une classe au premier niveau étant liée dès la compilation.
+if ( ! class_exists( 'MonClubTT_Club' ) ) {
 
 /*
  * To change this license header, choose License Headers in Project Properties.
@@ -83,5 +84,7 @@ class MonClubTT_Club {
     public function setSite($site) {
         $this->site = $site;
     }
+
+}
 
 }

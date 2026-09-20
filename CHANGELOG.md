@@ -5,6 +5,14 @@ Format : [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/)
 
 ---
 
+## [1.2.3] — 2026-09-20
+
+### Corrigé
+
+- Le menu du plugin avait disparu de l'admin en 1.2.2 : la garde anti-redéclaration ajoutée dans cette version était placée *avant* la déclaration de classe. Or PHP lie les classes déclarées au premier niveau d'un fichier dès la compilation, avant d'exécuter la moindre instruction : `class_exists()` était donc toujours vrai et le `return` intervenait avant le `new MonClubTT_Plugin()` de fin de fichier, si bien qu'aucun hook n'était enregistré. Les gardes englobent désormais la déclaration (`if (!class_exists()) { class … }`), seul emplacement qui protège réellement — c'est déjà l'idiome utilisé par `AccesFFTTApi` et `ParametresPlugin`. Même correction sur les six modèles concernés, où la garde était inopérante
+
+---
+
 ## [1.2.2] — 2026-09-20
 
 ### Corrigé

@@ -1,8 +1,9 @@
 <?php
 if ( ! defined( 'ABSPATH' ) ) exit;
 
-// Le plugin peut être présent en double sur une install : on ne redéclare jamais.
-if ( class_exists( 'MonClubTT_Salle' ) ) { return; }
+// Le plugin peut être présent en double sur une install : la garde doit englober
+// la déclaration, une classe au premier niveau étant liée dès la compilation.
+if ( ! class_exists( 'MonClubTT_Salle' ) ) {
 
 class MonClubTT_Salle {
 
@@ -89,5 +90,7 @@ class MonClubTT_Salle {
     public function setLat($lat) {
         $this->lat = $lat;
     }
+
+}
 
 }
