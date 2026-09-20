@@ -3,7 +3,7 @@
   Plugin Name: Mon Club TT
   Plugin URI: https://github.com/robinos33/MonClubTT
   Description: Display your table tennis club's players, teams, and rankings from the official FFTT Smartping API. Not affiliated with or endorsed by the FFTT.
-  Version: 1.2.1
+  Version: 1.2.2
   Author: Robin Aldasoro
   Author URI: https://github.com/robinos33
   License: GPLv2
@@ -15,7 +15,10 @@
 
 if ( ! defined( 'ABSPATH' ) ) exit;
 
-require_once('Utils.php');
+// Une seule instance du plugin peut être chargée (copie en double, mu-plugin…).
+if ( class_exists( 'MonClubTT_Plugin' ) ) { return; }
+
+require_once( __DIR__ . '/Utils.php' );
 
 class MonClubTT_Plugin
 {
@@ -610,8 +613,8 @@ class MonClubTT_Plugin
         <div class="monclubtt-dashboard-widget">
             <?php if ($lastSync): ?>
                 <?php
-                $syncDate = date_i18n(get_option('date_format') . ' à ' . get_option('time_format'), $lastSync);
-                $timeDiff = human_time_diff($lastSync, current_time('timestamp'));
+                $syncDate = monclubtt_date_locale($lastSync);
+                $timeDiff = human_time_diff($lastSync);
                 ?>
                 <p>
                     <strong>Dernière synchronisation :</strong><br>

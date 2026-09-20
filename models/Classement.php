@@ -1,6 +1,9 @@
 <?php
 if ( ! defined( 'ABSPATH' ) ) exit;
 
+// Le plugin peut être présent en double sur une install : on ne redéclare jamais.
+if ( class_exists( 'MonClubTT_Classement' ) ) { return; }
+
 /**
  * Description of Classement
  * Données issues de xml_licence_b.php (un seul appel API par club)

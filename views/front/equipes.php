@@ -116,7 +116,7 @@ require_once(__DIR__ . '/header.php'); ?>
                 if ($u1 !== false) { $updated = (int) max($updated, $u1); }
                 if ($u2 !== false) { $updated = (int) max($updated, $u2); }
                 if ($updated > 0) {
-                    $formatted = date_i18n('d/m/Y H:i', $updated, false);
+                    $formatted = monclubtt_date_locale($updated, 'd/m/Y H:i');
                     echo '<p class="monclubtt-updated-at">Dernière mise à jour : ' . esc_html($formatted) . '</p>';
                 }
             }

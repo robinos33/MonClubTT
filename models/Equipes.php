@@ -1,6 +1,9 @@
 <?php
 if ( ! defined( 'ABSPATH' ) ) exit;
 
+// Le plugin peut être présent en double sur une install : on ne redéclare jamais.
+if ( class_exists( 'MonClubTT_Equipes' ) ) { return; }
+
 /**
  * Created by PhpStorm.
  * User: robin

@@ -42,7 +42,7 @@ endif; ?>
 
     <?php if ($updatedAt !== false): ?>
         <p class="monclubtt-updated-at">
-            Dernière mise à jour : <?php echo esc_html(date_i18n('d/m/Y à H:i:s', $updatedAt)); ?>
+            Dernière mise à jour : <?php echo esc_html(monclubtt_date_locale($updatedAt, 'd/m/Y à H:i:s')); ?>
         </p>
     <?php endif; ?>
 

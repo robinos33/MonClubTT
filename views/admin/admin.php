@@ -30,8 +30,8 @@ if (isset($_GET['settings-updated']) && filter_input(INPUT_GET, 'settings-update
         <?php
         $monclubtt_lastSync = MonClubTT_Plugin::getLastSyncTimestamp();
         if ($monclubtt_lastSync) {
-            $monclubtt_syncDate = date_i18n(get_option('date_format') . ' à ' . get_option('time_format'), $monclubtt_lastSync);
-            $monclubtt_timeDiff = human_time_diff($monclubtt_lastSync, current_time('timestamp'));
+            $monclubtt_syncDate = monclubtt_date_locale($monclubtt_lastSync);
+            $monclubtt_timeDiff = human_time_diff($monclubtt_lastSync);
             echo '<p><strong>Dernière synchronisation :</strong><br>' . esc_html($monclubtt_syncDate) . '<br><small style="color: #666;">(il y a ' . esc_html($monclubtt_timeDiff) . ')</small></p>';
         } else {
             echo '<p><em>Aucune synchronisation manuelle effectuée</em></p>';

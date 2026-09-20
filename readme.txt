@@ -3,7 +3,7 @@ Contributors: robinos33
 Tags: table tennis, fftt, club, rankings, results
 Requires at least: 5.0
 Tested up to: 7.0
-Stable tag: 1.2.1
+Stable tag: 1.2.2
 Requires PHP: 7.4
 License: GPLv2
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -60,6 +60,11 @@ Yes. The plugin exposes four filters: `monclubtt_get_joueurs`, `monclubtt_get_eq
 
 == Changelog ==
 
+= 1.2.2 =
+* Fixed: the "last sync" date (and every "last updated" date) was displayed in UTC instead of the site timezone, showing a 1-2 hour offset — dates are now formatted with the WordPress timezone setting
+* Fixed: the "x ago" delay shown next to the last sync was inflated by the same offset
+* Hardened: all plugin classes and functions are now guarded against redeclaration if a second copy of the plugin is present
+
 = 1.2.1 =
 * Fixed: bulk team page creation/deletion from the admin "Teams" screen silently did nothing — team data was mis-sanitized, causing every row to be skipped without any error being reported
 
@@ -86,6 +91,9 @@ Yes. The plugin exposes four filters: `monclubtt_get_joueurs`, `monclubtt_get_eq
 * Automatic team page generation and deletion
 
 == Upgrade Notice ==
+
+= 1.2.2 =
+Displays sync and cache dates in your site timezone instead of UTC.
 
 = 1.2.1 =
 Fixes bulk team page creation/deletion from the admin screen, which silently did nothing.
