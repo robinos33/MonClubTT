@@ -1,8 +1,9 @@
 <?php
 if ( ! defined( 'ABSPATH' ) ) exit;
 
-// Le plugin peut être présent en double sur une install : on ne redéclare jamais.
-if ( class_exists( 'MonClubTT_Equipes' ) ) { return; }
+// Le plugin peut être présent en double sur une install : la garde doit englober
+// la déclaration, une classe au premier niveau étant liée dès la compilation.
+if ( ! class_exists( 'MonClubTT_Equipes' ) ) {
 
 /**
  * Created by PhpStorm.
@@ -145,4 +146,6 @@ class MonClubTT_Equipes {
 			}
 		) );
 	}
+}
+
 }
