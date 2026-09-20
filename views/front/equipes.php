@@ -27,18 +27,21 @@ require_once(__DIR__ . '/header.php'); ?>
                 <?php
                 $i = 0;
                 foreach ($classementPoule as $classement) {
-                    $classEquipe = '';
-                    if (preg_match('/' . preg_quote($classement['equipe'], '/') . '/', $equipe['libequipe'])) {
-                        $classEquipe = 'equipe_club';
-                    }
+                    $nomEquipe = monclubtt_api_texte($classement['equipe'] ?? '');
+                    $libEquipe = monclubtt_api_texte($equipe['libequipe'] ?? '');
+                    // Simple recherche de sous-chaine : l'ancienne regex sans ancrage
+                    // devenait '//' sur un nom vide et surlignait alors toutes les lignes.
+                    $classEquipe = ('' !== $nomEquipe && false !== strpos($libEquipe, $nomEquipe))
+                        ? 'equipe_club'
+                        : '';
                     $i++;
                     $class = ($i % 2 == 0) ? 'odd' : 'even';
                     ?>
                     <tr class="<?php echo esc_attr(trim($class . ' ' . $classEquipe)); ?>">
-                        <td class="center"><?php echo esc_html($classement['clt']); ?></td>
-                        <td><?php echo esc_html($classement['equipe']); ?></td>
-                        <td class="center"><?php echo esc_html($classement['joue']); ?></td>
-                        <td class="center"><?php echo esc_html($classement['pts']); ?></td>
+                        <td class="center"><?php echo esc_html(monclubtt_api_texte($classement['clt'] ?? '')); ?></td>
+                        <td><?php echo esc_html($nomEquipe); ?></td>
+                        <td class="center"><?php echo esc_html(monclubtt_api_texte($classement['joue'] ?? '')); ?></td>
+                        <td class="center"><?php echo esc_html(monclubtt_api_texte($classement['pts'] ?? '')); ?></td>
                     </tr>
                     <?php
                 }
@@ -62,16 +65,21 @@ require_once(__DIR__ . '/header.php'); ?>
                     $isRetour = (int) ($lienParams['is_retour'] ?? 0);
                 }
 
-                $scoreA    = !is_array($rencontre['scorea']) ? $rencontre['scorea'] : '';
-                $scoreB    = !is_array($rencontre['scoreb']) ? $rencontre['scoreb'] : '';
+                $scoreA    = monclubtt_api_texte($rencontre['scorea'] ?? '');
+                $scoreB    = monclubtt_api_texte($rencontre['scoreb'] ?? '');
                 $hasScore  = $scoreA !== '' && $scoreB !== '';
                 $hasDetail = $hasScore && !empty($rencId);
 
-                if ($journee !== $rencontre['libelle']) {
+                // Equipe exempte sur la journee : la FFTT renvoie un adversaire vide.
+                $equipeA = monclubtt_api_texte($rencontre['equa'] ?? '', 'Exempt');
+                $equipeB = monclubtt_api_texte($rencontre['equb'] ?? '', 'Exempt');
+                $libelle = monclubtt_api_texte($rencontre['libelle'] ?? '');
+
+                if ($journee !== $libelle) {
                     if ($numJournee !== 0) {
                         echo '</tbody></table>';
                     }
-                    $journee = $rencontre['libelle'];
+                    $journee = $libelle;
                     $numJournee++;
                     echo '<table class="monclubtt-table monclubtt-rencontres" id="journee' . esc_attr($numJournee) . '">';
                     echo '<caption>' . esc_html($journee) . '</caption>';
@@ -88,12 +96,12 @@ require_once(__DIR__ . '/header.php'); ?>
                         <?php if ($hasDetail): ?>
                             <span class="monclubtt-expand-icon" aria-hidden="true">▶</span>
                         <?php endif; ?>
-                        <?php echo esc_html($rencontre['equa']); ?>
+                        <?php echo esc_html($equipeA); ?>
                     </td>
                     <td class="score center monclubtt-score"><?php echo esc_html($scoreA); ?></td>
                     <td class="tiret center monclubtt-tiret"> - </td>
                     <td class="score center monclubtt-score"><?php echo esc_html($scoreB); ?></td>
-                    <td class="equipes right"><?php echo esc_html($rencontre['equb']); ?></td>
+                    <td class="equipes right"><?php echo esc_html($equipeB); ?></td>
                 </tr>
                 <?php if ($hasDetail): ?>
                 <tr class="monclubtt-feuille-row">
