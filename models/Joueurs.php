@@ -1,7 +1,7 @@
 <?php
 if ( ! defined( 'ABSPATH' ) ) exit;
 
-if (!class_exists('joueurs')) {
+if (!class_exists('MonClubTT_Joueurs')) {
 
     /**
      * Description of joueurs

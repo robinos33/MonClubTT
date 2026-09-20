@@ -1,7 +1,7 @@
 <?php
 if ( ! defined( 'ABSPATH' ) ) exit;
 
-if (!class_exists('joueur')) {
+if (!class_exists('MonClubTT_Joueur')) {
 
     class MonClubTT_Joueur {
 

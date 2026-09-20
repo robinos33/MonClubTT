@@ -15,7 +15,10 @@
 
 if ( ! defined( 'ABSPATH' ) ) exit;
 
-require_once('Utils.php');
+// Une seule instance du plugin peut être chargée (copie en double, mu-plugin…).
+if ( class_exists( 'MonClubTT_Plugin' ) ) { return; }
+
+require_once( __DIR__ . '/Utils.php' );
 
 class MonClubTT_Plugin
 {
