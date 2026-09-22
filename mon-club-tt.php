@@ -3,7 +3,7 @@
   Plugin Name: Mon Club TT
   Plugin URI: https://github.com/robinos33/MonClubTT
   Description: Display your table tennis club's players, teams, and rankings from the official FFTT Smartping API. Not affiliated with or endorsed by the FFTT.
-  Version: 1.2.4
+  Version: 1.3.0
   Author: Robin Aldasoro
   Author URI: https://github.com/robinos33
   License: GPLv2
@@ -103,11 +103,48 @@ class MonClubTT_Plugin
         register_setting('monclubtt_settings', MonClubTT_Constantes::MONCLUBTT_ID_APPLICATION, array('sanitize_callback' => 'sanitize_text_field'));
         register_setting('monclubtt_settings', MonClubTT_Constantes::MONCLUBTT_MOT_DE_PASSE,    array('sanitize_callback' => 'sanitize_text_field'));
         register_setting('monclubtt_settings', MonClubTT_Constantes::MONCLUBTT_NUM_CLUB,        array('sanitize_callback' => 'sanitize_text_field'));
+        register_setting('monclubtt_settings', MonClubTT_Constantes::MONCLUBTT_AFFICHAGE_PROGRESSIONS, array(
+            'sanitize_callback' => array($this, 'sanitize_affichage_progressions'),
+            'default'           => 'auto',
+        ));
 
         add_settings_section('monclubtt_section', '', array($this, 'section_html'), 'monclubtt_settings');
         add_settings_field(MonClubTT_Constantes::MONCLUBTT_ID_APPLICATION, 'Id Application', array($this, 'id_application_html'), 'monclubtt_settings', 'monclubtt_section');
         add_settings_field(MonClubTT_Constantes::MONCLUBTT_MOT_DE_PASSE, 'Mot de passe Application', array($this, 'mot_de_passe_html'), 'monclubtt_settings', 'monclubtt_section');
         add_settings_field(MonClubTT_Constantes::MONCLUBTT_NUM_CLUB, 'Numéro de club', array($this, 'equipe_num_html'), 'monclubtt_settings', 'monclubtt_section');
+        add_settings_field(MonClubTT_Constantes::MONCLUBTT_AFFICHAGE_PROGRESSIONS, 'Progressions', array($this, 'affichage_progressions_html'), 'monclubtt_settings', 'monclubtt_section');
+    }
+
+    public function sanitize_affichage_progressions($valeur)
+    {
+        return in_array($valeur, array('auto', 'oui', 'non'), true) ? $valeur : 'auto';
+    }
+
+    public function affichage_progressions_html()
+    {
+        $courant = MonClubTT_ParametresPlugin::getAffichageProgressions();
+        $choix   = array(
+            'auto' => 'Automatique — masquées de juillet à septembre',
+            'oui'  => 'Toujours afficher',
+            'non'  => 'Toujours masquer',
+        );
+        ?>
+        <select name="<?php echo esc_attr(MonClubTT_Constantes::MONCLUBTT_AFFICHAGE_PROGRESSIONS); ?>">
+            <?php foreach ($choix as $monclubtt_valeur => $monclubtt_libelle): ?>
+                <option value="<?php echo esc_attr($monclubtt_valeur); ?>" <?php selected($courant, $monclubtt_valeur); ?>>
+                    <?php echo esc_html($monclubtt_libelle); ?>
+                </option>
+            <?php endforeach; ?>
+        </select>
+        <p class="description">
+            Contrôle le bloc « Top Progression » et les colonnes ↕ Mens. / ↕ Ann.
+            de la liste des joueurs. La FFTT ne publie pas de classement mensuel
+            en juillet ni en août, et le premier classement de la saison n'arrive
+            qu'en cours de septembre : jusque-là l'API renvoie encore les valeurs
+            de juin. Passez sur « Toujours afficher » dès que le classement de
+            septembre est publié si vous ne voulez pas attendre octobre.
+        </p>
+        <?php
     }
 
     public function section_html()

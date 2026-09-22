@@ -16,6 +16,7 @@ if (!class_exists('MonClubTT_ParametresPlugin')) {
             $params['idApplication'] = get_option(MonClubTT_Constantes::MONCLUBTT_ID_APPLICATION);
             $params['motDePasse'] = get_option(MonClubTT_Constantes::MONCLUBTT_MOT_DE_PASSE);
             $params['numClub'] = get_option(MonClubTT_Constantes::MONCLUBTT_NUM_CLUB);
+            $params['affichageProgressions'] = get_option(MonClubTT_Constantes::MONCLUBTT_AFFICHAGE_PROGRESSIONS, 'auto');
             return $params;
         }
 
@@ -35,6 +36,18 @@ if (!class_exists('MonClubTT_ParametresPlugin')) {
         {
             $params = self::getParametresFromDatabase();
             return $params['numClub'];
+        }
+
+        /**
+         * Mode d'affichage des progressions : 'auto', 'oui' ou 'non'.
+         * @return string
+         */
+        public static function getAffichageProgressions()
+        {
+            $params = self::getParametresFromDatabase();
+            return in_array($params['affichageProgressions'], array('auto', 'oui', 'non'), true)
+                ? $params['affichageProgressions']
+                : 'auto';
         }
 
     }

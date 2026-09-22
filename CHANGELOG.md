@@ -5,6 +5,21 @@ Format : [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/)
 
 ---
 
+## [1.3.0] — 2026-09-22
+
+### Ajouté
+
+- Les joueurs qui n'ont pas renouvelé leur licence pour la saison en cours ne sont plus affichés. `xml_licence_b.php` les rattache encore au club tant qu'ils ne licencient pas ailleurs : ils sont désormais écartés sur la date de validation de leur licence, antérieure au 1er juillet de la saison en cours. Le filtre s'applique au front, à la vue admin et au hook `monclubtt_get_joueurs`. Si l'API ne renvoie aucune date de validation, rien n'est filtré — un changement de format côté FFTT ne peut pas vider la page
+- La vue admin « Joueurs » affiche la date de validation de chaque licence et liste à part les licences non renouvelées, avec leur dernière date de validation
+- Nouveau réglage « Progressions » (Automatique / Toujours afficher / Toujours masquer)
+
+### Corrigé
+
+- Le bloc « Top Progression » et les colonnes ↕ Mens. / ↕ Ann. affichaient en juillet, août et septembre des écarts calculés sur la saison précédente. La FFTT ne publie pas de classement mensuel en juillet ni en août et le premier classement de la saison n'arrive qu'en cours de septembre : jusque-là `pointm`, `apointm` et `initm` valent encore ceux de juin, et une fois la bascule faite `initm` vaut `pointm`, donc la progression annuelle est nulle pour tout le monde. Ces trois mois sont désormais masqués par défaut, le réglage « Progressions » permettant de forcer l'affichage dès que le classement de septembre est publié
+- Le libellé de saison affiché sur le podium basculait au 1er septembre alors que la saison FFTT court du 1er juillet au 30 juin
+
+---
+
 ## [1.2.4] — 2026-09-20
 
 ### Corrigé

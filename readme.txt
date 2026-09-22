@@ -3,7 +3,7 @@ Contributors: robinos33
 Tags: table tennis, fftt, club, rankings, results
 Requires at least: 5.0
 Tested up to: 7.0
-Stable tag: 1.2.4
+Stable tag: 1.3.0
 Requires PHP: 7.4
 License: GPLv2
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -59,6 +59,10 @@ Player data is refreshed on manual sync only. League standings and results are c
 Yes. The plugin exposes four filters: `monclubtt_get_joueurs`, `monclubtt_get_equipes`, `monclubtt_get_classement_poule`, `monclubtt_get_rencontres_poule`. See the documentation for usage.
 
 == Changelog ==
+
+= 1.3.0 =
+* Added: players whose licence has not been renewed for the current season are no longer listed — the FFTT API keeps them attached to the club until they license elsewhere, and they are now filtered on their licence validation date (before 1 July of the current season). They are listed separately on the admin "Players" screen
+* Added: the "Top Progression" podium and the two progression columns are hidden from July to September, when the API still serves the previous season's figures (the FFTT publishes no monthly rating in July or August, and the September rating lands mid-month). A new "Progressions" setting forces them on or off
 
 = 1.2.4 =
 * Fixed: "Array" was displayed instead of the missing opponent when a team had a bye on a given round — the round now shows "Exempt"

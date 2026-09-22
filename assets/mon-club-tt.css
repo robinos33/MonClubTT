@@ -356,6 +356,14 @@
     font-style: italic;
 }
 
+/* Note affichée quand les progressions sont masquées (hors saison de classement) */
+.monclubtt-note {
+    font-size: 13px;
+    color: #6b7684;
+    font-style: italic;
+    margin-top: 10px;
+}
+
 span.rouge {
     color: red;
 }

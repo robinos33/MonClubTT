@@ -4,9 +4,12 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 require_once(__DIR__ . '/header.php'); ?><?php
 $mois_fr    = ['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
 $moisLabel  = ucfirst($mois_fr[(int)date_i18n('n') - 1]) . ' ' . date_i18n('Y');
-$annee      = (int) date_i18n('Y');
-$saisonDebut = ((int)date_i18n('n') >= 9) ? $annee : $annee - 1;
-$saisonLabel = 'Saison ' . $saisonDebut . '–' . ($saisonDebut + 1);
+$saisonLabel = monclubtt_saison_libelle();
+
+// Hors saison de classement, les progressions renvoyées par l'API décrivent
+// encore la saison précédente : ni le podium ni les deux colonnes de
+// progression ne sont affichés (voir monclubtt_progressions_visibles()).
+$progressionsVisibles = monclubtt_progressions_visibles();
 
 $joueursList = [];
 $playersData = [];
@@ -31,7 +34,7 @@ usort($joueursList, function ($a, $b) {
     return (float) $b->getClassement()->getPointsOfficiels() <=> (float) $a->getClassement()->getPointsOfficiels();
 });
 ?>
-<?php if (!empty($playersData)):
+<?php if ($progressionsVisibles && !empty($playersData)):
     wp_localize_script('monclubtt-js', 'MonClubTTTopProg', array(
         'players'     => $playersData,
         'moisLabel'   => $moisLabel,
@@ -46,7 +49,7 @@ endif; ?>
         </p>
     <?php endif; ?>
 
-    <?php if (!empty($playersData)): ?>
+    <?php if ($progressionsVisibles && !empty($playersData)): ?>
     <div class="monclubtt-top-prog">
 
         <div class="tp-head">
@@ -96,8 +99,10 @@ endif; ?>
             <th>Cl. Off.</th>
             <th>Pts Off.</th>
             <th>Pts Mens.</th>
+            <?php if ($progressionsVisibles): ?>
             <th>↕ Mens.</th>
             <th>↕ Ann.</th>
+            <?php endif; ?>
         </tr>
         </thead>
         <tbody>
@@ -116,6 +121,7 @@ endif; ?>
                     <td class="center"><?php echo esc_html($joueur->getClassement()->getClassementOfficiel()); ?></td>
                     <td class="center"><?php echo esc_html($joueur->getClassement()->getPointsOfficiels()); ?></td>
                     <td class="center"><?php echo esc_html($joueur->getClassement()->getPointsMensuels()); ?></td>
+                    <?php if ($progressionsVisibles): ?>
                     <td class="center">
                         <?php if ($progMens > 0): ?>
                             <span class="monclubtt-badge monclubtt-badge--up">+<?php echo esc_html($progMens); ?></span>
@@ -134,10 +140,19 @@ endif; ?>
                             <span class="monclubtt-badge monclubtt-badge--neutral">—</span>
                         <?php endif; ?>
                     </td>
+                    <?php endif; ?>
                 </tr>
                 <?php
             }
             ?>
         </tbody>
     </table>
+
+    <?php if (!$progressionsVisibles): ?>
+        <p class="monclubtt-note">
+            Les progressions mensuelle et annuelle réapparaîtront à la publication
+            du premier classement mensuel de la saison
+            <?php echo esc_html(monclubtt_saison_debut_annee() . '–' . (monclubtt_saison_debut_annee() + 1)); ?>.
+        </p>
+    <?php endif; ?>
 </div>

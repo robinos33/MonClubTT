@@ -10,7 +10,7 @@ Plugin WordPress non-officiel pour afficher les données d'un club issues de l'[
 
 ### Côté public
 
-- **Liste des joueurs** — tableau trié par classement, avec badges de progression mensuelle et annuelle, filtrable par sexe (H / F / mixte)
+- **Liste des joueurs** — tableau trié par classement, avec badges de progression mensuelle et annuelle, filtrable par sexe (H / F / mixte). Les licences non renouvelées pour la saison en cours sont automatiquement écartées
 - **Page d'équipe** — classement de poule mis en évidence + résultats de championnat organisés par journée
 - **Feuilles de match** — au clic sur un résultat, la composition des deux équipes et le détail partie par partie s'affichent (chargement AJAX, mis en cache)
 
@@ -31,6 +31,22 @@ Plugin WordPress non-officiel pour afficher les données d'un club issues de l'[
    - **ID Application** et **Mot de passe** fournis par la FFTT
    - **Numéro de club** (8 chiffres, ex. `10330011`)
 4. Lancer une première synchronisation via le bouton *Synchroniser les données*
+
+### Réglage « Progressions »
+
+| Valeur | Effet |
+|--------|-------|
+| `Automatique` (défaut) | Le bloc *Top Progression* et les colonnes ↕ Mens. / ↕ Ann. sont masqués de juillet à septembre inclus |
+| `Toujours afficher` | Affichage permanent |
+| `Toujours masquer` | Masquage permanent |
+
+La FFTT ne publie pas de classement mensuel en juillet ni en août, et le premier classement de la saison n'arrive qu'en cours de septembre : jusque-là l'API renvoie encore les valeurs de juin, et les progressions décrivent la saison précédente. Une fois la bascule faite, `initm` vaut `pointm` et la progression annuelle est nulle pour tout le monde. Basculer sur *Toujours afficher* dès que le classement de septembre est publié évite d'attendre octobre.
+
+### Licences non renouvelées
+
+L'API `xml_licence_b.php` garde un joueur rattaché à son club tant qu'il ne licencie pas ailleurs : sans filtrage, les non-resignés restent affichés toute la saison. Le plugin les écarte sur la date de validation de leur licence, antérieure au 1<sup>er</sup> juillet de la saison en cours. Ils restent consultables dans *MonClubTT → Joueurs*, listés à part.
+
+Si l'API ne renvoie aucune date de validation, aucun joueur n'est écarté : un changement de format côté FFTT ne peut pas vider la page.
 
 ---
 

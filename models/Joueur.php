@@ -13,6 +13,7 @@ if (!class_exists('MonClubTT_Joueur')) {
         private $classement;
         private $categorie;
         private $etranger;
+        private $dateValidation;
 
         /**
          * Initialisation du joueur depuis les données xml_licence_b.php
@@ -27,6 +28,7 @@ if (!class_exists('MonClubTT_Joueur')) {
             $this->setLicence($donnees['licence'] ?? '');
             $this->setCategorie($donnees['cat'] ?? '');
             $this->setEtranger($donnees['natio'] ?? 'F');
+            $this->setDateValidation($donnees['validation'] ?? ($donnees['datevalidation'] ?? ''));
         }
 
         public function getNom() {
@@ -98,6 +100,44 @@ if (!class_exists('MonClubTT_Joueur')) {
 
         public function isEtranger() {
             return $this->etranger;
+        }
+
+        /**
+         * Horodatage de validation de la licence, ou null si l'API ne fournit
+         * pas la date (champ absent ou format inattendu).
+         *
+         * @return int|null
+         */
+        public function getDateValidation() {
+            return $this->dateValidation;
+        }
+
+        public function setDateValidation($valeur) {
+            // Une installation portant deux copies du plugin peut charger le
+            // Utils.php d'une version anterieure, ou le helper n'existe pas.
+            $this->dateValidation = function_exists('monclubtt_parse_date_fftt')
+                ? monclubtt_parse_date_fftt($valeur)
+                : null;
+        }
+
+        /**
+         * La licence a-t-elle ete renouvelee pour la saison en cours ?
+         *
+         * L'API rattache encore au club les joueurs qui n'ont pas resigne : leur
+         * fiche porte alors la date de validation de la saison precedente. Une
+         * date manquante renvoie null plutot que false, pour que l'appelant
+         * distingue « pas renouvelee » de « information indisponible » et evite
+         * d'exclure tout le club si le champ disparaissait de l'API.
+         *
+         * @param int $debutSaison Horodatage du 1er juillet ouvrant la saison.
+         * @return bool|null
+         */
+        public function isLicenceRenouvelee($debutSaison) {
+            if (null === $this->dateValidation) {
+                return null;
+            }
+
+            return $this->dateValidation >= (int) $debutSaison;
         }
 
     }
