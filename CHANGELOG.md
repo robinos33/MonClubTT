@@ -5,6 +5,20 @@ Format : [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/)
 
 ---
 
+## [1.3.0] — 2026-09-23
+
+### Corrigé
+
+- Le début de saison était calculé à partir de septembre au lieu du 1er juillet, date réelle de début de saison FFTT
+
+### Ajouté
+
+- Le widget « Top Progression » et les colonnes de progression mensuelle sont masqués en juillet, août et septembre : aucune compétition n'a encore eu lieu depuis le début de saison, ces données n'ont donc pas de sens durant cette période
+- Réglage permettant d'exclure manuellement des joueurs (par numéro de licence) de la liste des joueurs : la FFTT ne fournit aucun champ fiable pour détecter qu'un licencié a quitté le club, son API continue de le rattacher au club même après son départ
+- Bouton « Retirer de la liste » sur chaque ligne de l'admin Joueurs, pour exclure un joueur en un clic sans éditer les réglages à la main
+
+---
+
 ## [1.2.4] — 2026-09-20
 
 ### Corrigé

@@ -3,7 +3,7 @@ Contributors: robinos33
 Tags: table tennis, fftt, club, rankings, results
 Requires at least: 5.0
 Tested up to: 7.0
-Stable tag: 1.2.4
+Stable tag: 1.3.0
 Requires PHP: 7.4
 License: GPLv2
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -60,6 +60,12 @@ Yes. The plugin exposes four filters: `monclubtt_get_joueurs`, `monclubtt_get_eq
 
 == Changelog ==
 
+= 1.3.0 =
+* Fixed: the season start was computed from September instead of July 1st, the actual start of the FFTT season
+* Added: the "Top Progression" widget and the monthly progression columns are hidden in July, August and September — no competition has taken place yet since the season started, so this data would be meaningless
+* Added: setting to manually exclude players (by license number) from the player list — the FFTT API has no reliable way to tell that a player has left the club, so it keeps listing them
+* Added: "Remove from list" button on each row of the admin Players page, to exclude a player in one click
+
 = 1.2.4 =
 * Fixed: "Array" was displayed instead of the missing opponent when a team had a bye on a given round — the round now shows "Exempt"
 * Fixed: an empty team name in the standings highlighted every row as the club's own team
@@ -98,6 +104,9 @@ Yes. The plugin exposes four filters: `monclubtt_get_joueurs`, `monclubtt_get_eq
 * Automatic team page generation and deletion
 
 == Upgrade Notice ==
+
+= 1.3.0 =
+Correct season boundary (July 1st), no more Top Progression / monthly columns during the dead months (Jul-Sep), and a way to manually hide players who left the club.
 
 = 1.2.4 =
 Shows "Exempt" instead of "Array" when a team has a bye on a round.
