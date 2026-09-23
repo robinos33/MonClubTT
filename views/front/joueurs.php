@@ -4,9 +4,9 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 require_once(__DIR__ . '/header.php'); ?><?php
 $mois_fr    = ['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
 $moisLabel  = ucfirst($mois_fr[(int)date_i18n('n') - 1]) . ' ' . date_i18n('Y');
-$annee      = (int) date_i18n('Y');
-$saisonDebut = ((int)date_i18n('n') >= 9) ? $annee : $annee - 1;
+$saisonDebut = monclubtt_debut_saison();
 $saisonLabel = 'Saison ' . $saisonDebut . '–' . ($saisonDebut + 1);
+$sansCompetition = monclubtt_mois_sans_competition();
 
 $joueursList = [];
 $playersData = [];
@@ -31,7 +31,7 @@ usort($joueursList, function ($a, $b) {
     return (float) $b->getClassement()->getPointsOfficiels() <=> (float) $a->getClassement()->getPointsOfficiels();
 });
 ?>
-<?php if (!empty($playersData)):
+<?php if (!empty($playersData) && !$sansCompetition):
     wp_localize_script('monclubtt-js', 'MonClubTTTopProg', array(
         'players'     => $playersData,
         'moisLabel'   => $moisLabel,
@@ -46,7 +46,7 @@ endif; ?>
         </p>
     <?php endif; ?>
 
-    <?php if (!empty($playersData)): ?>
+    <?php if (!empty($playersData) && !$sansCompetition): ?>
     <div class="monclubtt-top-prog">
 
         <div class="tp-head">
@@ -95,8 +95,10 @@ endif; ?>
             <th>Prénom</th>
             <th>Cl. Off.</th>
             <th>Pts Off.</th>
+            <?php if (!$sansCompetition): ?>
             <th>Pts Mens.</th>
             <th>↕ Mens.</th>
+            <?php endif; ?>
             <th>↕ Ann.</th>
         </tr>
         </thead>
@@ -115,6 +117,7 @@ endif; ?>
                     <td><?php echo esc_html($joueur->getPrenom()); ?></td>
                     <td class="center"><?php echo esc_html($joueur->getClassement()->getClassementOfficiel()); ?></td>
                     <td class="center"><?php echo esc_html($joueur->getClassement()->getPointsOfficiels()); ?></td>
+                    <?php if (!$sansCompetition): ?>
                     <td class="center"><?php echo esc_html($joueur->getClassement()->getPointsMensuels()); ?></td>
                     <td class="center">
                         <?php if ($progMens > 0): ?>
@@ -125,6 +128,7 @@ endif; ?>
                             <span class="monclubtt-badge monclubtt-badge--neutral">—</span>
                         <?php endif; ?>
                     </td>
+                    <?php endif; ?>
                     <td class="center">
                         <?php if ($progAnn > 0): ?>
                             <span class="monclubtt-badge monclubtt-badge--up">+<?php echo esc_html($progAnn); ?></span>

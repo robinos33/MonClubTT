@@ -48,6 +48,43 @@ if ( ! function_exists( 'monclubtt_date_locale' ) ) {
 
 }
 
+if ( ! function_exists( 'monclubtt_debut_saison' ) ) {
+
+    /**
+     * Une saison FFTT court du 1er juillet au 30 juin suivant.
+     *
+     * @param int|null $timestamp Horodatage à évaluer (par défaut : maintenant).
+     * @return int Année de début de la saison en cours (ex. 2026 pour la saison 2026–2027).
+     */
+    function monclubtt_debut_saison($timestamp = null) {
+        $timestamp = $timestamp ?? (function_exists('current_time') ? current_time('timestamp') : time());
+        $mois  = (int) date_i18n('n', $timestamp);
+        $annee = (int) date_i18n('Y', $timestamp);
+
+        return ($mois >= 7) ? $annee : $annee - 1;
+    }
+
+}
+
+if ( ! function_exists( 'monclubtt_mois_sans_competition' ) ) {
+
+    /**
+     * Juillet à septembre : aucune compétition FFTT n'a encore eu lieu depuis le
+     * début de saison (1er juillet), donc les progressions mensuelles n'ont pas
+     * de sens (les points affichés sont encore ceux de la saison précédente).
+     *
+     * @param int|null $timestamp Horodatage à évaluer (par défaut : maintenant).
+     * @return bool
+     */
+    function monclubtt_mois_sans_competition($timestamp = null) {
+        $timestamp = $timestamp ?? (function_exists('current_time') ? current_time('timestamp') : time());
+        $mois = (int) date_i18n('n', $timestamp);
+
+        return in_array($mois, array(7, 8, 9), true);
+    }
+
+}
+
 if ( ! function_exists( 'monclubtt_api_texte' ) ) {
 
     /**
