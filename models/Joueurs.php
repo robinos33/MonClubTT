@@ -35,12 +35,20 @@ if (!class_exists('MonClubTT_Joueurs')) {
                 return;
             }
 
+            $licencesExclues = MonClubTT_ParametresPlugin::getLicencesExclues();
+
             foreach ($joueursData as $joueurData) {
                 if (!empty($joueurData)) {
                     $joueur = new MonClubTT_Joueur($joueurData);
                     // Exclure les joueurs sans points mensuels : ni comptabilisés
                     // à la synchronisation, ni affichés côté front/admin.
                     if ($joueur->getClassement()->getPointsMensuels() <= 0) {
+                        continue;
+                    }
+                    // Exclusion manuelle (réglages du plugin) : la FFTT ne fournit
+                    // aucun champ fiable pour détecter qu'un licencié a quitté le
+                    // club, son API continue de le rattacher au club.
+                    if (in_array((string) $joueur->getLicence(), $licencesExclues, true)) {
                         continue;
                     }
                     $this->joueurs[] = $joueur;

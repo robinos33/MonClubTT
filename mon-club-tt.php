@@ -103,11 +103,13 @@ class MonClubTT_Plugin
         register_setting('monclubtt_settings', MonClubTT_Constantes::MONCLUBTT_ID_APPLICATION, array('sanitize_callback' => 'sanitize_text_field'));
         register_setting('monclubtt_settings', MonClubTT_Constantes::MONCLUBTT_MOT_DE_PASSE,    array('sanitize_callback' => 'sanitize_text_field'));
         register_setting('monclubtt_settings', MonClubTT_Constantes::MONCLUBTT_NUM_CLUB,        array('sanitize_callback' => 'sanitize_text_field'));
+        register_setting('monclubtt_settings', MonClubTT_Constantes::MONCLUBTT_LICENCES_EXCLUES, array('sanitize_callback' => 'monclubtt_sanitize_licences_exclues'));
 
         add_settings_section('monclubtt_section', '', array($this, 'section_html'), 'monclubtt_settings');
         add_settings_field(MonClubTT_Constantes::MONCLUBTT_ID_APPLICATION, 'Id Application', array($this, 'id_application_html'), 'monclubtt_settings', 'monclubtt_section');
         add_settings_field(MonClubTT_Constantes::MONCLUBTT_MOT_DE_PASSE, 'Mot de passe Application', array($this, 'mot_de_passe_html'), 'monclubtt_settings', 'monclubtt_section');
         add_settings_field(MonClubTT_Constantes::MONCLUBTT_NUM_CLUB, 'Numéro de club', array($this, 'equipe_num_html'), 'monclubtt_settings', 'monclubtt_section');
+        add_settings_field(MonClubTT_Constantes::MONCLUBTT_LICENCES_EXCLUES, 'Licences exclues de la liste des joueurs', array($this, 'licences_exclues_html'), 'monclubtt_settings', 'monclubtt_section');
     }
 
     public function section_html()
@@ -137,6 +139,18 @@ class MonClubTT_Plugin
         ?>
         <input type="text" name="monclubtt_num_club"
                value="<?php echo esc_attr(get_option(MonClubTT_Constantes::MONCLUBTT_NUM_CLUB)); ?>"/>
+        <?php
+    }
+
+    public function licences_exclues_html()
+    {
+        ?>
+        <textarea name="monclubtt_licences_exclues" rows="4" cols="30"
+                  placeholder="Un numéro de licence par ligne"><?php echo esc_textarea(get_option(MonClubTT_Constantes::MONCLUBTT_LICENCES_EXCLUES)); ?></textarea>
+        <p class="description">
+            Joueurs à masquer de la liste des joueurs (ex : partis du club) même si
+            la FFTT les rattache encore au club. Un numéro de licence par ligne.
+        </p>
         <?php
     }
 

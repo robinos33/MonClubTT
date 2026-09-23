@@ -8,6 +8,7 @@ if ( ! class_exists( 'MonClubTT_Constantes' ) ) {
         const MONCLUBTT_ID_APPLICATION = 'monclubtt_id_application';
         const MONCLUBTT_MOT_DE_PASSE = 'monclubtt_mot_de_passe';
         const MONCLUBTT_NUM_CLUB = 'monclubtt_num_club';
+        const MONCLUBTT_LICENCES_EXCLUES = 'monclubtt_licences_exclues';
 
     }
 
@@ -81,6 +82,30 @@ if ( ! function_exists( 'monclubtt_mois_sans_competition' ) ) {
         $mois = (int) date_i18n('n', $timestamp);
 
         return in_array($mois, array(7, 8, 9), true);
+    }
+
+}
+
+if ( ! function_exists( 'monclubtt_sanitize_licences_exclues' ) ) {
+
+    /**
+     * Nettoie la liste des licences à exclure manuellement (un numéro par
+     * ligne dans le formulaire) : ne garde que les suites de chiffres,
+     * dédoublonnées et triées, une par ligne.
+     *
+     * @param string $valeur Valeur brute soumise par le formulaire.
+     * @return string
+     */
+    function monclubtt_sanitize_licences_exclues($valeur) {
+        if (!is_string($valeur)) {
+            return '';
+        }
+
+        preg_match_all('/\d+/', $valeur, $matches);
+        $licences = array_unique($matches[0]);
+        sort($licences);
+
+        return implode("\n", $licences);
     }
 
 }
