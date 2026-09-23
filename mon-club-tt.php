@@ -50,6 +50,7 @@ class MonClubTT_Plugin
 
         // AJAX handlers
         add_action('wp_ajax_monclubtt_sync', array($this, 'handle_ajax_sync'));
+        add_action('wp_ajax_monclubtt_exclude_joueur', array($this, 'handle_ajax_exclude_joueur'));
         add_action('wp_ajax_monclubtt_generate_pages', array($this, 'handle_ajax_generate_pages'));
         add_action('wp_ajax_monclubtt_feuille_match',        array($this, 'handle_ajax_feuille_match'));
         add_action('wp_ajax_nopriv_monclubtt_feuille_match', array($this, 'handle_ajax_feuille_match'));
@@ -341,6 +342,34 @@ class MonClubTT_Plugin
         }
 
         wp_send_json_success($data);
+    }
+
+    /**
+     * Handler AJAX : exclut un joueur (par numéro de licence) de la liste des
+     * joueurs, depuis le bouton « Retirer » de l'admin. Le prochain sync (ou
+     * simplement le prochain chargement de la liste) le laissera de côté, la
+     * FFTT continuant sinon de le rattacher au club dans son API.
+     */
+    public function handle_ajax_exclude_joueur()
+    {
+        check_ajax_referer('monclubtt_exclude_joueur_nonce', 'nonce');
+
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error(array('message' => 'Permissions insuffisantes'));
+            return;
+        }
+
+        $licence = isset($_POST['licence']) ? sanitize_text_field(wp_unslash($_POST['licence'])) : '';
+        if (empty($licence)) {
+            wp_send_json_error(array('message' => 'Numéro de licence manquant'));
+            return;
+        }
+
+        $licencesExclues = get_option(MonClubTT_Constantes::MONCLUBTT_LICENCES_EXCLUES, '');
+        $licencesExclues = monclubtt_sanitize_licences_exclues($licencesExclues . "\n" . $licence);
+        update_option(MonClubTT_Constantes::MONCLUBTT_LICENCES_EXCLUES, $licencesExclues);
+
+        wp_send_json_success(array('message' => 'Joueur retiré de la liste'));
     }
 
     /**

@@ -49,6 +49,7 @@
             <th>Classement Off.</th>
             <th>Points Off.</th>
             <th>Points mensuels</th>
+            <th>Action</th>
         </tr>
         </thead>
         <tbody id="the-list">
@@ -58,15 +59,58 @@
             <?php
                 /** @var MonClubTT_Joueur $monclubtt_joueur */
             ?>
-        <tr class="<?php echo esc_attr($monclubtt_joueur->getSexe()); ?>">
+        <tr class="<?php echo esc_attr($monclubtt_joueur->getSexe()); ?>" data-licence="<?php echo esc_attr($monclubtt_joueur->getLicence()); ?>">
             <td class="bold"><?php echo esc_html($monclubtt_joueur->getNom()); ?></td>
             <td class="bold"><?php echo esc_html($monclubtt_joueur->getPrenom()); ?></td>
             <td><?php echo esc_html($monclubtt_joueur->getClassement()->getClassementOfficiel()); ?></td>
             <td><?php echo esc_html($monclubtt_joueur->getClassement()->getPointsOfficiels()); ?></td>
             <td><?php echo esc_html($monclubtt_joueur->getClassement()->getPointsMensuels()); ?></td>
+            <td>
+                <button type="button" class="button monclubtt-exclude-joueur" data-licence="<?php echo esc_attr($monclubtt_joueur->getLicence()); ?>">
+                    Retirer de la liste
+                </button>
+            </td>
         </tr>
         <?php endforeach; ?>
         </tbody>
     </table>
 
 </div>
+
+<?php
+wp_add_inline_script('monclubtt-js', 'jQuery(document).ready(function($) {
+    $(".monclubtt-exclude-joueur").on("click", function() {
+        var $button = $(this);
+        var $row = $button.closest("tr");
+        var licence = $button.data("licence");
+
+        if (!window.confirm("Retirer ce joueur de la liste ? Il ne réapparaîtra plus, même après une synchronisation, jusqu\'à ce que vous retiriez son numéro de licence dans les réglages du plugin.")) {
+            return;
+        }
+
+        $button.prop("disabled", true);
+
+        $.ajax({
+            url: ajaxurl,
+            type: "POST",
+            data: {
+                action: "monclubtt_exclude_joueur",
+                nonce: ' . wp_json_encode(wp_create_nonce('monclubtt_exclude_joueur_nonce')) . ',
+                licence: licence
+            },
+            success: function(response) {
+                if (response.success) {
+                    $row.fadeOut(200, function() { $row.remove(); });
+                } else {
+                    window.alert(response.data && response.data.message ? response.data.message : "Erreur lors du retrait du joueur");
+                    $button.prop("disabled", false);
+                }
+            },
+            error: function() {
+                window.alert("Erreur de communication avec le serveur");
+                $button.prop("disabled", false);
+            }
+        });
+    });
+});');
+?>
