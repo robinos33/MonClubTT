@@ -5,6 +5,15 @@ Format : [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/)
 
 ---
 
+## [1.4.0] — 2026-09-25
+
+### Ajouté
+
+- Possibilité d'associer une photo à chaque joueur depuis la liste de l'admin (médiathèque WordPress, indexée par numéro de licence). La photo est réutilisable par les autres composants via le hook `monclubtt_get_joueurs`
+- Le widget « Top Progression » pose la photo détourée du joueur en sticker (liseré blanc et ombre portée) à la place de l'avatar dessiné ; repli automatique sur l'avatar dessiné lorsqu'aucune photo n'est associée
+
+---
+
 ## [1.3.0] — 2026-09-23
 
 ### Corrigé

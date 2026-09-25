@@ -3,7 +3,7 @@ Contributors: robinos33
 Tags: table tennis, fftt, club, rankings, results
 Requires at least: 5.0
 Tested up to: 7.0
-Stable tag: 1.3.0
+Stable tag: 1.4.0
 Requires PHP: 7.4
 License: GPLv2
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -60,6 +60,10 @@ Yes. The plugin exposes four filters: `monclubtt_get_joueurs`, `monclubtt_get_eq
 
 == Changelog ==
 
+= 1.4.0 =
+* Added: attach a photo to each player from the admin player list (WordPress media library, keyed by license number), reusable by other components via the `monclubtt_get_joueurs` filter
+* Added: the "Top Progression" widget places the player's cut-out photo as a sticker (white outline and drop shadow) instead of the drawn avatar, falling back to the drawn avatar when no photo is set
+
 = 1.3.0 =
 * Fixed: the season start was computed from September instead of July 1st, the actual start of the FFTT season
 * Added: the "Top Progression" widget and the monthly progression columns are hidden in July, August and September — no competition has taken place yet since the season started, so this data would be meaningless
@@ -104,6 +108,9 @@ Yes. The plugin exposes four filters: `monclubtt_get_joueurs`, `monclubtt_get_eq
 * Automatic team page generation and deletion
 
 == Upgrade Notice ==
+
+= 1.4.0 =
+Attach a photo to each player from the admin; it appears as a cut-out sticker on the Top Progression podium.
 
 = 1.3.0 =
 Correct season boundary (July 1st), no more Top Progression / monthly columns during the dead months (Jul-Sep), and a way to manually hide players who left the club.
