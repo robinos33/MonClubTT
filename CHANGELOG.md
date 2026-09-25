@@ -5,6 +5,15 @@ Format : [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/)
 
 ---
 
+## [1.6.4] — 2026-09-25
+
+### Ajouté
+
+- Réglage « Logo du club » (médiathèque), avec repli sur l'icône du site : écusson sur le maillot des joueurs du podium (site et visuels réseaux sociaux) et logo de l'en-tête des visuels
+- Couleur « Maillot des joueurs » dans les couleurs du club, appliquée aux joueurs du podium
+
+---
+
 ## [1.6.3] — 2026-09-25
 
 ### Modifié

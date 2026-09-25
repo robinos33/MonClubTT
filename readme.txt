@@ -3,7 +3,7 @@ Contributors: robinos33
 Tags: table tennis, fftt, club, rankings, results
 Requires at least: 5.0
 Tested up to: 7.0
-Stable tag: 1.6.3
+Stable tag: 1.6.4
 Requires PHP: 7.4
 License: GPLv2
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -59,6 +59,10 @@ Player data is refreshed on manual sync only. League standings and results are c
 Yes. The plugin exposes four filters: `monclubtt_get_joueurs`, `monclubtt_get_equipes`, `monclubtt_get_classement_poule`, `monclubtt_get_rencontres_poule`. See the documentation for usage.
 
 == Changelog ==
+
+= 1.6.4 =
+* Added: "Club logo" setting (media library, falls back to the site icon), shown as a crest on the podium players' jersey (site and social media images) and in the header of the social media images
+* Added: "Players' jersey" colour in the club colours, applied to the podium players
 
 = 1.6.3 =
 * Changed: primary, secondary and background colours are now plugin settings ("Club colours"), shared by the site and the social media images; colours chosen in 1.6.2 are kept
@@ -130,6 +134,9 @@ Yes. The plugin exposes four filters: `monclubtt_get_joueurs`, `monclubtt_get_eq
 * Automatic team page generation and deletion
 
 == Upgrade Notice ==
+
+= 1.6.4 =
+Put your club logo and jersey colour on the podium players.
 
 = 1.6.3 =
 Club colours move to the plugin settings and now also style the Top Progression podium on your site.
