@@ -31,6 +31,14 @@
                 <label><input type="radio" name="sexe" value="F"> Femmes</label>
             </fieldset>
 
+            <fieldset class="monclubtt-social-couleurs">
+                <legend>Couleurs</legend>
+                <label><input type="color" name="primaire"> Primaire</label>
+                <label><input type="color" name="secondaire"> Secondaire</label>
+                <label><input type="color" name="fond"> Fond</label>
+                <button type="button" class="button-link" id="monclubtt-social-couleurs-defaut">Couleurs par défaut</button>
+            </fieldset>
+
             <fieldset>
                 <legend><label for="monclubtt-social-club">Nom affiché</label></legend>
                 <input type="text" id="monclubtt-social-club" name="club" class="regular-text" value="<?php echo esc_attr(get_bloginfo('name')); ?>">

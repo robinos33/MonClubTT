@@ -90,7 +90,7 @@ class MonClubTT_TopPerfs {
      *
      * @param array  $rencontres Rencontres brutes (xml_result_equ.php) de plusieurs poules.
      * @param string $numClub    Numéro du club.
-     * @return array Liste de ['renc_id', 'is_retour', 'date' (Y-m-d), 'equipes_club' => string[]],
+     * @return array Liste de ['renc_id', 'is_retour', 'date' (Y-m-d), 'tour' (int|null), 'equipes_club' => string[]],
      *               par date puis ordre d'origine.
      */
     public static function rencontresDerniereJournee(array $rencontres, $numClub) {
@@ -248,10 +248,14 @@ class MonClubTT_TopPerfs {
             return null;
         }
 
+        // Numéro de journée : « Poule 2 - tour n°3 du 10/10/2026 ».
+        $tour = preg_match('/tour\s+n\D{0,2}(\d+)/iu', self::texte($rencontre['libelle'] ?? ''), $m) ? (int) $m[1] : null;
+
         return array(
             'renc_id'      => $rencId,
             'is_retour'    => (int) ($lien['is_retour'] ?? 0),
             'date'         => $date,
+            'tour'         => $tour,
             'equipes_club' => $equipesClub,
         );
     }

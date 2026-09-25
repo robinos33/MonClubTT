@@ -10,6 +10,14 @@ if ( ! class_exists( 'MonClubTT_Constantes' ) ) {
         const MONCLUBTT_NUM_CLUB = 'monclubtt_num_club';
         const MONCLUBTT_LICENCES_EXCLUES = 'monclubtt_licences_exclues';
         const MONCLUBTT_JOUEUR_PHOTOS = 'monclubtt_joueur_photos';
+        const MONCLUBTT_SOCIAL_COULEURS = 'monclubtt_social_couleurs';
+
+        /** Couleurs par défaut des visuels réseaux sociaux. */
+        const COULEURS_SOCIAL_DEFAUT = array(
+            'primaire'   => '#2b7cb5',
+            'secondaire' => '#d34328',
+            'fond'       => '#f4f1ea',
+        );
 
     }
 
@@ -135,6 +143,27 @@ if ( ! function_exists( 'monclubtt_sanitize_licences_exclues' ) ) {
         sort($licences);
 
         return implode("\n", $licences);
+    }
+
+}
+
+if ( ! function_exists( 'monclubtt_normaliser_couleurs_social' ) ) {
+
+    /**
+     * Couleurs des visuels réseaux sociaux (primaire, secondaire, fond) :
+     * uniquement des « #rrggbb », en minuscules, repli sur la couleur par
+     * défaut pour toute valeur invalide.
+     *
+     * @param mixed $valeur Tableau brut (option ou saisie).
+     * @return array{primaire: string, secondaire: string, fond: string}
+     */
+    function monclubtt_normaliser_couleurs_social($valeur) {
+        $couleurs = array();
+        foreach (MonClubTT_Constantes::COULEURS_SOCIAL_DEFAUT as $cle => $defaut) {
+            $saisie = is_array($valeur) && isset($valeur[$cle]) && is_string($valeur[$cle]) ? trim($valeur[$cle]) : '';
+            $couleurs[$cle] = preg_match('/^#[0-9a-f]{6}$/i', $saisie) ? strtolower($saisie) : $defaut;
+        }
+        return $couleurs;
     }
 
 }

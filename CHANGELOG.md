@@ -5,6 +5,19 @@ Format : [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/)
 
 ---
 
+## [Non publié]
+
+### Ajouté
+
+- Visuels réseaux sociaux : choix des couleurs primaire, secondaire et de fond, enregistrées pour le club (bouton « Couleurs par défaut ») ; texte et teintes déduits automatiquement pour rester lisibles sur fond clair comme foncé
+- Top perfs : numéro de journée en accent (« J1 ») et résumé du week-end (perfs, joueurs, points gagnés)
+
+### Modifié
+
+- Nouvelle mise en page des visuels : fond uni, logo cerclé et nom du club, très gros titre, pastille de date prolongée d'un filet, perfs en cartes teintées avec carré de rang, pied avec filet et nom du club
+
+---
+
 ## [1.6.1] — 2026-09-25
 
 ### Ajouté

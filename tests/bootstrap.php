@@ -11,4 +11,4 @@ if (!defined('ABSPATH')) {
     define('ABSPATH', __DIR__ . '/');
 }
 
-require_once __DIR__ . '/../models/TopPerfs.php';
+require_once __DIR__ . '/../Utils.php';

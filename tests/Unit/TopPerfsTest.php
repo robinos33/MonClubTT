@@ -89,6 +89,20 @@ final class TopPerfsTest extends TestCase
         $this->assertSame(array('6000002', '6000003'), array_column($selection, 'renc_id'));
         $this->assertSame(array('TALENCE US 3'), $selection[1]['equipes_club']);
         $this->assertSame('2026-09-19', $selection[0]['date']);
+        $this->assertSame(1, $selection[0]['tour']);
+    }
+
+    public function test_should_read_round_number_when_libelle_has_tour(): void
+    {
+        $rencontre = $this->rencontre('6000020', '10/10/2026', 'TALENCE US 1', self::NUM_CLUB, 'CESTAS SAG 1', '10330002');
+        $rencontre['libelle'] = 'Poule 2 - tour n°3 du 10/10/2026';
+        $sansTour = $this->rencontre('6000021', '10/10/2026', 'TALENCE US 2', self::NUM_CLUB, 'PAU 1', '10640003');
+        $sansTour['libelle'] = array();
+
+        $selection = MonClubTT_TopPerfs::rencontresDerniereJournee(array($rencontre, $sansTour), self::NUM_CLUB);
+
+        $this->assertSame(3, $selection[0]['tour']);
+        $this->assertNull($selection[1]['tour']);
     }
 
     public function test_should_keep_both_teams_when_club_derby(): void

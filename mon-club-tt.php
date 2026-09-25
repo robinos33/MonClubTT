@@ -71,6 +71,7 @@ class MonClubTT_Plugin
         add_action('wp_ajax_monclubtt_remove_joueur_photo', array($this, 'handle_ajax_remove_joueur_photo'));
         add_action('wp_ajax_monclubtt_generate_pages', array($this, 'handle_ajax_generate_pages'));
         add_action('wp_ajax_monclubtt_top_perfs', array($this, 'handle_ajax_top_perfs'));
+        add_action('wp_ajax_monclubtt_social_couleurs', array($this, 'handle_ajax_social_couleurs'));
         add_action('wp_ajax_monclubtt_feuille_match',        array($this, 'handle_ajax_feuille_match'));
         add_action('wp_ajax_nopriv_monclubtt_feuille_match', array($this, 'handle_ajax_feuille_match'));
 
@@ -411,6 +412,9 @@ class MonClubTT_Plugin
             'clubName'    => get_bloginfo('name'),
             'siteHost'    => $siteHost ? $siteHost : '',
             'logo'        => get_site_icon_url(256),
+            'couleurs'    => monclubtt_normaliser_couleurs_social(get_option(MonClubTT_Constantes::MONCLUBTT_SOCIAL_COULEURS)),
+            'couleursDefaut' => MonClubTT_Constantes::COULEURS_SOCIAL_DEFAUT,
+            'couleursNonce'  => wp_create_nonce('monclubtt_social_couleurs_nonce'),
         ));
     }
 
@@ -463,8 +467,9 @@ class MonClubTT_Plugin
             $joueursParNom[$this->cleNomJoueur($joueur->getNom() . ' ' . $joueur->getPrenom())] = $joueur;
         }
 
+        $bilan    = MonClubTT_TopPerfs::bilanParJoueur($perfs);
         $resultat = array();
-        foreach (MonClubTT_TopPerfs::classer(MonClubTT_TopPerfs::bilanParJoueur($perfs), 8) as $perf) {
+        foreach (MonClubTT_TopPerfs::classer($bilan, 8) as $perf) {
             $joueur = $joueursParNom[$this->cleNomJoueur($perf['joueur'])] ?? null;
             $resultat[] = array(
                 'nom'               => $joueur ? $joueur->getNom() : $perf['joueur'],
@@ -481,12 +486,40 @@ class MonClubTT_Plugin
         }
 
         $dates = array_column($journee, 'date');
+        $tours = array_filter(array_column($journee, 'tour'));
         wp_send_json_success(array(
-            'perfs'      => $resultat,
-            'date_debut' => min($dates),
-            'date_fin'   => max($dates),
-            'rencontres' => count($journee),
+            'perfs'         => $resultat,
+            'date_debut'    => min($dates),
+            'date_fin'      => max($dates),
+            'tour'          => $tours ? max($tours) : null,
+            'rencontres'    => count($journee),
+            'total_perfs'   => count($perfs),
+            'total_joueurs' => count($bilan),
+            'total_gain'    => array_sum(array_column($perfs, 'gain')),
         ));
+    }
+
+    /**
+     * Handler AJAX : enregistre les couleurs des visuels réseaux sociaux
+     * (primaire, secondaire, fond), communes à tous les administrateurs.
+     */
+    public function handle_ajax_social_couleurs()
+    {
+        check_ajax_referer('monclubtt_social_couleurs_nonce', 'nonce');
+
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error(array('message' => 'Permissions insuffisantes'));
+            return;
+        }
+
+        $saisie = array();
+        foreach (array_keys(MonClubTT_Constantes::COULEURS_SOCIAL_DEFAUT) as $cle) {
+            $saisie[$cle] = isset($_POST[$cle]) ? sanitize_text_field(wp_unslash($_POST[$cle])) : '';
+        }
+        $couleurs = monclubtt_normaliser_couleurs_social($saisie);
+        update_option(MonClubTT_Constantes::MONCLUBTT_SOCIAL_COULEURS, $couleurs, false);
+
+        wp_send_json_success(array('couleurs' => $couleurs));
     }
 
     /**
