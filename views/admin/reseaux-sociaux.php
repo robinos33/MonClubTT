@@ -32,11 +32,11 @@
             </fieldset>
 
             <fieldset class="monclubtt-social-couleurs">
-                <legend>Couleurs</legend>
-                <label><input type="color" name="primaire"> Primaire</label>
-                <label><input type="color" name="secondaire"> Secondaire</label>
-                <label><input type="color" name="fond"> Fond</label>
-                <button type="button" class="button-link" id="monclubtt-social-couleurs-defaut">Couleurs par défaut</button>
+                <legend>Couleurs du club</legend>
+                <?php foreach (monclubtt_get_couleurs() as $monclubtt_cle => $monclubtt_couleur): ?>
+                    <span class="monclubtt-social-pastille" style="background: <?php echo esc_attr($monclubtt_couleur); ?>" title="<?php echo esc_attr(ucfirst($monclubtt_cle)); ?>"></span>
+                <?php endforeach; ?>
+                <a href="<?php echo esc_url(admin_url('admin.php?page=monclubtt_parametres')); ?>">Modifier dans les réglages</a>
             </fieldset>
 
             <fieldset>

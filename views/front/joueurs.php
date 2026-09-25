@@ -87,7 +87,8 @@ endif; ?>
     <?php endif; ?>
 
     <?php if (!empty($playersData) && !$sansCompetition): ?>
-    <div class="monclubtt-top-prog">
+    <?php $couleurs = monclubtt_get_couleurs(); // couleurs du club (réglages), le fond ne s'applique qu'aux visuels ?>
+    <div class="monclubtt-top-prog" style="<?php echo esc_attr('--dtp-primaire: ' . $couleurs['primaire'] . '; --dtp-secondaire: ' . $couleurs['secondaire']); ?>">
 
         <div class="tp-head">
             <div>

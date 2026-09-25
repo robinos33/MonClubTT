@@ -71,7 +71,6 @@ class MonClubTT_Plugin
         add_action('wp_ajax_monclubtt_remove_joueur_photo', array($this, 'handle_ajax_remove_joueur_photo'));
         add_action('wp_ajax_monclubtt_generate_pages', array($this, 'handle_ajax_generate_pages'));
         add_action('wp_ajax_monclubtt_top_perfs', array($this, 'handle_ajax_top_perfs'));
-        add_action('wp_ajax_monclubtt_social_couleurs', array($this, 'handle_ajax_social_couleurs'));
         add_action('wp_ajax_monclubtt_feuille_match',        array($this, 'handle_ajax_feuille_match'));
         add_action('wp_ajax_nopriv_monclubtt_feuille_match', array($this, 'handle_ajax_feuille_match'));
 
@@ -126,12 +125,14 @@ class MonClubTT_Plugin
         register_setting('monclubtt_settings', MonClubTT_Constantes::MONCLUBTT_MOT_DE_PASSE,    array('sanitize_callback' => 'sanitize_text_field'));
         register_setting('monclubtt_settings', MonClubTT_Constantes::MONCLUBTT_NUM_CLUB,        array('sanitize_callback' => 'sanitize_text_field'));
         register_setting('monclubtt_settings', MonClubTT_Constantes::MONCLUBTT_LICENCES_EXCLUES, array('sanitize_callback' => 'monclubtt_sanitize_licences_exclues'));
+        register_setting('monclubtt_settings', MonClubTT_Constantes::MONCLUBTT_COULEURS, array('sanitize_callback' => array($this, 'sanitize_couleurs')));
 
         add_settings_section('monclubtt_section', '', array($this, 'section_html'), 'monclubtt_settings');
         add_settings_field(MonClubTT_Constantes::MONCLUBTT_ID_APPLICATION, 'Id Application', array($this, 'id_application_html'), 'monclubtt_settings', 'monclubtt_section');
         add_settings_field(MonClubTT_Constantes::MONCLUBTT_MOT_DE_PASSE, 'Mot de passe Application', array($this, 'mot_de_passe_html'), 'monclubtt_settings', 'monclubtt_section');
         add_settings_field(MonClubTT_Constantes::MONCLUBTT_NUM_CLUB, 'Numéro de club', array($this, 'equipe_num_html'), 'monclubtt_settings', 'monclubtt_section');
         add_settings_field(MonClubTT_Constantes::MONCLUBTT_LICENCES_EXCLUES, 'Licences exclues de la liste des joueurs', array($this, 'licences_exclues_html'), 'monclubtt_settings', 'monclubtt_section');
+        add_settings_field(MonClubTT_Constantes::MONCLUBTT_COULEURS, 'Couleurs du club', array($this, 'couleurs_html'), 'monclubtt_settings', 'monclubtt_section');
     }
 
     public function section_html()
@@ -174,6 +175,49 @@ class MonClubTT_Plugin
             la FFTT les rattache encore au club. Un numéro de licence par ligne.
         </p>
         <?php
+    }
+
+    public function couleurs_html()
+    {
+        $couleurs = monclubtt_get_couleurs();
+        $libelles = array('primaire' => 'Primaire', 'secondaire' => 'Secondaire', 'fond' => 'Fond des visuels');
+        ?>
+        <fieldset class="monclubtt-couleurs">
+            <?php foreach ($libelles as $cle => $libelle): ?>
+                <label>
+                    <input type="color" name="<?php echo esc_attr(MonClubTT_Constantes::MONCLUBTT_COULEURS . '[' . $cle . ']'); ?>"
+                           value="<?php echo esc_attr($couleurs[$cle]); ?>"
+                           data-defaut="<?php echo esc_attr(MonClubTT_Constantes::COULEURS_DEFAUT[$cle]); ?>">
+                    <?php echo esc_html($libelle); ?>
+                </label>
+            <?php endforeach; ?>
+            <button type="button" class="button-link monclubtt-couleurs-defaut">Couleurs par défaut</button>
+        </fieldset>
+        <p class="description">
+            Primaire et secondaire habillent le podium « Top Progression » du site et les visuels réseaux sociaux.
+            Le fond ne sert qu'aux visuels réseaux sociaux.
+        </p>
+        <?php
+        wp_add_inline_script('monclubtt-js', 'jQuery(function($) {
+            $(".monclubtt-couleurs-defaut").on("click", function() {
+                $(this).closest(".monclubtt-couleurs").find("input[type=color]").each(function() {
+                    this.value = $(this).data("defaut");
+                });
+            });
+        });');
+    }
+
+    /**
+     * Couleurs du club : normalisées, et l'ancienne option des visuels
+     * (1.6.2) est retirée une fois les réglages enregistrés.
+     *
+     * @param mixed $valeur
+     * @return array
+     */
+    public function sanitize_couleurs($valeur)
+    {
+        delete_option(MonClubTT_Constantes::MONCLUBTT_SOCIAL_COULEURS);
+        return monclubtt_normaliser_couleurs($valeur);
     }
 
     public function getForm()
@@ -412,9 +456,7 @@ class MonClubTT_Plugin
             'clubName'    => get_bloginfo('name'),
             'siteHost'    => $siteHost ? $siteHost : '',
             'logo'        => get_site_icon_url(256),
-            'couleurs'    => monclubtt_normaliser_couleurs_social(get_option(MonClubTT_Constantes::MONCLUBTT_SOCIAL_COULEURS)),
-            'couleursDefaut' => MonClubTT_Constantes::COULEURS_SOCIAL_DEFAUT,
-            'couleursNonce'  => wp_create_nonce('monclubtt_social_couleurs_nonce'),
+            'couleurs'    => monclubtt_get_couleurs(),
         ));
     }
 
@@ -497,29 +539,6 @@ class MonClubTT_Plugin
             'total_joueurs' => count($bilan),
             'total_gain'    => array_sum(array_column($perfs, 'gain')),
         ));
-    }
-
-    /**
-     * Handler AJAX : enregistre les couleurs des visuels réseaux sociaux
-     * (primaire, secondaire, fond), communes à tous les administrateurs.
-     */
-    public function handle_ajax_social_couleurs()
-    {
-        check_ajax_referer('monclubtt_social_couleurs_nonce', 'nonce');
-
-        if (!current_user_can('manage_options')) {
-            wp_send_json_error(array('message' => 'Permissions insuffisantes'));
-            return;
-        }
-
-        $saisie = array();
-        foreach (array_keys(MonClubTT_Constantes::COULEURS_SOCIAL_DEFAUT) as $cle) {
-            $saisie[$cle] = isset($_POST[$cle]) ? sanitize_text_field(wp_unslash($_POST[$cle])) : '';
-        }
-        $couleurs = monclubtt_normaliser_couleurs_social($saisie);
-        update_option(MonClubTT_Constantes::MONCLUBTT_SOCIAL_COULEURS, $couleurs, false);
-
-        wp_send_json_success(array('couleurs' => $couleurs));
     }
 
     /**

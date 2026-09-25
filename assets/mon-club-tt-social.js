@@ -3,8 +3,8 @@
  * donc fonctionne sur hébergement mutualisé. L'admin télécharge le PNG puis
  * le publie lui-même sur Facebook / Instagram.
  *
- * Palette : trois couleurs choisies par le club (primaire, secondaire, fond) ;
- * les couleurs de texte et les teintes en sont déduites (contraste).
+ * Palette : les couleurs du club (réglages du plugin : primaire, secondaire,
+ * fond) ; les couleurs de texte et les teintes en sont déduites (contraste).
  */
 (function () {
     'use strict';
@@ -56,11 +56,7 @@
             format: fd.get('format') || 'carre',
             sexe:   fd.get('sexe') || 'MF',
             club:   String(fd.get('club') || '').trim(),
-            couleurs: {
-                primaire:   fd.get('primaire') || DATA.couleursDefaut.primaire,
-                secondaire: fd.get('secondaire') || DATA.couleursDefaut.secondaire,
-                fond:       fd.get('fond') || DATA.couleursDefaut.fond
-            }
+            couleurs: DATA.couleurs // réglage du plugin (couleurs du club)
         };
     }
 
@@ -716,52 +712,8 @@
         }
     }
 
-    /* ------------------------------------------------ couleurs du club */
-
-    var champsCouleur = ['primaire', 'secondaire', 'fond'].map(function (cle) {
-        return form.querySelector('input[name="' + cle + '"]');
-    }).filter(Boolean);
-    var attenteCouleurs;
-
-    function appliquerCouleurs(couleurs) {
-        champsCouleur.forEach(function (champ) { champ.value = couleurs[champ.name]; });
-    }
-
-    /* Enregistrées pour le club (option WordPress), après une courte pause. */
-    function enregistrerCouleurs() {
-        clearTimeout(attenteCouleurs);
-        attenteCouleurs = setTimeout(function () {
-            var corps = new URLSearchParams({ action: 'monclubtt_social_couleurs', nonce: DATA.couleursNonce });
-            champsCouleur.forEach(function (champ) { corps.append(champ.name, champ.value); });
-            fetch(DATA.ajaxurl, { method: 'POST', credentials: 'same-origin', body: corps })
-                .then(function (r) { return r.json(); })
-                .then(function (res) {
-                    if (!(res && res.success)) setStatus('Couleurs non enregistrées.');
-                })
-                .catch(function () { setStatus('Couleurs non enregistrées (erreur réseau).'); });
-        }, 600);
-    }
-
-    appliquerCouleurs(DATA.couleurs || DATA.couleursDefaut);
-    champsCouleur.forEach(function (champ) {
-        // « input » : aperçu en direct pendant le choix dans la pipette.
-        champ.addEventListener('input', render);
-    });
-    var btnDefaut = document.getElementById('monclubtt-social-couleurs-defaut');
-    if (btnDefaut) {
-        btnDefaut.addEventListener('click', function () {
-            appliquerCouleurs(DATA.couleursDefaut);
-            render();
-            enregistrerCouleurs();
-        });
-    }
-
     form.addEventListener('change', function (e) {
         if (e.target === legendeEl) return;
-        if (champsCouleur.indexOf(e.target) !== -1) {
-            enregistrerCouleurs();
-            return; // déjà rendu sur « input »
-        }
         // Nouveau visuel ou filtre : le texte suit à nouveau le visuel.
         if (e.target.name === 'visuel' || e.target.name === 'sexe') legendeModifiee = false;
         render();

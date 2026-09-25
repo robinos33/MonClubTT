@@ -562,6 +562,12 @@ th.headerSortUp {
     --dtp-gold:      #f0b429;
     --dtp-silver:    #aeb9c4;
     --dtp-bronze:    #c8794a;
+    /* Couleurs du club (réglages du plugin), injectées sur l'élément par PHP */
+    --dtp-primaire:   var(--dtp-blue);
+    --dtp-secondaire: var(--dtp-red);
+    --dtp-prim-fonce: color-mix(in srgb, var(--dtp-primaire) 78%, #000);
+    --dtp-prim-ombre: color-mix(in srgb, var(--dtp-primaire) 50%, #000);
+    --dtp-prim-clair: color-mix(in srgb, var(--dtp-primaire) 70%, #fff);
     margin-bottom: 36px;
 }
 
@@ -634,7 +640,7 @@ th.headerSortUp {
 .monclubtt-top-prog .tp-pc-band {
     height: 7px;
     width: 100%;
-    background: linear-gradient(90deg, var(--dtp-blue), var(--dtp-navy));
+    background: linear-gradient(90deg, var(--dtp-primaire), var(--dtp-secondaire));
 }
 
 .monclubtt-top-prog .tp-pc-title {
@@ -647,7 +653,7 @@ th.headerSortUp {
 .monclubtt-top-prog .tp-icn {
     width: 22px;
     height: 22px;
-    color: var(--dtp-blue);
+    color: var(--dtp-primaire);
     flex-shrink: 0;
 }
 
@@ -664,8 +670,8 @@ th.headerSortUp {
     font-weight: 700;
     letter-spacing: 0.1em;
     text-transform: uppercase;
-    color: var(--dtp-blue);
-    background: #e8f1f8;
+    color: var(--dtp-primaire);
+    background: color-mix(in srgb, var(--dtp-primaire) 12%, #fff);
     padding: 5px 12px;
     border-radius: 999px;
     white-space: nowrap;
@@ -788,8 +794,8 @@ th.headerSortUp {
     line-height: 1.2;
 }
 
-.monclubtt-top-prog .tp-name--f { color: var(--dtp-red); }
-.monclubtt-top-prog .tp-name--m { color: var(--dtp-blue-dk); }
+.monclubtt-top-prog .tp-name--f { color: var(--dtp-secondaire); }
+.monclubtt-top-prog .tp-name--m { color: var(--dtp-prim-fonce); }
 
 .monclubtt-top-prog .tp-first {
     font-size: 12.5px;
@@ -806,8 +812,8 @@ th.headerSortUp {
     font-size: 14px;
     padding: 5px 12px;
     border-radius: 999px;
-    background: var(--dtp-green-bg);
-    color: var(--dtp-green);
+    background: color-mix(in srgb, var(--dtp-secondaire) 14%, #fff);
+    color: var(--dtp-secondaire);
 }
 
 .monclubtt-top-prog .tp-pill svg {
@@ -962,21 +968,40 @@ th.headerSortUp {
     max-height: 80vh;
 }
 
-.monclubtt-social-couleurs label {
-    display: inline-flex !important;
+.monclubtt-social-couleurs {
+    display: flex;
     align-items: center;
-    gap: 6px;
-    margin-right: 14px !important;
+    gap: 8px;
+    flex-wrap: wrap;
 }
 
-.monclubtt-social-couleurs input[type="color"] {
+.monclubtt-social-couleurs legend {
+    width: 100%;
+}
+
+.monclubtt-social-pastille {
+    display: inline-block;
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    border: 1px solid #c3c4c7;
+}
+
+.monclubtt-couleurs label {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-right: 16px;
+}
+
+.monclubtt-couleurs input[type="color"] {
     width: 42px;
     height: 30px;
     padding: 0 2px;
     cursor: pointer;
 }
 
-.monclubtt-social-couleurs .button-link {
+.monclubtt-couleurs .button-link {
     display: block;
     margin-top: 6px;
 }

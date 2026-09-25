@@ -10,10 +10,12 @@ if ( ! class_exists( 'MonClubTT_Constantes' ) ) {
         const MONCLUBTT_NUM_CLUB = 'monclubtt_num_club';
         const MONCLUBTT_LICENCES_EXCLUES = 'monclubtt_licences_exclues';
         const MONCLUBTT_JOUEUR_PHOTOS = 'monclubtt_joueur_photos';
+        const MONCLUBTT_COULEURS = 'monclubtt_couleurs';
+        /** Ancienne option (1.6.2), relue tant que les réglages n'ont pas été enregistrés. */
         const MONCLUBTT_SOCIAL_COULEURS = 'monclubtt_social_couleurs';
 
-        /** Couleurs par défaut des visuels réseaux sociaux. */
-        const COULEURS_SOCIAL_DEFAUT = array(
+        /** Couleurs par défaut du club (podium du site et visuels réseaux sociaux). */
+        const COULEURS_DEFAUT = array(
             'primaire'   => '#2b7cb5',
             'secondaire' => '#d34328',
             'fond'       => '#f4f1ea',
@@ -147,23 +149,42 @@ if ( ! function_exists( 'monclubtt_sanitize_licences_exclues' ) ) {
 
 }
 
-if ( ! function_exists( 'monclubtt_normaliser_couleurs_social' ) ) {
+if ( ! function_exists( 'monclubtt_normaliser_couleurs' ) ) {
 
     /**
-     * Couleurs des visuels réseaux sociaux (primaire, secondaire, fond) :
-     * uniquement des « #rrggbb », en minuscules, repli sur la couleur par
-     * défaut pour toute valeur invalide.
+     * Couleurs du club (primaire, secondaire, fond) : uniquement des
+     * « #rrggbb », en minuscules, repli sur la couleur par défaut pour toute
+     * valeur invalide. Sert aussi de sanitize_callback du réglage.
      *
      * @param mixed $valeur Tableau brut (option ou saisie).
      * @return array{primaire: string, secondaire: string, fond: string}
      */
-    function monclubtt_normaliser_couleurs_social($valeur) {
+    function monclubtt_normaliser_couleurs($valeur) {
         $couleurs = array();
-        foreach (MonClubTT_Constantes::COULEURS_SOCIAL_DEFAUT as $cle => $defaut) {
+        foreach (MonClubTT_Constantes::COULEURS_DEFAUT as $cle => $defaut) {
             $saisie = is_array($valeur) && isset($valeur[$cle]) && is_string($valeur[$cle]) ? trim($valeur[$cle]) : '';
             $couleurs[$cle] = preg_match('/^#[0-9a-f]{6}$/i', $saisie) ? strtolower($saisie) : $defaut;
         }
         return $couleurs;
+    }
+
+}
+
+if ( ! function_exists( 'monclubtt_get_couleurs' ) ) {
+
+    /**
+     * Couleurs du club enregistrées dans les réglages du plugin. Primaire et
+     * secondaire habillent le podium du site et les visuels ; le fond ne
+     * sert qu'aux visuels réseaux sociaux.
+     *
+     * @return array{primaire: string, secondaire: string, fond: string}
+     */
+    function monclubtt_get_couleurs() {
+        $couleurs = get_option(MonClubTT_Constantes::MONCLUBTT_COULEURS, null);
+        if (null === $couleurs) {
+            $couleurs = get_option(MonClubTT_Constantes::MONCLUBTT_SOCIAL_COULEURS, null);
+        }
+        return monclubtt_normaliser_couleurs($couleurs);
     }
 
 }

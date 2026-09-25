@@ -274,8 +274,9 @@ var MonClubTTAvatars = (function () {
         var topFace = 'M' + x + ' ' + top + ' h' + w + ' l' + DX + ' ' + DY + ' h' + (-w) + ' z';
         var side    = 'M' + (x + w) + ' ' + top + ' l' + DX + ' ' + DY + ' v' + (bot - top) + ' l' + (-DX) + ' ' + (-DY) + ' z';
         var midY    = top + (bot - top) / 2 + 22;
-        return '<path d="' + topFace + '" fill="#3d5573"/>' +
-               '<path d="' + side   + '" fill="#1d2c3d"/>' +
+        // Couleurs du club via les variables CSS du conteneur (style="fill:var(…)").
+        return '<path d="' + topFace + '" style="fill:var(--dtp-prim-clair)"/>' +
+               '<path d="' + side   + '" style="fill:var(--dtp-prim-ombre)"/>' +
                '<path d="' + front  + '" fill="url(#dtpg' + rank + ')"/>' +
                '<text x="' + c.cx + '" y="' + midY + '" text-anchor="middle"' +
                ' font-family="system-ui,sans-serif" font-weight="900" font-size="62" fill="#ffffff" opacity="0.92">' + rank + '</text>' +
@@ -287,9 +288,9 @@ var MonClubTTAvatars = (function () {
         if (!svg) return;
         svg.innerHTML =
             '<defs>' +
-            '<linearGradient id="dtpg1" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2f6fa0"/><stop offset="1" stop-color="#24557c"/></linearGradient>' +
-            '<linearGradient id="dtpg2" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2b3a4f"/><stop offset="1" stop-color="#23303f"/></linearGradient>' +
-            '<linearGradient id="dtpg3" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2b3a4f"/><stop offset="1" stop-color="#23303f"/></linearGradient>' +
+            '<linearGradient id="dtpg1" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color:var(--dtp-primaire)"/><stop offset="1" style="stop-color:var(--dtp-prim-fonce)"/></linearGradient>' +
+            '<linearGradient id="dtpg2" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color:var(--dtp-prim-fonce)"/><stop offset="1" style="stop-color:var(--dtp-prim-ombre)"/></linearGradient>' +
+            '<linearGradient id="dtpg3" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color:var(--dtp-prim-fonce)"/><stop offset="1" style="stop-color:var(--dtp-prim-ombre)"/></linearGradient>' +
             '</defs>' +
             '<ellipse cx="360" cy="478" rx="330" ry="20" fill="#2b3a4f" opacity="0.06"/>' +
             blockSVG(2) + blockSVG(1) + blockSVG(3);
