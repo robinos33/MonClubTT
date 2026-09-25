@@ -3,7 +3,7 @@ Contributors: robinos33
 Tags: table tennis, fftt, club, rankings, results
 Requires at least: 5.0
 Tested up to: 7.0
-Stable tag: 1.6.0
+Stable tag: 1.6.1
 Requires PHP: 7.4
 License: GPLv2
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -59,6 +59,9 @@ Player data is refreshed on manual sync only. League standings and results are c
 Yes. The plugin exposes four filters: `monclubtt_get_joueurs`, `monclubtt_get_equipes`, `monclubtt_get_classement_poule`, `monclubtt_get_rencontres_poule`. See the documentation for usage.
 
 == Changelog ==
+
+= 1.6.1 =
+* Added: the Social media page pre-fills a post caption from the current image (Top Progression podium or top performances list), editable and copyable in one click
 
 = 1.6.0 =
 * Added: new "Social media" admin page generating ready-to-post images (1080 × 1080 square or 1080 × 1920 story), drawn in the browser with a canvas (no GD / Imagick needed), with a live preview and PNG download
@@ -118,6 +121,9 @@ Yes. The plugin exposes four filters: `monclubtt_get_joueurs`, `monclubtt_get_eq
 * Automatic team page generation and deletion
 
 == Upgrade Notice ==
+
+= 1.6.1 =
+Ready-to-copy post caption generated alongside each social media image.
 
 = 1.6.0 =
 New "Social media" admin page: generate Top Progression and Top performances images ready to post on Facebook / Instagram.
