@@ -5,6 +5,16 @@ Format : [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/)
 
 ---
 
+## [1.5.0] — 2026-09-25
+
+### Ajouté
+
+- La page des joueurs est structurée comme un effectif de club : le podium « Top Progression » en tête, puis une bande de stats club (joueurs classés, meilleur classement, progression moyenne, joueurs en hausse sur le mois ; progression moyenne sur la saison hors compétition), puis le tableau triable
+- La photo détourée du joueur apparaît en vignette devant son nom dans le tableau (initiales en repli)
+- Puces de filtre Tous / Hommes / Femmes sur la liste mixte : elles filtrent le tableau, la bande de stats et le podium
+
+---
+
 ## [1.4.0] — 2026-09-25
 
 ### Ajouté

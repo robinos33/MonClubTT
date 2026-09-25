@@ -3,7 +3,7 @@ Contributors: robinos33
 Tags: table tennis, fftt, club, rankings, results
 Requires at least: 5.0
 Tested up to: 7.0
-Stable tag: 1.4.0
+Stable tag: 1.5.0
 Requires PHP: 7.4
 License: GPLv2
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -60,6 +60,11 @@ Yes. The plugin exposes four filters: `monclubtt_get_joueurs`, `monclubtt_get_eq
 
 == Changelog ==
 
+= 1.5.0 =
+* Added: the players page now reads like a club roster: the Top Progression podium as a hero, followed by a club stats band (ranked players, best ranking, average progression, players moving up this month) and the sortable table
+* Added: the player's cut-out photo appears as a thumbnail next to their name in the table (initials as a fallback)
+* Added: All / Men / Women filter chips on the mixed player list, filtering the table, the stats band and the podium
+
 = 1.4.0 =
 * Added: attach a photo to each player from the admin player list (WordPress media library, keyed by license number), reusable by other components via the `monclubtt_get_joueurs` filter
 * Added: the "Top Progression" widget places the player's cut-out photo as a sticker (white outline and drop shadow) instead of the drawn avatar, falling back to the drawn avatar when no photo is set
@@ -108,6 +113,9 @@ Yes. The plugin exposes four filters: `monclubtt_get_joueurs`, `monclubtt_get_eq
 * Automatic team page generation and deletion
 
 == Upgrade Notice ==
+
+= 1.5.0 =
+The players page becomes a club roster: podium, club stats band, photo thumbnails in the table and an All / Men / Women filter.
 
 = 1.4.0 =
 Attach a photo to each player from the admin; it appears as a cut-out sticker on the Top Progression podium.
