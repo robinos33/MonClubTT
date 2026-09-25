@@ -51,6 +51,9 @@ if (!class_exists('MonClubTT_Joueurs')) {
                     if (in_array((string) $joueur->getLicence(), $licencesExclues, true)) {
                         continue;
                     }
+                    // Photo éventuellement associée manuellement dans l'admin ;
+                    // chaîne vide si aucune, le rendu retombe alors sur l'avatar dessiné.
+                    $joueur->setPhotoUrl(monclubtt_get_joueur_photo_url($joueur->getLicence(), 'medium'));
                     $this->joueurs[] = $joueur;
                 }
             }

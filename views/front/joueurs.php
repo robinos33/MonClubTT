@@ -22,6 +22,7 @@ foreach ($joueurs->getJoueurs($atts['type']) as $joueur) {
             'mens'   => (float) $joueur->getClassement()->getPointsMensuels(),
             'dm'     => (float) $joueur->getClassement()->getProgressionMensuelle(),
             'da'     => (float) $joueur->getClassement()->getProgressionAnnuelle(),
+            'photo'  => $joueur->getPhotoUrl(),
         ];
     }
 }

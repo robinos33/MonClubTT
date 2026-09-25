@@ -44,6 +44,7 @@
     <table class="wp-list-table widefat fixed striped posts">
         <thead>
         <tr>
+            <th>Photo</th>
             <th>Nom</th>
             <th>Prénom</th>
             <th>Classement Off.</th>
@@ -58,8 +59,18 @@
         foreach($monclubtt_joueurs->getJoueurs('MF') as $monclubtt_joueur):?>
             <?php
                 /** @var MonClubTT_Joueur $monclubtt_joueur */
+                $monclubtt_photo = monclubtt_get_joueur_photo_url($monclubtt_joueur->getLicence(), 'thumbnail');
             ?>
         <tr class="<?php echo esc_attr($monclubtt_joueur->getSexe()); ?>" data-licence="<?php echo esc_attr($monclubtt_joueur->getLicence()); ?>">
+            <td class="monclubtt-photo-cell" data-licence="<?php echo esc_attr($monclubtt_joueur->getLicence()); ?>">
+                <span class="monclubtt-photo-preview">
+                    <?php if ($monclubtt_photo): ?>
+                        <img src="<?php echo esc_url($monclubtt_photo); ?>" alt="" />
+                    <?php endif; ?>
+                </span>
+                <button type="button" class="button button-small monclubtt-photo-set"><?php echo $monclubtt_photo ? 'Changer' : 'Ajouter'; ?></button>
+                <button type="button" class="button-link monclubtt-photo-remove"<?php echo $monclubtt_photo ? '' : ' style="display:none"'; ?>>Supprimer</button>
+            </td>
             <td class="bold"><?php echo esc_html($monclubtt_joueur->getNom()); ?></td>
             <td class="bold"><?php echo esc_html($monclubtt_joueur->getPrenom()); ?></td>
             <td><?php echo esc_html($monclubtt_joueur->getClassement()->getClassementOfficiel()); ?></td>
@@ -110,6 +121,70 @@ wp_add_inline_script('monclubtt-js', 'jQuery(document).ready(function($) {
                 window.alert("Erreur de communication avec le serveur");
                 $button.prop("disabled", false);
             }
+        });
+    });
+});');
+
+wp_add_inline_script('monclubtt-js', 'jQuery(document).ready(function($) {
+    var photoNonce = ' . wp_json_encode(wp_create_nonce('monclubtt_photo_nonce')) . ';
+
+    $(".monclubtt-photo-set").on("click", function() {
+        var $cell = $(this).closest(".monclubtt-photo-cell");
+        var licence = $cell.data("licence");
+
+        var frame = wp.media({
+            title: "Choisir une photo pour ce joueur",
+            button: { text: "Utiliser cette photo" },
+            library: { type: "image" },
+            multiple: false
+        });
+
+        frame.on("select", function() {
+            var att = frame.state().get("selection").first().toJSON();
+            $.post(ajaxurl, {
+                action: "monclubtt_set_joueur_photo",
+                nonce: photoNonce,
+                licence: licence,
+                attachment_id: att.id
+            }, function(response) {
+                if (response.success) {
+                    var thumb = (response.data && response.data.thumbnail) ? response.data.thumbnail : att.url;
+                    $cell.find(".monclubtt-photo-preview").html($("<img>", { src: thumb, alt: "" }));
+                    $cell.find(".monclubtt-photo-set").text("Changer");
+                    $cell.find(".monclubtt-photo-remove").show();
+                } else {
+                    window.alert(response.data && response.data.message ? response.data.message : "Erreur lors de l\'enregistrement de la photo");
+                }
+            }).fail(function() {
+                window.alert("Erreur de communication avec le serveur");
+            });
+        });
+
+        frame.open();
+    });
+
+    $(".monclubtt-photo-remove").on("click", function() {
+        var $cell = $(this).closest(".monclubtt-photo-cell");
+        var licence = $cell.data("licence");
+
+        if (!window.confirm("Supprimer la photo de ce joueur ?")) {
+            return;
+        }
+
+        $.post(ajaxurl, {
+            action: "monclubtt_remove_joueur_photo",
+            nonce: photoNonce,
+            licence: licence
+        }, function(response) {
+            if (response.success) {
+                $cell.find(".monclubtt-photo-preview").empty();
+                $cell.find(".monclubtt-photo-set").text("Ajouter");
+                $cell.find(".monclubtt-photo-remove").hide();
+            } else {
+                window.alert(response.data && response.data.message ? response.data.message : "Erreur lors de la suppression");
+            }
+        }).fail(function() {
+            window.alert("Erreur de communication avec le serveur");
         });
     });
 });');

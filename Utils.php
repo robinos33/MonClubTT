@@ -9,6 +9,7 @@ if ( ! class_exists( 'MonClubTT_Constantes' ) ) {
         const MONCLUBTT_MOT_DE_PASSE = 'monclubtt_mot_de_passe';
         const MONCLUBTT_NUM_CLUB = 'monclubtt_num_club';
         const MONCLUBTT_LICENCES_EXCLUES = 'monclubtt_licences_exclues';
+        const MONCLUBTT_JOUEUR_PHOTOS = 'monclubtt_joueur_photos';
 
     }
 
@@ -82,6 +83,34 @@ if ( ! function_exists( 'monclubtt_mois_sans_competition' ) ) {
         $mois = (int) date_i18n('n', $timestamp);
 
         return in_array($mois, array(7, 8, 9), true);
+    }
+
+}
+
+if ( ! function_exists( 'monclubtt_get_joueur_photo_url' ) ) {
+
+    /**
+     * Retourne l'URL de la photo associée à un numéro de licence, ou une chaîne
+     * vide si aucune photo n'est mappée. Les photos sont des pièces jointes de
+     * la médiathèque WordPress, indexées par numéro de licence (identifiant
+     * stable, contrairement au nom du joueur).
+     *
+     * @param string $licence Numéro de licence du joueur.
+     * @param string $size    Taille WordPress souhaitée (thumbnail, medium, full…).
+     * @return string URL de la photo ou '' si absente.
+     */
+    function monclubtt_get_joueur_photo_url($licence, $size = 'medium') {
+        if (empty($licence) || !function_exists('get_option')) {
+            return '';
+        }
+
+        $map = get_option(MonClubTT_Constantes::MONCLUBTT_JOUEUR_PHOTOS, array());
+        if (!is_array($map) || empty($map[$licence])) {
+            return '';
+        }
+
+        $url = wp_get_attachment_image_url((int) $map[$licence], $size);
+        return $url ? $url : '';
     }
 
 }

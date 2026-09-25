@@ -586,6 +586,29 @@ th.headerSortUp {
     filter: drop-shadow(0 8px 10px rgba(43, 58, 79, 0.18));
 }
 
+/* Photo détourée « sticker » posée sur la tête (repli : avatar dessiné) */
+.monclubtt-top-prog .tp-figure .tp-photo {
+    position: absolute;
+    left: 64px;
+    top: 40px;
+    height: 68px;
+    transform: translate(-50%, -50%) rotate(var(--rot, 0deg));
+    pointer-events: none;
+}
+
+.monclubtt-top-prog .tp-figure .tp-photo img {
+    display: block;
+    height: 100%;
+    width: auto;
+    /* Liseré blanc suivant la silhouette du PNG détouré + ombre portée */
+    filter:
+        drop-shadow(1.5px 0 0 #fff) drop-shadow(-1.5px 0 0 #fff)
+        drop-shadow(0 1.5px 0 #fff) drop-shadow(0 -1.5px 0 #fff)
+        drop-shadow(1.1px 1.1px 0 #fff) drop-shadow(-1.1px 1.1px 0 #fff)
+        drop-shadow(1.1px -1.1px 0 #fff) drop-shadow(-1.1px -1.1px 0 #fff)
+        drop-shadow(0 3px 3px rgba(15, 20, 26, 0.45));
+}
+
 .monclubtt-top-prog .tp-figure--anim {
     animation: dtpRise 0.5s cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
 }
@@ -715,4 +738,25 @@ th.headerSortUp {
 #monclubtt-sync-message .notice {
     margin: 10px 0 0 0;
     padding: 10px;
+}
+
+/* --- Admin : cellule photo dans la liste des joueurs --- */
+.monclubtt-photo-cell .monclubtt-photo-preview img {
+    width: 40px;
+    height: 40px;
+    object-fit: cover;
+    border-radius: 4px;
+    vertical-align: middle;
+    margin-right: 8px;
+    background: #f0f0f1;
+}
+
+.monclubtt-photo-cell .monclubtt-photo-set {
+    vertical-align: middle;
+}
+
+.monclubtt-photo-cell .monclubtt-photo-remove {
+    margin-left: 6px;
+    color: #b32d2e;
+    vertical-align: middle;
 }

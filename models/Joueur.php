@@ -13,6 +13,7 @@ if (!class_exists('MonClubTT_Joueur')) {
         private $classement;
         private $categorie;
         private $etranger;
+        private $photoUrl = '';
 
         /**
          * Initialisation du joueur depuis les données xml_licence_b.php
@@ -86,6 +87,14 @@ if (!class_exists('MonClubTT_Joueur')) {
 
         public function setCategorie($categorie) {
             $this->categorie = $categorie;
+        }
+
+        public function getPhotoUrl() {
+            return $this->photoUrl;
+        }
+
+        public function setPhotoUrl($photoUrl) {
+            $this->photoUrl = (string) $photoUrl;
         }
 
         public function getEtranger() {

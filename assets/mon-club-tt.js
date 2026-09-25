@@ -152,7 +152,8 @@ jQuery(document).ready(function ($) {
     var MEDAL_COLOR = { 1: '#f0b429', 2: '#aeb9c4', 3: '#c8794a' };
 
     /* ---- Avatars SVG ---- */
-    function avatarMale() {
+    /* showHead=false : corps sans tête, pour poser une photo détourée par-dessus. */
+    function avatarMale(showHead) {
         return '<svg viewBox="0 0 128 168" xmlns="http://www.w3.org/2000/svg">' +
             '<g>' +
               '<rect x="84" y="38" width="11" height="34" rx="5.5" fill="#e7b48f" transform="rotate(38 90 55)"/>' +
@@ -175,15 +176,17 @@ jQuery(document).ready(function ($) {
             '<path d="M56 53 l8 8 l8 -8 q-8 -3 -16 0 z" fill="#ffffff"/>' +
             '<path d="M64 61 l-5 -6 l5 0 l5 0 z" fill="#d34328"/>' +
             '<rect x="58" y="46" width="12" height="10" rx="3" fill="#dba883"/>' +
-            '<circle cx="64" cy="36" r="15" fill="#e7b48f"/>' +
-            '<ellipse cx="58" cy="40" rx="2.2" ry="2.6" fill="#3a2f28"/>' +
-            '<ellipse cx="70" cy="40" rx="2.2" ry="2.6" fill="#3a2f28"/>' +
-            '<path d="M59 45 q5 3 10 0" stroke="#c98c63" stroke-width="1.6" fill="none" stroke-linecap="round"/>' +
-            '<path d="M49 35 q1 -18 15 -18 q14 0 15 18 q-5 -7 -15 -7 q-10 0 -15 7 z" fill="#3a2f28"/>' +
+            (showHead === false ? '' :
+                '<circle cx="64" cy="36" r="15" fill="#e7b48f"/>' +
+                '<ellipse cx="58" cy="40" rx="2.2" ry="2.6" fill="#3a2f28"/>' +
+                '<ellipse cx="70" cy="40" rx="2.2" ry="2.6" fill="#3a2f28"/>' +
+                '<path d="M59 45 q5 3 10 0" stroke="#c98c63" stroke-width="1.6" fill="none" stroke-linecap="round"/>' +
+                '<path d="M49 35 q1 -18 15 -18 q14 0 15 18 q-5 -7 -15 -7 q-10 0 -15 7 z" fill="#3a2f28"/>'
+            ) +
         '</svg>';
     }
 
-    function avatarFemale() {
+    function avatarFemale(showHead) {
         return '<svg viewBox="0 0 128 168" xmlns="http://www.w3.org/2000/svg">' +
             '<g>' +
               '<rect x="84" y="38" width="11" height="34" rx="5.5" fill="#ecbb98" transform="rotate(38 90 55)"/>' +
@@ -208,12 +211,14 @@ jQuery(document).ready(function ($) {
             '<path d="M44 60 q1 -6 7 -7 l4 0 l0 42 l-9 0 q-2 0 -2 -3 z" fill="#b3331c"/>' +
             '<path d="M56 53 l8 9 l8 -9 q-8 -3 -16 0 z" fill="#ffffff"/>' +
             '<rect x="58" y="46" width="12" height="10" rx="3" fill="#e0a980"/>' +
-            '<path d="M78 30 q14 4 12 22 q-1 8 -7 11 q5 -10 1 -19 q-3 -8 -10 -10 z" fill="#5a3b22"/>' +
-            '<circle cx="64" cy="36" r="15" fill="#ecbb98"/>' +
-            '<ellipse cx="58" cy="40" rx="2.2" ry="2.6" fill="#3a2f28"/>' +
-            '<ellipse cx="70" cy="40" rx="2.2" ry="2.6" fill="#3a2f28"/>' +
-            '<path d="M59 45 q5 3 10 0" stroke="#cf9269" stroke-width="1.6" fill="none" stroke-linecap="round"/>' +
-            '<path d="M48 38 q-1 -21 16 -21 q17 0 16 21 q-2 -9 -8 -11 l-2 6 l-3 -7 q-9 1 -12 6 q-3 -1 -7 6 z" fill="#5a3b22"/>' +
+            (showHead === false ? '' :
+                '<path d="M78 30 q14 4 12 22 q-1 8 -7 11 q5 -10 1 -19 q-3 -8 -10 -10 z" fill="#5a3b22"/>' +
+                '<circle cx="64" cy="36" r="15" fill="#ecbb98"/>' +
+                '<ellipse cx="58" cy="40" rx="2.2" ry="2.6" fill="#3a2f28"/>' +
+                '<ellipse cx="70" cy="40" rx="2.2" ry="2.6" fill="#3a2f28"/>' +
+                '<path d="M59 45 q5 3 10 0" stroke="#cf9269" stroke-width="1.6" fill="none" stroke-linecap="round"/>' +
+                '<path d="M48 38 q-1 -21 16 -21 q17 0 16 21 q-2 -9 -8 -11 l-2 6 l-3 -7 q-9 1 -12 6 q-3 -1 -7 6 z" fill="#5a3b22"/>'
+            ) +
         '</svg>';
     }
 
@@ -291,11 +296,23 @@ jQuery(document).ready(function ($) {
                 var val  = p[metric];
                 var sign = val > 0 ? '+' : '';
 
-                /* Avatar */
+                /* Avatar : photo détourée si disponible, sinon avatar dessiné */
+                var hasPhoto = p.photo && p.photo.length;
                 var fig = document.createElement('div');
                 fig.className = 'tp-figure tp-figure--anim';
                 fig.style.cssText = 'left:' + (c.cx + DX / 2) + 'px;bottom:' + (498 - c.top - 4) + 'px;animation-delay:' + (i * 0.08) + 's';
-                fig.innerHTML = p.sex === 'F' ? avatarFemale() : avatarMale();
+                fig.innerHTML = p.sex === 'F' ? avatarFemale(!hasPhoto) : avatarMale(!hasPhoto);
+                if (hasPhoto) {
+                    var tilt = [4, -5, 3][i % 3];
+                    var photoWrap = document.createElement('div');
+                    photoWrap.className = 'tp-photo';
+                    photoWrap.style.setProperty('--rot', tilt + 'deg');
+                    var photoImg = document.createElement('img');
+                    photoImg.src = p.photo;
+                    photoImg.alt = '';
+                    photoWrap.appendChild(photoImg);
+                    fig.appendChild(photoWrap);
+                }
                 stage.appendChild(fig);
                 (function (el) {
                     setTimeout(function () { el.classList.remove('tp-figure--anim'); }, 700 + i * 80);

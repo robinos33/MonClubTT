@@ -34,10 +34,18 @@ class MonClubTT_Plugin
         'M', 'F', 'MF'
     );
 
+    /**
+     * Suffixe de hook de la page d'admin « Joueurs », mémorisé pour n'y charger
+     * la médiathèque (upload de photos) que sur cette page.
+     * @var string
+     */
+    private $joueurs_page_hook = '';
+
     public function __construct()
     {
         add_action('admin_menu', array($this, 'add_admin_menu'));
         add_action('admin_init', array($this, 'register_settings'));
+        add_action('admin_enqueue_scripts', array($this, 'admin_enqueue_media'));
         add_action('init', array($this, 'monclubtt_style_scripts'));
         add_shortcode('monclubtt_equipe', array($this, 'equipes_front'));
         add_shortcode('monclubtt_joueurs', array($this, 'joueurs_front'));
@@ -51,6 +59,8 @@ class MonClubTT_Plugin
         // AJAX handlers
         add_action('wp_ajax_monclubtt_sync', array($this, 'handle_ajax_sync'));
         add_action('wp_ajax_monclubtt_exclude_joueur', array($this, 'handle_ajax_exclude_joueur'));
+        add_action('wp_ajax_monclubtt_set_joueur_photo', array($this, 'handle_ajax_set_joueur_photo'));
+        add_action('wp_ajax_monclubtt_remove_joueur_photo', array($this, 'handle_ajax_remove_joueur_photo'));
         add_action('wp_ajax_monclubtt_generate_pages', array($this, 'handle_ajax_generate_pages'));
         add_action('wp_ajax_monclubtt_feuille_match',        array($this, 'handle_ajax_feuille_match'));
         add_action('wp_ajax_nopriv_monclubtt_feuille_match', array($this, 'handle_ajax_feuille_match'));
@@ -63,7 +73,7 @@ class MonClubTT_Plugin
     {
         add_menu_page('Mon Club TT', 'Mon Club TT', 'manage_options', 'monclubtt_parametres', array($this, 'admin_module'));
         add_submenu_page('monclubtt_parametres', 'Equipes', 'Equipes', 'manage_options', 'monclubtt_equipes', array($this, 'equipes_admin'));
-        add_submenu_page('monclubtt_parametres', 'Joueurs', 'Joueurs', 'manage_options', 'monclubtt_joueurs', array($this, 'joueurs_admin'));
+        $this->joueurs_page_hook = add_submenu_page('monclubtt_parametres', 'Joueurs', 'Joueurs', 'manage_options', 'monclubtt_joueurs', array($this, 'joueurs_admin'));
     }
 
     public function admin_module()
@@ -342,6 +352,95 @@ class MonClubTT_Plugin
         }
 
         wp_send_json_success($data);
+    }
+
+    /**
+     * Charge la médiathèque WordPress (pour l'upload de photos) uniquement sur
+     * la page d'admin « Joueurs ».
+     *
+     * @param string $hook Suffixe de hook de la page admin courante.
+     */
+    public function admin_enqueue_media($hook)
+    {
+        if ($hook === $this->joueurs_page_hook) {
+            wp_enqueue_media();
+        }
+    }
+
+    /**
+     * Handler AJAX : associe une photo (pièce jointe de la médiathèque) à un
+     * joueur, indexée par numéro de licence. Remplace et supprime l'ancienne
+     * photo le cas échéant.
+     */
+    public function handle_ajax_set_joueur_photo()
+    {
+        check_ajax_referer('monclubtt_photo_nonce', 'nonce');
+
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error(array('message' => 'Permissions insuffisantes'));
+            return;
+        }
+
+        $licence      = isset($_POST['licence']) ? sanitize_text_field(wp_unslash($_POST['licence'])) : '';
+        $attachmentId = isset($_POST['attachment_id']) ? absint($_POST['attachment_id']) : 0;
+
+        if ($licence === '' || $attachmentId === 0) {
+            wp_send_json_error(array('message' => 'Paramètres manquants'));
+            return;
+        }
+
+        if (get_post_type($attachmentId) !== 'attachment'
+            || strpos((string) get_post_mime_type($attachmentId), 'image/') !== 0) {
+            wp_send_json_error(array('message' => 'Le fichier sélectionné n\'est pas une image'));
+            return;
+        }
+
+        $map = get_option(MonClubTT_Constantes::MONCLUBTT_JOUEUR_PHOTOS, array());
+        if (!is_array($map)) {
+            $map = array();
+        }
+
+        // Remplacement : supprimer l'ancienne pièce jointe pour ne pas laisser d'orphelin.
+        $old = isset($map[$licence]) ? (int) $map[$licence] : 0;
+        if ($old && $old !== $attachmentId) {
+            wp_delete_attachment($old, true);
+        }
+
+        $map[$licence] = $attachmentId;
+        update_option(MonClubTT_Constantes::MONCLUBTT_JOUEUR_PHOTOS, $map, false);
+
+        wp_send_json_success(array(
+            'thumbnail' => wp_get_attachment_image_url($attachmentId, 'thumbnail'),
+        ));
+    }
+
+    /**
+     * Handler AJAX : retire la photo d'un joueur et supprime la pièce jointe
+     * associée (photo dédiée, pas de réutilisation ailleurs attendue).
+     */
+    public function handle_ajax_remove_joueur_photo()
+    {
+        check_ajax_referer('monclubtt_photo_nonce', 'nonce');
+
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error(array('message' => 'Permissions insuffisantes'));
+            return;
+        }
+
+        $licence = isset($_POST['licence']) ? sanitize_text_field(wp_unslash($_POST['licence'])) : '';
+        if ($licence === '') {
+            wp_send_json_error(array('message' => 'Numéro de licence manquant'));
+            return;
+        }
+
+        $map = get_option(MonClubTT_Constantes::MONCLUBTT_JOUEUR_PHOTOS, array());
+        if (is_array($map) && isset($map[$licence])) {
+            wp_delete_attachment((int) $map[$licence], true);
+            unset($map[$licence]);
+            update_option(MonClubTT_Constantes::MONCLUBTT_JOUEUR_PHOTOS, $map, false);
+        }
+
+        wp_send_json_success();
     }
 
     /**
