@@ -232,7 +232,7 @@ class MonClubTT_Plugin
             <button type="button" class="button-link monclubtt-logo-retirer"<?php echo $logoId ? '' : ' style="display:none"'; ?>>Retirer</button>
         </div>
         <p class="description">
-            Affiché sur le maillot des joueurs du podium et dans l'en-tête des visuels réseaux sociaux.
+            Affiché dans l'en-tête des visuels réseaux sociaux.
             Sans logo, l'icône du site (Réglages › Général) est utilisée. PNG à fond transparent conseillé.
         </p>
         <?php

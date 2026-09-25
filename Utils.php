@@ -194,8 +194,9 @@ if ( ! function_exists( 'monclubtt_get_couleurs' ) ) {
 if ( ! function_exists( 'monclubtt_get_logo_url' ) ) {
 
     /**
-     * Logo du club : image choisie dans les réglages du plugin, à défaut
-     * l'icône du site (Réglages › Général), sinon chaîne vide.
+     * Logo du club (en-tête des visuels réseaux sociaux) : image choisie dans
+     * les réglages du plugin, à défaut l'icône du site (Réglages › Général),
+     * sinon chaîne vide.
      *
      * @param int $taille Taille souhaitée en pixels (côté).
      * @return string URL du logo ou ''.

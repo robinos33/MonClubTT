@@ -135,8 +135,6 @@
         return imageCache[url];
     }
 
-    /* L'écusson n'est pas passé ici : un SVG rendu comme image ne charge pas
-       d'image externe. Il est dessiné par-dessus dans le canvas (figure()). */
     function avatarUrl(sexe, avecTete) {
         var svg = (sexe === 'F' ? MonClubTTAvatars.female : MonClubTTAvatars.male)(avecTete, { maillot: DATA.couleurs.maillot });
         svg = svg.replace('<svg ', '<svg width="128" height="168" ');
@@ -423,23 +421,7 @@
         pastille(signe(gagnant.val) + ' PTS', cx, top + 170 * tk, 26 * tk, P.secondaire, P.surSec, 'center');
     }
 
-    /* Écusson du club sur la poitrine (mêmes coordonnées que dans le SVG). */
-    function ecusson(fx, fy, k, logo) {
-        if (!logo) return;
-        var e = MonClubTTAvatars.ECUSSON;
-        var cx = fx + e.cx * k, cy = fy + e.cy * k, r = e.r * k;
-        ctx.save();
-        ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2);
-        ctx.fillStyle = '#ffffff';
-        ctx.fill();
-        ctx.beginPath(); ctx.arc(cx, cy, r - 0.8 * k, 0, Math.PI * 2);
-        ctx.clip();
-        var s = (2 * r) / Math.max(logo.naturalWidth, logo.naturalHeight);
-        ctx.drawImage(logo, cx - logo.naturalWidth * s / 2, cy - logo.naturalHeight * s / 2, logo.naturalWidth * s, logo.naturalHeight * s);
-        ctx.restore();
-    }
-
-    function figure(Pd, cx, top, g, i, logo) {
+    function figure(Pd, cx, top, g, i) {
         var k = Pd.fig;
         var fw = 128 * k, fh = 168 * k;
         var fx = cx + 9 * Pd.tk - fw / 2, fy = top - 4 - fh;
@@ -449,13 +431,12 @@
         ctx.shadowOffsetY = 6;
         if (g.corps) ctx.drawImage(g.corps, fx, fy, fw, fh);
         ctx.restore();
-        ecusson(fx, fy, k, logo);
         if (g.photo) {
             photoSticker(g.photo, fx + 64 * k, fy + 40 * k, 72 * k, [4, -5, 3][i]);
         }
     }
 
-    function dessinerPodium(L, gagnants, logo) {
+    function dessinerPodium(L, gagnants) {
         var Pd = L.podium;
         if (!gagnants.length) {
             messageVide(L, 'Aucun joueur classé pour ce filtre.');
@@ -470,7 +451,7 @@
         [2, 1, 3].forEach(function (rang, i) {
             var top = Pd.baseY - Pd.heights[rang];
             bloc(Pd, rang, cols[rang], top, gagnants[rang - 1]);
-            if (gagnants[rang - 1]) figure(Pd, cols[rang], top, gagnants[rang - 1], i, logo);
+            if (gagnants[rang - 1]) figure(Pd, cols[rang], top, gagnants[rang - 1], i);
         });
     }
 
@@ -673,7 +654,7 @@
             } else {
                 var tagProg = st.visuel === 'prog-mens' ? DATA.moisLabel : DATA.saisonLabel;
                 entete(L, st.club, 'TOP PROGRESSION', '', tagProg, logo);
-                dessinerPodium(L, donnees, logo);
+                dessinerPodium(L, donnees);
                 setStatus('');
                 majLegende(donnees.length ? legendePodium(st, donnees) : '');
             }
