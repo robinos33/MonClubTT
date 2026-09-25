@@ -5,6 +5,15 @@ Format : [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/)
 
 ---
 
+## [1.6.3] — 2026-09-25
+
+### Modifié
+
+- Les couleurs primaire, secondaire et de fond deviennent des réglages du plugin (« Couleurs du club », page Mon Club TT) ; la page Réseaux sociaux les affiche avec un lien vers les réglages. Les couleurs choisies en 1.6.2 sont reprises
+- Le podium « Top Progression » du site utilise les couleurs du club : blocs en couleur primaire, pastilles de gain, bandeau et prénoms féminins en couleur secondaire (le fond reste réservé aux visuels)
+
+---
+
 ## [1.6.2] — 2026-09-25
 
 ### Ajouté
