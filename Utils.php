@@ -11,6 +11,7 @@ if ( ! class_exists( 'MonClubTT_Constantes' ) ) {
         const MONCLUBTT_LICENCES_EXCLUES = 'monclubtt_licences_exclues';
         const MONCLUBTT_JOUEUR_PHOTOS = 'monclubtt_joueur_photos';
         const MONCLUBTT_COULEURS = 'monclubtt_couleurs';
+        const MONCLUBTT_LOGO = 'monclubtt_logo';
         /** Ancienne option (1.6.2), relue tant que les réglages n'ont pas été enregistrés. */
         const MONCLUBTT_SOCIAL_COULEURS = 'monclubtt_social_couleurs';
 
@@ -19,6 +20,7 @@ if ( ! class_exists( 'MonClubTT_Constantes' ) ) {
             'primaire'   => '#2b7cb5',
             'secondaire' => '#d34328',
             'fond'       => '#f4f1ea',
+            'maillot'    => '#2b7cb5',
         );
 
     }
@@ -152,12 +154,12 @@ if ( ! function_exists( 'monclubtt_sanitize_licences_exclues' ) ) {
 if ( ! function_exists( 'monclubtt_normaliser_couleurs' ) ) {
 
     /**
-     * Couleurs du club (primaire, secondaire, fond) : uniquement des
+     * Couleurs du club (primaire, secondaire, fond, maillot) : uniquement des
      * « #rrggbb », en minuscules, repli sur la couleur par défaut pour toute
      * valeur invalide. Sert aussi de sanitize_callback du réglage.
      *
      * @param mixed $valeur Tableau brut (option ou saisie).
-     * @return array{primaire: string, secondaire: string, fond: string}
+     * @return array{primaire: string, secondaire: string, fond: string, maillot: string}
      */
     function monclubtt_normaliser_couleurs($valeur) {
         $couleurs = array();
@@ -173,11 +175,11 @@ if ( ! function_exists( 'monclubtt_normaliser_couleurs' ) ) {
 if ( ! function_exists( 'monclubtt_get_couleurs' ) ) {
 
     /**
-     * Couleurs du club enregistrées dans les réglages du plugin. Primaire et
-     * secondaire habillent le podium du site et les visuels ; le fond ne
-     * sert qu'aux visuels réseaux sociaux.
+     * Couleurs du club enregistrées dans les réglages du plugin. Primaire,
+     * secondaire et maillot habillent le podium du site et les visuels ; le
+     * fond ne sert qu'aux visuels réseaux sociaux.
      *
-     * @return array{primaire: string, secondaire: string, fond: string}
+     * @return array{primaire: string, secondaire: string, fond: string, maillot: string}
      */
     function monclubtt_get_couleurs() {
         $couleurs = get_option(MonClubTT_Constantes::MONCLUBTT_COULEURS, null);
@@ -185,6 +187,28 @@ if ( ! function_exists( 'monclubtt_get_couleurs' ) ) {
             $couleurs = get_option(MonClubTT_Constantes::MONCLUBTT_SOCIAL_COULEURS, null);
         }
         return monclubtt_normaliser_couleurs($couleurs);
+    }
+
+}
+
+if ( ! function_exists( 'monclubtt_get_logo_url' ) ) {
+
+    /**
+     * Logo du club : image choisie dans les réglages du plugin, à défaut
+     * l'icône du site (Réglages › Général), sinon chaîne vide.
+     *
+     * @param int $taille Taille souhaitée en pixels (côté).
+     * @return string URL du logo ou ''.
+     */
+    function monclubtt_get_logo_url($taille = 256) {
+        $logoId = (int) get_option(MonClubTT_Constantes::MONCLUBTT_LOGO, 0);
+        if ($logoId) {
+            $url = wp_get_attachment_image_url($logoId, array($taille, $taille));
+            if ($url) {
+                return $url;
+            }
+        }
+        return (string) get_site_icon_url($taille);
     }
 
 }

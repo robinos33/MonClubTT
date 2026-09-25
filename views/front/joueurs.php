@@ -68,6 +68,8 @@ if ($avecFiltre) {
         'players'     => $playersData,
         'moisLabel'   => $moisLabel,
         'saisonLabel' => $saisonLabel,
+        'maillot'     => monclubtt_get_couleurs()['maillot'],
+        'logo'        => monclubtt_get_logo_url(96),
     ));
 endif; ?>
 <div class="monclubtt-div">

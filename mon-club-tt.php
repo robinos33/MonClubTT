@@ -48,6 +48,12 @@ class MonClubTT_Plugin
      */
     private $reseaux_sociaux_page_hook = '';
 
+    /**
+     * Suffixe de hook de la page des réglages (choix du logo dans la médiathèque).
+     * @var string
+     */
+    private $parametres_page_hook = '';
+
     public function __construct()
     {
         add_action('admin_menu', array($this, 'add_admin_menu'));
@@ -80,7 +86,7 @@ class MonClubTT_Plugin
 
     public function add_admin_menu()
     {
-        add_menu_page('Mon Club TT', 'Mon Club TT', 'manage_options', 'monclubtt_parametres', array($this, 'admin_module'));
+        $this->parametres_page_hook = add_menu_page('Mon Club TT', 'Mon Club TT', 'manage_options', 'monclubtt_parametres', array($this, 'admin_module'));
         add_submenu_page('monclubtt_parametres', 'Equipes', 'Equipes', 'manage_options', 'monclubtt_equipes', array($this, 'equipes_admin'));
         $this->joueurs_page_hook = add_submenu_page('monclubtt_parametres', 'Joueurs', 'Joueurs', 'manage_options', 'monclubtt_joueurs', array($this, 'joueurs_admin'));
         $this->reseaux_sociaux_page_hook = add_submenu_page('monclubtt_parametres', 'Réseaux sociaux', 'Réseaux sociaux', 'manage_options', 'monclubtt_reseaux_sociaux', array($this, 'reseaux_sociaux_admin'));
@@ -126,12 +132,14 @@ class MonClubTT_Plugin
         register_setting('monclubtt_settings', MonClubTT_Constantes::MONCLUBTT_NUM_CLUB,        array('sanitize_callback' => 'sanitize_text_field'));
         register_setting('monclubtt_settings', MonClubTT_Constantes::MONCLUBTT_LICENCES_EXCLUES, array('sanitize_callback' => 'monclubtt_sanitize_licences_exclues'));
         register_setting('monclubtt_settings', MonClubTT_Constantes::MONCLUBTT_COULEURS, array('sanitize_callback' => array($this, 'sanitize_couleurs')));
+        register_setting('monclubtt_settings', MonClubTT_Constantes::MONCLUBTT_LOGO, array('sanitize_callback' => array($this, 'sanitize_logo')));
 
         add_settings_section('monclubtt_section', '', array($this, 'section_html'), 'monclubtt_settings');
         add_settings_field(MonClubTT_Constantes::MONCLUBTT_ID_APPLICATION, 'Id Application', array($this, 'id_application_html'), 'monclubtt_settings', 'monclubtt_section');
         add_settings_field(MonClubTT_Constantes::MONCLUBTT_MOT_DE_PASSE, 'Mot de passe Application', array($this, 'mot_de_passe_html'), 'monclubtt_settings', 'monclubtt_section');
         add_settings_field(MonClubTT_Constantes::MONCLUBTT_NUM_CLUB, 'Numéro de club', array($this, 'equipe_num_html'), 'monclubtt_settings', 'monclubtt_section');
         add_settings_field(MonClubTT_Constantes::MONCLUBTT_LICENCES_EXCLUES, 'Licences exclues de la liste des joueurs', array($this, 'licences_exclues_html'), 'monclubtt_settings', 'monclubtt_section');
+        add_settings_field(MonClubTT_Constantes::MONCLUBTT_LOGO, 'Logo du club', array($this, 'logo_html'), 'monclubtt_settings', 'monclubtt_section');
         add_settings_field(MonClubTT_Constantes::MONCLUBTT_COULEURS, 'Couleurs du club', array($this, 'couleurs_html'), 'monclubtt_settings', 'monclubtt_section');
     }
 
@@ -180,7 +188,7 @@ class MonClubTT_Plugin
     public function couleurs_html()
     {
         $couleurs = monclubtt_get_couleurs();
-        $libelles = array('primaire' => 'Primaire', 'secondaire' => 'Secondaire', 'fond' => 'Fond des visuels');
+        $libelles = array('primaire' => 'Primaire', 'secondaire' => 'Secondaire', 'maillot' => 'Maillot des joueurs', 'fond' => 'Fond des visuels');
         ?>
         <fieldset class="monclubtt-couleurs">
             <?php foreach ($libelles as $cle => $libelle): ?>
@@ -194,7 +202,7 @@ class MonClubTT_Plugin
             <button type="button" class="button-link monclubtt-couleurs-defaut">Couleurs par défaut</button>
         </fieldset>
         <p class="description">
-            Primaire et secondaire habillent le podium « Top Progression » du site et les visuels réseaux sociaux.
+            Primaire, secondaire et maillot habillent le podium « Top Progression » du site et les visuels réseaux sociaux.
             Le fond ne sert qu'aux visuels réseaux sociaux.
         </p>
         <?php
@@ -205,6 +213,65 @@ class MonClubTT_Plugin
                 });
             });
         });');
+    }
+
+    public function logo_html()
+    {
+        $logoId  = (int) get_option(MonClubTT_Constantes::MONCLUBTT_LOGO, 0);
+        $apercu  = $logoId ? wp_get_attachment_image_url($logoId, 'thumbnail') : '';
+        $iconeSite = get_site_icon_url(96);
+        ?>
+        <div class="monclubtt-logo">
+            <input type="hidden" name="<?php echo esc_attr(MonClubTT_Constantes::MONCLUBTT_LOGO); ?>" value="<?php echo esc_attr($logoId ? $logoId : ''); ?>">
+            <span class="monclubtt-logo-apercu" data-icone-site="<?php echo esc_url($iconeSite); ?>">
+                <?php if ($apercu || $iconeSite): ?>
+                    <img src="<?php echo esc_url($apercu ? $apercu : $iconeSite); ?>" alt="">
+                <?php endif; ?>
+            </span>
+            <button type="button" class="button monclubtt-logo-choisir"><?php echo $logoId ? 'Changer' : 'Choisir un logo'; ?></button>
+            <button type="button" class="button-link monclubtt-logo-retirer"<?php echo $logoId ? '' : ' style="display:none"'; ?>>Retirer</button>
+        </div>
+        <p class="description">
+            Affiché sur le maillot des joueurs du podium et dans l'en-tête des visuels réseaux sociaux.
+            Sans logo, l'icône du site (Réglages › Général) est utilisée. PNG à fond transparent conseillé.
+        </p>
+        <?php
+        wp_add_inline_script('monclubtt-js', 'jQuery(function($) {
+            var $bloc = $(".monclubtt-logo"), $champ = $bloc.find("input[type=hidden]"), $apercu = $bloc.find(".monclubtt-logo-apercu");
+            function afficher(url) { $apercu.html(url ? $("<img>", { src: url, alt: "" }) : ""); }
+            $bloc.find(".monclubtt-logo-choisir").on("click", function() {
+                var frame = wp.media({ title: "Logo du club", button: { text: "Utiliser ce logo" }, library: { type: "image" }, multiple: false });
+                frame.on("select", function() {
+                    var att = frame.state().get("selection").first().toJSON();
+                    $champ.val(att.id);
+                    afficher(att.sizes && att.sizes.thumbnail ? att.sizes.thumbnail.url : att.url);
+                    $bloc.find(".monclubtt-logo-choisir").text("Changer");
+                    $bloc.find(".monclubtt-logo-retirer").show();
+                });
+                frame.open();
+            });
+            $bloc.find(".monclubtt-logo-retirer").on("click", function() {
+                $champ.val("");
+                afficher($apercu.data("icone-site"));
+                $bloc.find(".monclubtt-logo-choisir").text("Choisir un logo");
+                $(this).hide();
+            });
+        });');
+    }
+
+    /**
+     * Logo du club : identifiant d'une image de la médiathèque, sinon 0.
+     *
+     * @param mixed $valeur
+     * @return int
+     */
+    public function sanitize_logo($valeur)
+    {
+        $id = absint($valeur);
+        if ($id && (get_post_type($id) !== 'attachment' || strpos((string) get_post_mime_type($id), 'image/') !== 0)) {
+            return 0;
+        }
+        return $id;
     }
 
     /**
@@ -415,14 +482,14 @@ class MonClubTT_Plugin
     }
 
     /**
-     * Charge la médiathèque WordPress (pour l'upload de photos) uniquement sur
-     * la page d'admin « Joueurs ».
+     * Charge la médiathèque WordPress uniquement sur les pages qui s'en
+     * servent : « Joueurs » (photos) et réglages (logo du club).
      *
      * @param string $hook Suffixe de hook de la page admin courante.
      */
     public function admin_enqueue_media($hook)
     {
-        if ($hook === $this->joueurs_page_hook) {
+        if ($hook === $this->joueurs_page_hook || $hook === $this->parametres_page_hook) {
             wp_enqueue_media();
         }
     }
@@ -455,7 +522,7 @@ class MonClubTT_Plugin
             'saisonLabel' => 'Saison ' . $saison . '–' . ($saison + 1),
             'clubName'    => get_bloginfo('name'),
             'siteHost'    => $siteHost ? $siteHost : '',
-            'logo'        => get_site_icon_url(256),
+            'logo'        => monclubtt_get_logo_url(256),
             'couleurs'    => monclubtt_get_couleurs(),
         ));
     }

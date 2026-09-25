@@ -1005,3 +1005,19 @@ th.headerSortUp {
     display: block;
     margin-top: 6px;
 }
+
+.monclubtt-logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.monclubtt-logo-apercu img {
+    display: block;
+    width: 56px;
+    height: 56px;
+    object-fit: contain;
+    border: 1px solid #c3c4c7;
+    border-radius: 50%;
+    background: #fff;
+}

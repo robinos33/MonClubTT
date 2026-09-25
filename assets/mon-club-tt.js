@@ -164,15 +164,44 @@ jQuery(document).ready(function ($) {
 
 /* ===================== AVATARS DESSINÉS ===================== */
 /* Partagés entre le widget Top Progression et les visuels réseaux sociaux.
-   showHead=false : corps sans tête, pour poser une photo détourée par-dessus. */
+   showHead=false : corps sans tête, pour poser une photo détourée par-dessus.
+   opts.maillot : couleur du maillot (#rrggbb) ; opts.logo : URL de l'écusson
+   posé sur la poitrine (ignoré quand le SVG est rendu comme image, cf. ECUSSON). */
 var MonClubTTAvatars = (function () {
     'use strict';
 
-    function avatarMale(showHead) {
+    /* Position de l'écusson dans le repère 128 × 168 des avatars. */
+    var ECUSSON = { cx: 71, cy: 80, r: 8 }; // sous le sticker photo (tête)
+    var compteur = 0;
+
+    function assombrir(hex, t) {
+        var n = parseInt(String(hex).slice(1), 16);
+        return '#' + [16, 8, 0].map(function (d) {
+            return ('0' + Math.round(((n >> d) & 255) * (1 - t)).toString(16)).slice(-2);
+        }).join('');
+    }
+
+    function valide(hex) {
+        return /^#[0-9a-f]{6}$/i.test(String(hex || ''));
+    }
+
+    function ecusson(opts) {
+        if (!opts || !opts.logo) return '';
+        var e = ECUSSON, id = 'monclubtt-ecusson-' + (++compteur);
+        var url = String(opts.logo).replace(/&/g, '&amp;').replace(/"/g, '&quot;');
+        return '<clipPath id="' + id + '"><circle cx="' + e.cx + '" cy="' + e.cy + '" r="' + (e.r - 0.8) + '"/></clipPath>' +
+            '<circle cx="' + e.cx + '" cy="' + e.cy + '" r="' + e.r + '" fill="#ffffff"/>' +
+            '<image href="' + url + '" x="' + (e.cx - e.r) + '" y="' + (e.cy - e.r) + '" width="' + (2 * e.r) + '" height="' + (2 * e.r) + '"' +
+            ' preserveAspectRatio="xMidYMid meet" clip-path="url(#' + id + ')"/>';
+    }
+
+    function avatarMale(showHead, opts) {
+        var maillot = opts && valide(opts.maillot) ? opts.maillot : '#2b7cb5';
+        var ombre   = assombrir(maillot, 0.28);
         return '<svg viewBox="0 0 128 168" xmlns="http://www.w3.org/2000/svg">' +
             '<g>' +
               '<rect x="84" y="38" width="11" height="34" rx="5.5" fill="#e7b48f" transform="rotate(38 90 55)"/>' +
-              '<rect x="84" y="36" width="11" height="14" rx="4" fill="#2b7cb5" transform="rotate(38 90 43)"/>' +
+              '<rect x="84" y="36" width="11" height="14" rx="4" fill="' + maillot + '" transform="rotate(38 90 43)"/>' +
               '<g transform="translate(2 0)">' +
                 '<ellipse cx="108" cy="22" rx="14" ry="16" fill="#d34328"/>' +
                 '<ellipse cx="108" cy="22" rx="14" ry="16" fill="none" stroke="#fff" stroke-width="2"/>' +
@@ -185,9 +214,10 @@ var MonClubTTAvatars = (function () {
             '<path d="M65 146 h15 v7 q0 3 -3 3 h-12 v-10 z" fill="#ffffff" stroke="#d9e0e6" stroke-width="1"/>' +
             '<path d="M46 92 h36 v15 q0 4 -4 4 h-9 l-5 -10 -5 10 h-9 q-4 0 -4 -4 z" fill="#23344a"/>' +
             '<rect x="35" y="60" width="11" height="36" rx="5.5" fill="#e7b48f"/>' +
-            '<rect x="35" y="58" width="11" height="13" rx="4" fill="#2b7cb5"/>' +
-            '<path d="M44 60 q1 -6 7 -7 l26 0 q6 1 7 7 l0 30 q0 5 -6 5 l-28 0 q-6 0 -6 -5 z" fill="#2b7cb5"/>' +
-            '<path d="M44 60 q1 -6 7 -7 l4 0 l0 42 l-9 0 q-2 0 -2 -3 z" fill="#1f5e8b"/>' +
+            '<rect x="35" y="58" width="11" height="13" rx="4" fill="' + maillot + '"/>' +
+            '<path d="M44 60 q1 -6 7 -7 l26 0 q6 1 7 7 l0 30 q0 5 -6 5 l-28 0 q-6 0 -6 -5 z" fill="' + maillot + '"/>' +
+            '<path d="M44 60 q1 -6 7 -7 l4 0 l0 42 l-9 0 q-2 0 -2 -3 z" fill="' + ombre + '"/>' +
+            ecusson(opts) +
             '<path d="M56 53 l8 8 l8 -8 q-8 -3 -16 0 z" fill="#ffffff"/>' +
             '<path d="M64 61 l-5 -6 l5 0 l5 0 z" fill="#d34328"/>' +
             '<rect x="58" y="46" width="12" height="10" rx="3" fill="#dba883"/>' +
@@ -201,11 +231,13 @@ var MonClubTTAvatars = (function () {
         '</svg>';
     }
 
-    function avatarFemale(showHead) {
+    function avatarFemale(showHead, opts) {
+        var maillot = opts && valide(opts.maillot) ? opts.maillot : '#d34328';
+        var ombre   = assombrir(maillot, 0.2);
         return '<svg viewBox="0 0 128 168" xmlns="http://www.w3.org/2000/svg">' +
             '<g>' +
               '<rect x="84" y="38" width="11" height="34" rx="5.5" fill="#ecbb98" transform="rotate(38 90 55)"/>' +
-              '<rect x="84" y="36" width="11" height="14" rx="4" fill="#d34328" transform="rotate(38 90 43)"/>' +
+              '<rect x="84" y="36" width="11" height="14" rx="4" fill="' + maillot + '" transform="rotate(38 90 43)"/>' +
               '<g transform="translate(2 0)">' +
                 '<ellipse cx="108" cy="22" rx="14" ry="16" fill="#2b7cb5"/>' +
                 '<ellipse cx="108" cy="22" rx="14" ry="16" fill="none" stroke="#fff" stroke-width="2"/>' +
@@ -221,9 +253,10 @@ var MonClubTTAvatars = (function () {
             '<path d="M54 91 l-3 25" stroke="#1b2839" stroke-width="1.2"/>' +
             '<path d="M74 91 l3 25" stroke="#1b2839" stroke-width="1.2"/>' +
             '<rect x="35" y="60" width="11" height="36" rx="5.5" fill="#ecbb98"/>' +
-            '<rect x="35" y="58" width="11" height="13" rx="4" fill="#d34328"/>' +
-            '<path d="M44 60 q1 -6 7 -7 l26 0 q6 1 7 7 l0 30 q0 5 -6 5 l-28 0 q-6 0 -6 -5 z" fill="#d34328"/>' +
-            '<path d="M44 60 q1 -6 7 -7 l4 0 l0 42 l-9 0 q-2 0 -2 -3 z" fill="#b3331c"/>' +
+            '<rect x="35" y="58" width="11" height="13" rx="4" fill="' + maillot + '"/>' +
+            '<path d="M44 60 q1 -6 7 -7 l26 0 q6 1 7 7 l0 30 q0 5 -6 5 l-28 0 q-6 0 -6 -5 z" fill="' + maillot + '"/>' +
+            '<path d="M44 60 q1 -6 7 -7 l4 0 l0 42 l-9 0 q-2 0 -2 -3 z" fill="' + ombre + '"/>' +
+            ecusson(opts) +
             '<path d="M56 53 l8 9 l8 -9 q-8 -3 -16 0 z" fill="#ffffff"/>' +
             '<rect x="58" y="46" width="12" height="10" rx="3" fill="#e0a980"/>' +
             (showHead === false ? '' :
@@ -237,7 +270,7 @@ var MonClubTTAvatars = (function () {
         '</svg>';
     }
 
-    return { male: avatarMale, female: avatarFemale };
+    return { male: avatarMale, female: avatarFemale, ECUSSON: ECUSSON };
 }());
 
 /* ===================== TOP PROGRESSION ===================== */
@@ -345,7 +378,8 @@ var MonClubTTAvatars = (function () {
                 var fig = document.createElement('div');
                 fig.className = 'tp-figure tp-figure--anim';
                 fig.style.cssText = 'left:' + (c.cx + DX / 2) + 'px;bottom:' + (498 - c.top - 4) + 'px;animation-delay:' + (i * 0.08) + 's';
-                fig.innerHTML = p.sex === 'F' ? avatarFemale(!hasPhoto) : avatarMale(!hasPhoto);
+                var tenue = { maillot: MonClubTTTopProg.maillot, logo: MonClubTTTopProg.logo };
+                fig.innerHTML = p.sex === 'F' ? avatarFemale(!hasPhoto, tenue) : avatarMale(!hasPhoto, tenue);
                 if (hasPhoto) {
                     var tilt = [4, -5, 3][i % 3];
                     var photoWrap = document.createElement('div');
