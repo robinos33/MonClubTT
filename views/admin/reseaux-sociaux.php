@@ -36,6 +36,13 @@
                 <input type="text" id="monclubtt-social-club" name="club" class="regular-text" value="<?php echo esc_attr(get_bloginfo('name')); ?>">
             </fieldset>
 
+            <fieldset>
+                <legend><label for="monclubtt-social-message">Texte de la publication</label></legend>
+                <textarea id="monclubtt-social-message" name="message" rows="7" class="large-text"></textarea>
+                <p class="description">Pré-rempli d'après le visuel et modifiable, à copier avec l'image dans Facebook ou Instagram.</p>
+                <p><button type="button" class="button" id="monclubtt-social-copier">Copier le texte</button></p>
+            </fieldset>
+
             <p>
                 <button type="button" class="button button-primary button-large" id="monclubtt-social-download" disabled>Télécharger le PNG</button>
             </p>

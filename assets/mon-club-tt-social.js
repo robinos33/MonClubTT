@@ -41,8 +41,9 @@
 
     var canvas   = document.getElementById('monclubtt-social-canvas');
     var form     = document.getElementById('monclubtt-social-form');
-    var btn      = document.getElementById('monclubtt-social-download');
-    var statusEl = document.getElementById('monclubtt-social-status');
+    var btn       = document.getElementById('monclubtt-social-download');
+    var legendeEl = document.getElementById('monclubtt-social-message');
+    var statusEl  = document.getElementById('monclubtt-social-status');
     if (!canvas || !form || !canvas.getContext) return;
     var ctx = canvas.getContext('2d');
 
@@ -50,6 +51,7 @@
     var perfsErreur  = '';
     var renderToken  = 0;
     var imageCache   = {};
+    var legendeModifiee = false; // texte retouché à la main : ne plus l'écraser
 
     /* ---------------------------------------------------------------- état */
 
@@ -470,6 +472,39 @@
         });
     }
 
+    /* ---------------------------------------------------------- légende */
+
+    var MEDAILLES = ['🥇', '🥈', '🥉'];
+
+    function nomComplet(p) {
+        return (p.prenom ? p.prenom + ' ' : '') + String(p.nom).toUpperCase();
+    }
+
+    function legendePodium(st, gagnants) {
+        var periode = st.visuel === 'prog-mens' ? DATA.moisLabel : DATA.saisonLabel;
+        var lignes = ['🏓 Top Progression — ' + periode, ''];
+        gagnants.forEach(function (g, i) {
+            lignes.push(MEDAILLES[i] + ' ' + nomComplet(g.p) + ' : ' + signe(g.val) + ' pts');
+        });
+        lignes.push('', 'Bravo à eux ! 👏');
+        return lignes.join('\n');
+    }
+
+    function legendePerfs(lignesPerfs) {
+        var lignes = ['🏓 Top perfs — ' + libelleWeekend(perfsData.date_debut, perfsData.date_fin).toLowerCase(), ''];
+        lignesPerfs.forEach(function (l, i) {
+            var p = l.p;
+            lignes.push((MEDAILLES[i] || (i + 1) + '.') + ' ' + nomComplet(p) + ' : ' + signe(p.gain) + ' pts' +
+                (p.nb_perfs > 1 ? ' (' + p.nb_perfs + ' perfs, la meilleure à ' + p.adversaire_points + ' pts)' : ' (perf à ' + p.adversaire_points + ' pts)'));
+        });
+        lignes.push('', 'Bravo à tous ! 👏');
+        return lignes.join('\n');
+    }
+
+    function majLegende(texte) {
+        if (legendeEl && !legendeModifiee) legendeEl.value = texte;
+    }
+
     /* ------------------------------------------------------------ rendu */
 
     function render() {
@@ -496,26 +531,30 @@
                 entete(L, st.club, 'TOP PERFS', tag, logo);
                 dessinerPerfs(L, donnees);
                 setStatus(perfsData ? perfsData.rencontres + ' rencontre(s) analysée(s) — victoires contre mieux classé, points au barème FFTT.' : perfsErreur);
-                btn.disabled = !donnees.length;
+                majLegende(donnees.length ? legendePerfs(donnees) : '');
             } else {
                 var tagProg = st.visuel === 'prog-mens' ? DATA.moisLabel : DATA.saisonLabel;
                 entete(L, st.club, 'TOP PROGRESSION', tagProg, logo);
                 dessinerPodium(st, L, donnees);
                 setStatus('');
-                btn.disabled = !donnees.length;
+                majLegende(donnees.length ? legendePodium(st, donnees) : '');
             }
+            btn.disabled = !donnees.length;
         });
     }
 
-    function telecharger() {
+    function nomFichier() {
         var st = etat();
         var nom = {
             'prog-mens': 'top-progression-' + DATA.moisLabel,
             'prog-ann':  'top-progression-' + DATA.saisonLabel,
             'perfs':     'top-perfs-' + (perfsData ? perfsData.date_fin : '')
         }[st.visuel] + '-' + st.format;
-        nom = nom.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+        return nom.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') + '.png';
+    }
 
+    function telecharger() {
+        var nom = nomFichier();
         try {
             canvas.toBlob(function (blob) {
                 if (!blob) {
@@ -524,7 +563,7 @@
                 }
                 var a = document.createElement('a');
                 a.href = URL.createObjectURL(blob);
-                a.download = nom + '.png';
+                a.download = nom;
                 document.body.appendChild(a);
                 a.click();
                 a.remove();
@@ -536,7 +575,34 @@
         }
     }
 
-    form.addEventListener('change', render);
+    function copierLegende() {
+        if (!legendeEl || !legendeEl.value) return;
+        var fini = function () { setStatus('Texte copié.'); };
+        // Repli (hors HTTPS ou presse-papiers refusé) : sélection + execCommand.
+        var repli = function () {
+            legendeEl.select();
+            var ok = false;
+            try { ok = document.execCommand('copy'); } catch (e) { ok = false; }
+            setStatus(ok ? 'Texte copié.' : 'Copie impossible : le texte est sélectionné, copiez-le avec Ctrl/Cmd + C.');
+        };
+        if (navigator.clipboard && window.isSecureContext) {
+            navigator.clipboard.writeText(legendeEl.value).then(fini, repli);
+        } else {
+            repli();
+        }
+    }
+
+    form.addEventListener('change', function (e) {
+        if (e.target === legendeEl) return;
+        // Nouveau visuel ou filtre : le texte suit à nouveau le visuel.
+        if (e.target.name === 'visuel' || e.target.name === 'sexe') legendeModifiee = false;
+        render();
+    });
+    if (legendeEl) {
+        legendeEl.addEventListener('input', function () { legendeModifiee = true; });
+    }
+    var btnCopier = document.getElementById('monclubtt-social-copier');
+    if (btnCopier) btnCopier.addEventListener('click', copierLegende);
     form.addEventListener('submit', function (e) { e.preventDefault(); });
     var champClub = document.getElementById('monclubtt-social-club');
     var attente;

@@ -5,6 +5,14 @@ Format : [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/)
 
 ---
 
+## [Non publié]
+
+### Ajouté
+
+- Page Réseaux sociaux : texte de publication pré-rempli d'après le visuel (podium ou liste des perfs), modifiable, avec un bouton pour le copier
+
+---
+
 ## [1.6.0] — 2026-09-25
 
 ### Ajouté
