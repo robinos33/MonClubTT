@@ -5,6 +5,17 @@ Format : [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/)
 
 ---
 
+## [Non publié]
+
+### Ajouté
+
+- Page d'admin « Réseaux sociaux » : génération de visuels prêts à poster (PNG carré 1080 × 1080 ou story 1080 × 1920), dessinés dans le navigateur (canvas, sans GD / Imagick), avec aperçu puis téléchargement
+- Visuel « Top Progression » (mois ou saison, filtre Tous / Hommes / Femmes) reprenant le podium du widget, avec les photos détourées des joueurs
+- Visuel « Top perfs » du dernier week-end de championnat par équipes : victoires contre mieux classé lues sur les feuilles de match, regroupées par joueur, points gagnés au barème FFTT
+- Premiers tests unitaires PHPUnit (`composer test`) sur le calcul des perfs
+
+---
+
 ## [1.5.0] — 2026-09-25
 
 ### Ajouté

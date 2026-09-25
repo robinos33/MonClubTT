@@ -78,6 +78,35 @@ if (!class_exists('MonClubTT_Joueurs')) {
             return $joueurs;
         }
 
+        /**
+         * Données du podium « Top Progression » (widget front et visuels
+         * réseaux sociaux) : joueurs classés uniquement.
+         *
+         * @param string $sexe 'MF', 'M' ou 'F'
+         * @return array Liste de ['nom', 'prenom', 'sex', 'cl', 'pts', 'mens', 'dm', 'da', 'photo'].
+         */
+        public function getDonneesTopProgression($sexe) {
+            $donnees = array();
+            foreach ($this->getJoueurs($sexe) as $joueur) {
+                $classement = $joueur->getClassement();
+                if (is_null($classement->getClassementOfficiel())) {
+                    continue;
+                }
+                $donnees[] = array(
+                    'nom'    => $joueur->getNom(),
+                    'prenom' => $joueur->getPrenom(),
+                    'sex'    => $joueur->getSexe(),
+                    'cl'     => $classement->getClassementOfficiel(),
+                    'pts'    => (float) $classement->getPointsOfficiels(),
+                    'mens'   => (float) $classement->getPointsMensuels(),
+                    'dm'     => (float) $classement->getProgressionMensuelle(),
+                    'da'     => (float) $classement->getProgressionAnnuelle(),
+                    'photo'  => $joueur->getPhotoUrl(),
+                );
+            }
+            return $donnees;
+        }
+
     }
 
 }

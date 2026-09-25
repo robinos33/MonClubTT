@@ -9,23 +9,12 @@ $saisonLabel = 'Saison ' . $saisonDebut . '–' . ($saisonDebut + 1);
 $sansCompetition = monclubtt_mois_sans_competition();
 
 $joueursList = [];
-$playersData = [];
 foreach ($joueurs->getJoueurs($atts['type']) as $joueur) {
     if (!is_null($joueur->getClassement()->getClassementOfficiel())) {
         $joueursList[] = $joueur;
-        $playersData[] = [
-            'nom'    => $joueur->getNom(),
-            'prenom' => $joueur->getPrenom(),
-            'sex'    => $joueur->getSexe(),
-            'cl'     => $joueur->getClassement()->getClassementOfficiel(),
-            'pts'    => (float) $joueur->getClassement()->getPointsOfficiels(),
-            'mens'   => (float) $joueur->getClassement()->getPointsMensuels(),
-            'dm'     => (float) $joueur->getClassement()->getProgressionMensuelle(),
-            'da'     => (float) $joueur->getClassement()->getProgressionAnnuelle(),
-            'photo'  => $joueur->getPhotoUrl(),
-        ];
     }
 }
+$playersData = $joueurs->getDonneesTopProgression($atts['type']);
 
 // Tri par défaut : points officiels décroissants (les mieux classés en premier).
 usort($joueursList, function ($a, $b) {

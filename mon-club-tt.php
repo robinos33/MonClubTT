@@ -41,11 +41,19 @@ class MonClubTT_Plugin
      */
     private $joueurs_page_hook = '';
 
+    /**
+     * Suffixe de hook de la page d'admin « Réseaux sociaux », pour n'y charger
+     * que là le script de génération des visuels.
+     * @var string
+     */
+    private $reseaux_sociaux_page_hook = '';
+
     public function __construct()
     {
         add_action('admin_menu', array($this, 'add_admin_menu'));
         add_action('admin_init', array($this, 'register_settings'));
         add_action('admin_enqueue_scripts', array($this, 'admin_enqueue_media'));
+        add_action('admin_enqueue_scripts', array($this, 'admin_enqueue_reseaux_sociaux'));
         add_action('init', array($this, 'monclubtt_style_scripts'));
         add_shortcode('monclubtt_equipe', array($this, 'equipes_front'));
         add_shortcode('monclubtt_joueurs', array($this, 'joueurs_front'));
@@ -62,6 +70,7 @@ class MonClubTT_Plugin
         add_action('wp_ajax_monclubtt_set_joueur_photo', array($this, 'handle_ajax_set_joueur_photo'));
         add_action('wp_ajax_monclubtt_remove_joueur_photo', array($this, 'handle_ajax_remove_joueur_photo'));
         add_action('wp_ajax_monclubtt_generate_pages', array($this, 'handle_ajax_generate_pages'));
+        add_action('wp_ajax_monclubtt_top_perfs', array($this, 'handle_ajax_top_perfs'));
         add_action('wp_ajax_monclubtt_feuille_match',        array($this, 'handle_ajax_feuille_match'));
         add_action('wp_ajax_nopriv_monclubtt_feuille_match', array($this, 'handle_ajax_feuille_match'));
 
@@ -74,6 +83,7 @@ class MonClubTT_Plugin
         add_menu_page('Mon Club TT', 'Mon Club TT', 'manage_options', 'monclubtt_parametres', array($this, 'admin_module'));
         add_submenu_page('monclubtt_parametres', 'Equipes', 'Equipes', 'manage_options', 'monclubtt_equipes', array($this, 'equipes_admin'));
         $this->joueurs_page_hook = add_submenu_page('monclubtt_parametres', 'Joueurs', 'Joueurs', 'manage_options', 'monclubtt_joueurs', array($this, 'joueurs_admin'));
+        $this->reseaux_sociaux_page_hook = add_submenu_page('monclubtt_parametres', 'Réseaux sociaux', 'Réseaux sociaux', 'manage_options', 'monclubtt_reseaux_sociaux', array($this, 'reseaux_sociaux_admin'));
     }
 
     public function admin_module()
@@ -182,6 +192,11 @@ class MonClubTT_Plugin
     public function joueurs_admin()
     {
         $this->_getLayout('joueurs');
+    }
+
+    public function reseaux_sociaux_admin()
+    {
+        $this->_getLayout('reseaux-sociaux');
     }
 
     private function _getLayout($view){
@@ -365,6 +380,125 @@ class MonClubTT_Plugin
         if ($hook === $this->joueurs_page_hook) {
             wp_enqueue_media();
         }
+    }
+
+    /**
+     * Charge le générateur de visuels (canvas) uniquement sur la page d'admin
+     * « Réseaux sociaux », avec les données du podium Top Progression.
+     *
+     * @param string $hook Suffixe de hook de la page admin courante.
+     */
+    public function admin_enqueue_reseaux_sociaux($hook)
+    {
+        if ($hook !== $this->reseaux_sociaux_page_hook) {
+            return;
+        }
+
+        $jsVer = filemtime(plugin_dir_path(__FILE__) . 'assets/mon-club-tt-social.js');
+        wp_enqueue_script('monclubtt-social-js', plugins_url('/assets/mon-club-tt-social.js', __FILE__), array('monclubtt-js'), $jsVer, true);
+
+        $moisFr     = array('janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre');
+        $saison     = monclubtt_debut_saison();
+        $joueurs    = new MonClubTT_Joueurs();
+        $siteHost   = wp_parse_url(home_url(), PHP_URL_HOST);
+
+        wp_localize_script('monclubtt-social-js', 'MonClubTTSocial', array(
+            'ajaxurl'     => admin_url('admin-ajax.php'),
+            'nonce'       => wp_create_nonce('monclubtt_top_perfs_nonce'),
+            'players'     => $joueurs->getDonneesTopProgression('MF'),
+            'moisLabel'   => $moisFr[(int) date_i18n('n') - 1] . ' ' . date_i18n('Y'),
+            'saisonLabel' => 'Saison ' . $saison . '–' . ($saison + 1),
+            'clubName'    => get_bloginfo('name'),
+            'siteHost'    => $siteHost ? $siteHost : '',
+            'logo'        => get_site_icon_url(256),
+        ));
+    }
+
+    /**
+     * Handler AJAX : « top perfs » du dernier week-end de championnat par
+     * équipes (victoires contre mieux classé, points gagnés au barème FFTT),
+     * regroupées par joueur. Les feuilles de match sont mises en cache 7 jours par l'API.
+     */
+    public function handle_ajax_top_perfs()
+    {
+        check_ajax_referer('monclubtt_top_perfs_nonce', 'nonce');
+
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error(array('message' => 'Permissions insuffisantes'));
+            return;
+        }
+
+        $api = MonClubTT_AccesFFTTApi::getInstance();
+        if (!is_object($api)) {
+            wp_send_json_error(array('message' => 'Erreur de connexion à l\'API FFTT'));
+            return;
+        }
+
+        $rencontres = array();
+        $equipes    = new MonClubTT_Equipes();
+        foreach ($equipes->getEquipesSeniorChampionnat('MF') as $equipe) {
+            if ($equipe->getIddiv() && $equipe->getIdpoule()) {
+                $rencontres = array_merge($rencontres, (array) $api->getPouleRencontres($equipe->getIddiv(), $equipe->getIdpoule()));
+            }
+        }
+
+        $journee = MonClubTT_TopPerfs::rencontresDerniereJournee($rencontres, MonClubTT_ParametresPlugin::getNumClub());
+        if (empty($journee)) {
+            wp_send_json_error(array('message' => 'Aucune rencontre de championnat jouée trouvée. Lancez une synchronisation si la journée vient d\'avoir lieu.'));
+            return;
+        }
+
+        $perfs = array();
+        foreach ($journee as $rencontre) {
+            $feuille = $api->getRencontreDetail($rencontre['renc_id'], $rencontre['is_retour']);
+            if (is_array($feuille)) {
+                $perfs = array_merge($perfs, MonClubTT_TopPerfs::extrairePerfs($feuille, $rencontre['equipes_club']));
+            }
+        }
+
+        // Nom et photo depuis la liste des joueurs du club (la feuille donne « NOM Prénom »).
+        $joueursParNom = array();
+        $joueurs       = new MonClubTT_Joueurs();
+        foreach ($joueurs->getJoueurs('MF') as $joueur) {
+            $joueursParNom[$this->cleNomJoueur($joueur->getNom() . ' ' . $joueur->getPrenom())] = $joueur;
+        }
+
+        $resultat = array();
+        foreach (MonClubTT_TopPerfs::classer(MonClubTT_TopPerfs::bilanParJoueur($perfs), 8) as $perf) {
+            $joueur = $joueursParNom[$this->cleNomJoueur($perf['joueur'])] ?? null;
+            $resultat[] = array(
+                'nom'               => $joueur ? $joueur->getNom() : $perf['joueur'],
+                'prenom'            => $joueur ? $joueur->getPrenom() : '',
+                'sex'               => $joueur ? $joueur->getSexe() : $perf['sexe'],
+                'photo'             => $joueur ? $joueur->getPhotoUrl() : '',
+                'points'            => $perf['points'],
+                'adversaire_points' => $perf['adversaire_points'],
+                'ecart'             => $perf['ecart'],
+                'gain'              => $perf['gain'],
+                'nb_perfs'          => $perf['nb_perfs'],
+                'equipe'            => $perf['equipe'],
+            );
+        }
+
+        $dates = array_column($journee, 'date');
+        wp_send_json_success(array(
+            'perfs'      => $resultat,
+            'date_debut' => min($dates),
+            'date_fin'   => max($dates),
+            'rencontres' => count($journee),
+        ));
+    }
+
+    /**
+     * Clé de rapprochement d'un nom de joueur (feuille de match ↔ liste du
+     * club) : sans accents, majuscules, espaces normalisés.
+     *
+     * @param string $nom
+     * @return string
+     */
+    private function cleNomJoueur($nom)
+    {
+        return strtoupper(preg_replace('/\s+/', ' ', trim(remove_accents((string) $nom))));
     }
 
     /**

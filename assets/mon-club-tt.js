@@ -162,28 +162,12 @@ jQuery(document).ready(function ($) {
 
 });
 
-/* ===================== TOP PROGRESSION ===================== */
-(function () {
+/* ===================== AVATARS DESSINÉS ===================== */
+/* Partagés entre le widget Top Progression et les visuels réseaux sociaux.
+   showHead=false : corps sans tête, pour poser une photo détourée par-dessus. */
+var MonClubTTAvatars = (function () {
     'use strict';
-    if (typeof MonClubTTTopProg === 'undefined') return;
 
-    var players     = MonClubTTTopProg.players;
-    var moisLabel   = MonClubTTTopProg.moisLabel;
-    var saisonLabel = MonClubTTTopProg.saisonLabel;
-    var modeCourant  = 'mens';
-    var filtreSexe   = 'MF';
-
-    /* ---- Géométrie du podium ---- */
-    var COLS = {
-        1: { cx: 360, top: 188, w: 200 },
-        2: { cx: 148, top: 262, w: 200 },
-        3: { cx: 572, top: 306, w: 200 }
-    };
-    var BASE_Y = 470, DX = 18, DY = -13;
-    var MEDAL_COLOR = { 1: '#f0b429', 2: '#aeb9c4', 3: '#c8794a' };
-
-    /* ---- Avatars SVG ---- */
-    /* showHead=false : corps sans tête, pour poser une photo détourée par-dessus. */
     function avatarMale(showHead) {
         return '<svg viewBox="0 0 128 168" xmlns="http://www.w3.org/2000/svg">' +
             '<g>' +
@@ -252,6 +236,32 @@ jQuery(document).ready(function ($) {
             ) +
         '</svg>';
     }
+
+    return { male: avatarMale, female: avatarFemale };
+}());
+
+/* ===================== TOP PROGRESSION ===================== */
+(function () {
+    'use strict';
+    if (typeof MonClubTTTopProg === 'undefined') return;
+
+    var players     = MonClubTTTopProg.players;
+    var moisLabel   = MonClubTTTopProg.moisLabel;
+    var saisonLabel = MonClubTTTopProg.saisonLabel;
+    var modeCourant  = 'mens';
+    var filtreSexe   = 'MF';
+
+    /* ---- Géométrie du podium ---- */
+    var COLS = {
+        1: { cx: 360, top: 188, w: 200 },
+        2: { cx: 148, top: 262, w: 200 },
+        3: { cx: 572, top: 306, w: 200 }
+    };
+    var BASE_Y = 470, DX = 18, DY = -13;
+    var MEDAL_COLOR = { 1: '#f0b429', 2: '#aeb9c4', 3: '#c8794a' };
+
+    var avatarMale   = MonClubTTAvatars.male;
+    var avatarFemale = MonClubTTAvatars.female;
 
     /* ---- Bloc SVG du podium ---- */
     function blockSVG(rank) {

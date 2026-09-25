@@ -908,3 +908,56 @@ th.headerSortUp {
     color: #b32d2e;
     vertical-align: middle;
 }
+
+/* ===== Admin : visuels réseaux sociaux ===== */
+
+.monclubtt-social-layout {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 32px;
+    align-items: flex-start;
+    margin-top: 16px;
+}
+
+.monclubtt-social-controls {
+    flex: 1 1 320px;
+    max-width: 420px;
+}
+
+.monclubtt-social-controls fieldset {
+    margin: 0 0 18px;
+}
+
+.monclubtt-social-controls legend {
+    font-weight: 600;
+    margin-bottom: 6px;
+}
+
+.monclubtt-social-controls fieldset > label {
+    display: block;
+    margin: 4px 0;
+}
+
+.monclubtt-social-status {
+    min-height: 1.5em;
+    color: #50575e;
+}
+
+.monclubtt-social-preview {
+    flex: 1 1 420px;
+    max-width: 560px;
+}
+
+#monclubtt-social-canvas {
+    display: block;
+    width: 100%;
+    height: auto;
+    border-radius: 8px;
+    box-shadow: 0 10px 30px -12px rgba(0, 0, 0, 0.4);
+}
+
+#monclubtt-social-canvas.is-story {
+    width: auto;
+    max-width: 100%;
+    max-height: 80vh;
+}
