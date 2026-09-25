@@ -4,6 +4,35 @@ jQuery(document).ready(function ($) {
     // Tri par défaut : colonne « Pts Off. » (indice 3), décroissant.
     jQuery('.sortableTable').tablesorter({ sortList: [[3, 1]] });
 
+    // Zébrage recalculé sur les seules lignes visibles (après tri ou filtre).
+    function rezebrer($table) {
+        $table.find('tbody tr:visible').each(function (i) {
+            $(this).removeClass('odd even').addClass(i % 2 ? 'odd' : 'even');
+        });
+    }
+    $('.sortableTable').on('sortEnd', function () { rezebrer($(this)); });
+
+    // ===== Filtre Tous / Hommes / Femmes =====
+    $(document).on('click', '.monclubtt-filtre', function () {
+        var filtre = $(this).data('filtre');
+        var $div   = $(this).closest('.monclubtt-div');
+        var $table = $div.find('.listeJoueurs');
+
+        $div.find('.monclubtt-filtre').attr('aria-pressed', 'false');
+        $(this).attr('aria-pressed', 'true');
+
+        $table.find('tbody tr').each(function () {
+            $(this).toggle(filtre === 'MF' || $(this).hasClass(filtre));
+        });
+        rezebrer($table);
+
+        $div.find('.monclubtt-stats').each(function () {
+            this.hidden = $(this).data('filtre') !== filtre;
+        });
+
+        document.dispatchEvent(new CustomEvent('monclubtt:filtre', { detail: { sexe: filtre } }));
+    });
+
     // ===== Feuilles de match =====
 
     // Clic sur une ligne de rencontre expandable
@@ -141,6 +170,8 @@ jQuery(document).ready(function ($) {
     var players     = MonClubTTTopProg.players;
     var moisLabel   = MonClubTTTopProg.moisLabel;
     var saisonLabel = MonClubTTTopProg.saisonLabel;
+    var modeCourant  = 'mens';
+    var filtreSexe   = 'MF';
 
     /* ---- Géométrie du podium ---- */
     var COLS = {
@@ -267,7 +298,9 @@ jQuery(document).ready(function ($) {
     }
 
     function topThree(metric) {
-        return players.slice().sort(function (a, b) {
+        return players.filter(function (p) {
+            return filtreSexe === 'MF' || p.sex === filtreSexe;
+        }).sort(function (a, b) {
             return b[metric] - a[metric];
         }).slice(0, 3);
     }
@@ -348,6 +381,7 @@ jQuery(document).ready(function ($) {
     }
 
     function setMode(mode) {
+        modeCourant = mode;
         var toggle = document.getElementById('monclubtt-tp-toggle');
         if (toggle) {
             var btns = toggle.querySelectorAll('button');
@@ -387,6 +421,10 @@ jQuery(document).ready(function ($) {
         });
         scalePodium();
         window.addEventListener('resize', scalePodium);
+        document.addEventListener('monclubtt:filtre', function (e) {
+            filtreSexe = e.detail.sexe;
+            renderPodium(modeCourant);
+        });
     }
 
     if (document.readyState === 'loading') {

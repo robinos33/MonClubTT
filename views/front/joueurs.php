@@ -31,6 +31,48 @@ foreach ($joueurs->getJoueurs($atts['type']) as $joueur) {
 usort($joueursList, function ($a, $b) {
     return (float) $b->getClassement()->getPointsOfficiels() <=> (float) $a->getClassement()->getPointsOfficiels();
 });
+
+// Bande de stats club, calculée sur une liste de joueurs (triée par points décroissants).
+$calculerStats = function (array $liste) use ($sansCompetition) {
+    $nb        = count($liste);
+    $somme     = 0;
+    $enHausse  = 0;
+    foreach ($liste as $joueur) {
+        $cl     = $joueur->getClassement();
+        $somme += (float) ($sansCompetition ? $cl->getProgressionAnnuelle() : $cl->getProgressionMensuelle());
+        if ($cl->getProgressionMensuelle() > 0) {
+            $enHausse++;
+        }
+    }
+    $moyenne = $nb ? round($somme / $nb, 1) : 0;
+    return [
+        'nb'            => $nb,
+        'meilleur'      => $nb ? $liste[0] : null,
+        'enHausse'      => $enHausse,
+        'moyenneLabel'  => ($moyenne > 0 ? '+' : '') . number_format_i18n($moyenne, 1),
+        'moyenneClasse' => $moyenne > 0 ? 'up' : ($moyenne < 0 ? 'down' : 'neutral'),
+    ];
+};
+
+$parSexe = ['M' => [], 'F' => []];
+$avecPhotos = false;
+foreach ($joueursList as $joueur) {
+    if (isset($parSexe[$joueur->getSexe()])) {
+        $parSexe[$joueur->getSexe()][] = $joueur;
+    }
+    if ($joueur->getPhotoUrl() !== '') {
+        $avecPhotos = true;
+    }
+}
+$nbJoueurs = count($joueursList);
+
+// Filtre Tous / Hommes / Femmes : seulement sur la liste mixte, et s'il y a de quoi filtrer.
+$avecFiltre = $atts['type'] === 'MF' && !empty($parSexe['M']) && !empty($parSexe['F']);
+$groupesStats = ['MF' => $calculerStats($joueursList)];
+if ($avecFiltre) {
+    $groupesStats['M'] = $calculerStats($parSexe['M']);
+    $groupesStats['F'] = $calculerStats($parSexe['F']);
+}
 ?>
 <?php if (!empty($playersData) && !$sansCompetition):
     wp_localize_script('monclubtt-js', 'MonClubTTTopProg', array(
@@ -45,6 +87,14 @@ endif; ?>
         <p class="monclubtt-updated-at">
             Dernière mise à jour : <?php echo esc_html(monclubtt_date_locale($updatedAt, 'd/m/Y à H:i:s')); ?>
         </p>
+    <?php endif; ?>
+
+    <?php if ($avecFiltre): ?>
+    <div class="monclubtt-filtres" role="group" aria-label="Filtrer les joueurs">
+        <button type="button" class="monclubtt-filtre" data-filtre="MF" aria-pressed="true">Tous <span class="monclubtt-filtre-nb"><?php echo esc_html(number_format_i18n($nbJoueurs)); ?></span></button>
+        <button type="button" class="monclubtt-filtre" data-filtre="M" aria-pressed="false">Hommes <span class="monclubtt-filtre-nb"><?php echo esc_html(number_format_i18n(count($parSexe['M']))); ?></span></button>
+        <button type="button" class="monclubtt-filtre" data-filtre="F" aria-pressed="false">Femmes <span class="monclubtt-filtre-nb"><?php echo esc_html(number_format_i18n(count($parSexe['F']))); ?></span></button>
+    </div>
     <?php endif; ?>
 
     <?php if (!empty($playersData) && !$sansCompetition): ?>
@@ -89,6 +139,34 @@ endif; ?>
     </div>
     <?php endif; ?>
 
+    <?php if ($nbJoueurs > 0):
+        foreach ($groupesStats as $groupe => $stats): ?>
+    <ul class="monclubtt-stats" data-filtre="<?php echo esc_attr($groupe); ?>"<?php echo $groupe !== 'MF' ? ' hidden' : ''; ?>>
+        <li class="monclubtt-stat">
+            <span class="monclubtt-stat-val"><?php echo esc_html(number_format_i18n($stats['nb'])); ?></span>
+            <span class="monclubtt-stat-lbl"><?php echo esc_html($groupe === 'F' ? 'Joueuses classées' : 'Joueurs classés'); ?></span>
+        </li>
+        <li class="monclubtt-stat">
+            <span class="monclubtt-stat-val"><?php echo esc_html($stats['meilleur']->getClassement()->getClassementOfficiel()); ?></span>
+            <span class="monclubtt-stat-lbl">Meilleur classement</span>
+            <span class="monclubtt-stat-sub"><?php echo esc_html($stats['meilleur']->getPrenom() . ' ' . $stats['meilleur']->getNom()); ?></span>
+        </li>
+        <li class="monclubtt-stat">
+            <span class="monclubtt-stat-val monclubtt-stat-val--<?php echo esc_attr($stats['moyenneClasse']); ?>"><?php echo esc_html($stats['moyenneLabel']); ?></span>
+            <span class="monclubtt-stat-lbl"><?php echo esc_html($sansCompetition ? 'Progression moyenne sur la saison' : 'Progression moyenne ce mois'); ?></span>
+            <span class="monclubtt-stat-sub"><?php echo esc_html($groupe === 'F' ? 'pts par joueuse' : 'pts par joueur'); ?></span>
+        </li>
+        <?php if (!$sansCompetition): ?>
+        <li class="monclubtt-stat">
+            <span class="monclubtt-stat-val"><?php echo esc_html(number_format_i18n($stats['enHausse'])); ?></span>
+            <span class="monclubtt-stat-lbl">En hausse ce mois</span>
+            <span class="monclubtt-stat-sub"><?php echo esc_html($moisLabel); ?></span>
+        </li>
+        <?php endif; ?>
+    </ul>
+    <?php endforeach;
+    endif; ?>
+
     <table class="monclubtt-table listeJoueurs sortableTable">
         <thead>
         <tr>
@@ -114,7 +192,17 @@ endif; ?>
                 $progAnn  = $joueur->getClassement()->getProgressionAnnuelle();
                 ?>
                 <tr class="<?php echo esc_attr($class); ?>">
-                    <td class="monclubtt-nom"><?php echo esc_html($joueur->getNom()); ?></td>
+                    <td class="monclubtt-nom">
+                        <?php if ($avecPhotos): ?>
+                            <?php if ($joueur->getPhotoUrl() !== ''): ?>
+                                <span class="monclubtt-vignette"><img src="<?php echo esc_url($joueur->getPhotoUrl()); ?>" alt="" loading="lazy" decoding="async"></span>
+                            <?php else: ?>
+                                <?php // Initiales via attr() CSS : aucun texte ajouté, le tri (textContent) reste sur le nom. ?>
+                                <span class="monclubtt-vignette monclubtt-vignette--vide" data-initiales="<?php echo esc_attr(mb_substr((string) $joueur->getPrenom(), 0, 1) . mb_substr((string) $joueur->getNom(), 0, 1)); ?>" aria-hidden="true"></span>
+                            <?php endif; ?>
+                        <?php endif; ?>
+                        <?php echo esc_html($joueur->getNom()); ?>
+                    </td>
                     <td><?php echo esc_html($joueur->getPrenom()); ?></td>
                     <td class="center"><?php echo esc_html($joueur->getClassement()->getClassementOfficiel()); ?></td>
                     <td class="center"><?php echo esc_html($joueur->getClassement()->getPointsOfficiels()); ?></td>
