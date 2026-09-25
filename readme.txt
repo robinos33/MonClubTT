@@ -3,7 +3,7 @@ Contributors: robinos33
 Tags: table tennis, fftt, club, rankings, results
 Requires at least: 5.0
 Tested up to: 7.0
-Stable tag: 1.6.1
+Stable tag: 1.6.2
 Requires PHP: 7.4
 License: GPLv2
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -59,6 +59,11 @@ Player data is refreshed on manual sync only. League standings and results are c
 Yes. The plugin exposes four filters: `monclubtt_get_joueurs`, `monclubtt_get_equipes`, `monclubtt_get_classement_poule`, `monclubtt_get_rencontres_poule`. See the documentation for usage.
 
 == Changelog ==
+
+= 1.6.2 =
+* Added: choose the primary, secondary and background colours of the social media images, saved for the club; text colours and tints adapt automatically to stay readable on light or dark backgrounds
+* Added: Top performances image shows the round number ("J1") and a weekend summary (performances, players, points earned)
+* Changed: new image layout — circled logo and club name, bold headline, date pill with a rule, tinted rows with a rank square, footer rule with the club name
 
 = 1.6.1 =
 * Added: the Social media page pre-fills a post caption from the current image (Top Progression podium or top performances list), editable and copyable in one click
@@ -121,6 +126,9 @@ Yes. The plugin exposes four filters: `monclubtt_get_joueurs`, `monclubtt_get_eq
 * Automatic team page generation and deletion
 
 == Upgrade Notice ==
+
+= 1.6.2 =
+Social media images get your club colours and a new, bolder layout.
 
 = 1.6.1 =
 Ready-to-copy post caption generated alongside each social media image.
