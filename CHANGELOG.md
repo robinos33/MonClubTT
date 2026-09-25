@@ -5,6 +5,14 @@ Format : [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/)
 
 ---
 
+## [1.6.5] — 2026-09-25
+
+### Retiré
+
+- Écusson du club sur le maillot des joueurs du podium (site et visuels), trop petit pour être lisible. Le logo du club reste affiché dans l'en-tête des visuels réseaux sociaux ; la couleur de maillot est conservée
+
+---
+
 ## [1.6.4] — 2026-09-25
 
 ### Ajouté
