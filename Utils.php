@@ -15,7 +15,7 @@ if ( ! class_exists( 'MonClubTT_Constantes' ) ) {
         /** Ancienne option (1.6.2), relue tant que les réglages n'ont pas été enregistrés. */
         const MONCLUBTT_SOCIAL_COULEURS = 'monclubtt_social_couleurs';
 
-        /** Couleurs par défaut du club (podium du site et visuels réseaux sociaux). */
+        /** Couleurs par défaut du club (tableaux et podium du site, visuels réseaux sociaux). */
         const COULEURS_DEFAUT = array(
             'primaire'   => '#2b7cb5',
             'secondaire' => '#d34328',
@@ -176,7 +176,7 @@ if ( ! function_exists( 'monclubtt_get_couleurs' ) ) {
 
     /**
      * Couleurs du club enregistrées dans les réglages du plugin. Primaire,
-     * secondaire et maillot habillent le podium du site et les visuels ; le
+     * secondaire et maillot habillent les tableaux, le podium du site et les visuels ; le
      * fond ne sert qu'aux visuels réseaux sociaux.
      *
      * @return array{primaire: string, secondaire: string, fond: string, maillot: string}

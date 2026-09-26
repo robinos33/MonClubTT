@@ -1,5 +1,9 @@
 /* FRONT-OFFICE */
 .monclubtt-div{
+    /* Couleurs du club (réglages du plugin), réinjectées en inline par PHP */
+    --monclubtt-primaire:   #2b7cb5;
+    --monclubtt-secondaire: #d34328;
+    --monclubtt-prim-fonce: color-mix(in srgb, var(--monclubtt-primaire) 78%, #000);
     margin: 0;
     width: 100%;
     text-align: center;
@@ -33,7 +37,7 @@
 }
 .monclubtt-div .equipe_club{
     font-weight: bolder;
-    color:blue;
+    color: var(--monclubtt-prim-fonce);
 }
 
 .monclubtt-div .MonClubTT_rencontres_table{
@@ -67,11 +71,11 @@
 }
 
 .monclubtt-div .monclubtt-table thead tr {
-    background-color: #2c3e50;
+    background-color: var(--monclubtt-primaire);
 }
 
 .monclubtt-div .monclubtt-table th {
-    background-color: #2c3e50;
+    background-color: var(--monclubtt-primaire);
     color: #fff;
     font-size: 11px;
     font-weight: 700;
@@ -92,7 +96,7 @@
 }
 
 .monclubtt-div .monclubtt-table caption {
-    background-color: #34495e;
+    background-color: var(--monclubtt-secondaire);
     color: #fff;
     font-size: 12px;
     font-weight: 600;
@@ -108,11 +112,11 @@
 }
 
 .monclubtt-div .monclubtt-table tr.even {
-    background-color: #f7f9fb;
+    background-color: color-mix(in srgb, var(--monclubtt-primaire) 5%, #fff);
 }
 
 .monclubtt-div .monclubtt-table tbody tr:hover {
-    background-color: #eaf3fb !important;
+    background-color: color-mix(in srgb, var(--monclubtt-primaire) 12%, #fff) !important;
     transition: background-color 0.15s ease;
 }
 
@@ -121,8 +125,8 @@
 /* Équipe du club mise en évidence */
 .monclubtt-div .monclubtt-table tr.equipe_club td {
     font-weight: 700;
-    color: #1a5276 !important;
-    background-color: #d6eaf8 !important;
+    color: var(--monclubtt-prim-fonce) !important;
+    background-color: color-mix(in srgb, var(--monclubtt-primaire) 18%, #fff) !important;
 }
 
 /* Colonne scores et tiret */
@@ -159,11 +163,11 @@
 
 /* Couleurs par sexe */
 .monclubtt-div .listeJoueurs tr.F td {
-    color: #c0392b;
+    color: var(--monclubtt-secondaire);
 }
 
 .monclubtt-div .listeJoueurs tr.M td {
-    color: #2980b9;
+    color: var(--monclubtt-prim-fonce);
 }
 
 /* Nom du joueur */
@@ -240,7 +244,7 @@
 }
 
 .monclubtt-div .monclubtt-filtre:focus-visible {
-    outline: 2px solid #2b7cb5;
+    outline: 2px solid var(--monclubtt-primaire);
     outline-offset: 2px;
 }
 
@@ -354,7 +358,7 @@
 }
 
 .monclubtt-div .monclubtt-expandable:hover td {
-    background-color: #ddeeff !important;
+    background-color: color-mix(in srgb, var(--monclubtt-primaire) 16%, #fff) !important;
 }
 
 /* Icône d'expansion */
@@ -381,7 +385,7 @@
 .monclubtt-div .monclubtt-feuille {
     padding: 14px 16px;
     background: #f9fbfd;
-    border-top: 2px solid #2c3e50;
+    border-top: 2px solid var(--monclubtt-secondaire);
 }
 
 /* Score global */
@@ -403,7 +407,7 @@
 .monclubtt-div .monclubtt-feuille-score {
     font-size: 18px;
     font-weight: 700;
-    color: #2c3e50;
+    color: var(--monclubtt-prim-fonce);
     margin: 0 10px;
 }
 
@@ -439,7 +443,7 @@
 /* Joueur / équipe gagnant·e */
 .monclubtt-div .monclubtt-winner {
     font-weight: 700;
-    color: #1a5276;
+    color: var(--monclubtt-prim-fonce);
 }
 
 /* Détail des sets */

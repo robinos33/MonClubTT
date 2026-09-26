@@ -113,6 +113,8 @@ class MonClubTT_Plugin
         $jsVer  = filemtime(plugin_dir_path(__FILE__) . 'assets/mon-club-tt.js');
         wp_register_style('mon-club-tt-css', plugins_url('/assets/mon-club-tt.css', __FILE__), array(), $cssVer);
         wp_enqueue_style('mon-club-tt-css');
+        $couleurs = monclubtt_get_couleurs();
+        wp_add_inline_style('mon-club-tt-css', '.monclubtt-div{--monclubtt-primaire:' . $couleurs['primaire'] . ';--monclubtt-secondaire:' . $couleurs['secondaire'] . ';}');
         // Javascript
         wp_register_script('monclubtt-js', plugins_url('/assets/mon-club-tt.js', __FILE__), array('jquery'), $jsVer, true);
         wp_register_script('table-sorter', plugins_url('/assets/tablesorter/jquery.tablesorter.min.js', __FILE__), array('jquery'), '1.0', true);
@@ -202,7 +204,7 @@ class MonClubTT_Plugin
             <button type="button" class="button-link monclubtt-couleurs-defaut">Couleurs par défaut</button>
         </fieldset>
         <p class="description">
-            Primaire, secondaire et maillot habillent le podium « Top Progression » du site et les visuels réseaux sociaux.
+            Primaire et secondaire habillent les tableaux du site ; avec le maillot, ils habillent aussi le podium « Top Progression » et les visuels réseaux sociaux.
             Le fond ne sert qu'aux visuels réseaux sociaux.
         </p>
         <?php
