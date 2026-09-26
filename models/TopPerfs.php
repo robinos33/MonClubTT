@@ -90,7 +90,8 @@ class MonClubTT_TopPerfs {
      *
      * @param array  $rencontres Rencontres brutes (xml_result_equ.php) de plusieurs poules.
      * @param string $numClub    Numéro du club.
-     * @return array Liste de ['renc_id', 'is_retour', 'date' (Y-m-d), 'tour' (int|null), 'equipes_club' => string[]],
+     * @return array Liste de ['renc_id', 'is_retour', 'date' (Y-m-d), 'tour' (int|null), 'equipes_club' => string[],
+     *               'equipes' => [domicile, extérieur], 'scores' => [domicile, extérieur]],
      *               par date puis ordre d'origine.
      */
     public static function rencontresDerniereJournee(array $rencontres, $numClub) {
@@ -257,6 +258,9 @@ class MonClubTT_TopPerfs {
             'date'         => $date,
             'tour'         => $tour,
             'equipes_club' => $equipesClub,
+            // Côté domicile (1) puis extérieur (2), comme dans la poule.
+            'equipes'      => array((string) ($lien['equip_1'] ?? ''), (string) ($lien['equip_2'] ?? '')),
+            'scores'       => array((int) self::texte($rencontre['scorea']), (int) self::texte($rencontre['scoreb'])),
         );
     }
 
@@ -267,7 +271,7 @@ class MonClubTT_TopPerfs {
      *
      * @return array<string, string>
      */
-    private static function cotesDuClub(array $feuille, array $equipesClub) {
+    public static function cotesDuClub(array $feuille, array $equipesClub) {
         $cibles = array_map(array(__CLASS__, 'cle'), $equipesClub);
         $cotes  = array();
         foreach (array('a', 'b') as $cote) {
@@ -282,7 +286,7 @@ class MonClubTT_TopPerfs {
     /**
      * @return string|null 'a', 'b' ou null (partie non jouée / illisible).
      */
-    private static function coteVainqueur($partie) {
+    public static function coteVainqueur($partie) {
         if (!is_array($partie)) {
             return null;
         }
@@ -299,7 +303,7 @@ class MonClubTT_TopPerfs {
      * Un élément XML unique est converti en tableau associatif et non en
      * liste : on le réemballe.
      */
-    private static function liste($valeur) {
+    public static function liste($valeur) {
         if (!is_array($valeur) || empty($valeur)) {
             return array();
         }
@@ -309,11 +313,11 @@ class MonClubTT_TopPerfs {
     /**
      * Champ scalaire de l'API (un élément XML vide devient un tableau vide).
      */
-    private static function texte($valeur) {
+    public static function texte($valeur) {
         return is_scalar($valeur) ? trim((string) $valeur) : '';
     }
 
-    private static function cle($nom) {
+    public static function cle($nom) {
         return strtoupper(preg_replace('/\s+/', ' ', trim((string) $nom)));
     }
 

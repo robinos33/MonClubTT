@@ -491,26 +491,65 @@
             });
     }
 
-    function preparerPerfs(L) {
+    /* Visuels du week-end : clé de la réponse AJAX. */
+    var CLE_WEEKEND = { perfs: 'perfs', resultats: 'equipes', cartons: 'cartons', belles: 'belles' };
+
+    function avecPhotos(liste) {
+        return Promise.all(liste.map(function (p) {
+            return chargerImage(p.photo).then(function (img) { return { p: p, photo: img }; });
+        }));
+    }
+
+    function preparerWeekend(L, visuel) {
         return chargerPerfs().then(function () {
             if (!perfsData) return [];
-            var liste = perfsData.perfs.slice(0, L.perfs.max);
-            return Promise.all(liste.map(function (p) {
-                return chargerImage(p.photo).then(function (img) { return { p: p, photo: img }; });
-            }));
+            var liste = perfsData[CLE_WEEKEND[visuel]] || [];
+            if (visuel === 'resultats') return liste;
+            // Top perfs et belles : un classement ; cartons pleins : tout le monde.
+            return avecPhotos(visuel === 'cartons' ? liste : liste.slice(0, L.perfs.max));
         });
     }
 
-    function dessinerPerfs(L, lignes, top) {
-        var R = L.perfs, ts = L.ts;
-        if (!lignes.length) {
-            messageVide(L, perfsErreur || 'Aucune perf ce week-end… la prochaine sera la bonne !');
-            return;
-        }
-        var x = M, w = W - 2 * M, h = R.rowH, r = 16 * ts;
-        lignes.forEach(function (l, i) {
-            var p = l.p;
-            var y = top + i * (h + R.gap);
+    function preparerPaliers(L, st) {
+        return avecPhotos((DATA.paliers || []).filter(function (p) {
+            return st.sexe === 'MF' || p.sex === st.sexe;
+        }));
+    }
+
+    /* Lignes qui tiennent entre top et le pied : hauteur idéale hMax, réduite
+       jusqu'à la moitié ; au-delà, une ligne est réservée à « + N autres ».
+       Retourne { n (lignes dessinées), h, gap, k (facteur d'échelle) }. */
+    function grille(L, top, total, hMax, gapMax) {
+        var dispo = L.footY - 24 * L.ts - top;
+        var hMin = hMax * 0.55;
+        var n = Math.min(total, Math.floor((dispo + gapMax) / (hMin + gapMax)));
+        var reserve = n < total ? 1 : 0;
+        if (reserve) n = Math.max(1, n - 1);
+        var h = Math.min(hMax, (dispo + gapMax) / (n + reserve) - gapMax);
+        var k = h / hMax;
+        return { n: n, h: h, gap: gapMax * Math.max(k, 0.6), k: k };
+    }
+
+    function autres(L, g, top, reste, singulier, pluriel) {
+        if (reste <= 0) return;
+        ctx.fillStyle = P.discret;
+        ctx.textAlign = 'center';
+        ctx.font = font(800, 22 * L.ts);
+        ctx.fillText('+ ' + reste + ' ' + (reste > 1 ? pluriel : singulier), W / 2, top + g.n * (g.h + g.gap) + g.h / 2 + 8 * L.ts);
+    }
+
+    /* Liste de joueurs en cartes : rang, photo, nom + équipe, valeur mise en
+       avant et détail. contenu(p) → { valeur, unite, titre, sous }. Les lignes
+       rétrécissent pour tout faire tenir ; sous la taille lisible, les
+       dernières sont résumées par « + N autres ». */
+    function dessinerLignes(L, lignes, top, contenu) {
+        var R = L.perfs;
+        var g = grille(L, top, lignes.length, R.rowH, R.gap);
+        var ts = L.ts * Math.max(g.k, 0.75); // texte réduit avec la hauteur des lignes
+        var x = M, w = W - 2 * M, h = g.h, r = 16 * ts;
+        lignes.slice(0, g.n).forEach(function (l, i) {
+            var p = l.p, c = contenu(p);
+            var y = top + i * (h + g.gap);
             var cy = y + h / 2;
 
             // Carte teintée + carré de rang en couleur primaire
@@ -527,7 +566,7 @@
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
             ctx.font = font(900, 38 * ts);
-            ctx.fillText(String(i + 1), x + h / 2, cy + 2);
+            ctx.fillText(c.rang || String(i + 1), x + h / 2, cy + 2);
 
             // Photo ronde (cadrée en haut : visage) si disponible
             var tx = x + h + 22 * ts;
@@ -544,44 +583,212 @@
                 tx = ax + ar + 18 * ts;
             }
 
-            // Colonnes : nom + équipe | gain | détail
+            // Colonnes : nom + équipe | valeur | détail
             var colGain = x + w * 0.58, colDetail = x + w * 0.7;
             ctx.textBaseline = 'alphabetic';
             ctx.textAlign = 'left';
             ctx.fillStyle = P.texte;
             var nom = (p.prenom ? p.prenom + ' ' : '') + String(p.nom);
             ajuster(nom.toUpperCase(), 900, 28 * ts, colGain - 60 * ts - tx);
-            ctx.fillText(nom.toUpperCase(), tx, cy - 4 * ts);
+            ctx.fillText(nom.toUpperCase(), tx, p.equipe ? cy - 4 * ts : cy + 10 * ts);
 
-            ctx.font = font(800, 16 * ts);
-            var eq = String(p.equipe).toUpperCase();
-            var eqW = Math.min(ctx.measureText(eq).width + 20 * ts, colGain - 60 * ts - tx);
-            ctx.fillStyle = P.primaire;
-            rectArrondi(tx, cy + 6 * ts, eqW, 24 * ts, 12 * ts);
-            ctx.fill();
-            ctx.fillStyle = P.surPrim;
-            ajuster(eq, 800, 16 * ts, eqW - 16 * ts);
-            ctx.fillText(eq, tx + 10 * ts, cy + 24 * ts);
+            if (p.equipe) {
+                ctx.font = font(800, 16 * ts);
+                var eq = String(p.equipe).toUpperCase();
+                var eqW = Math.min(ctx.measureText(eq).width + 20 * ts, colGain - 60 * ts - tx);
+                ctx.fillStyle = P.primaire;
+                rectArrondi(tx, cy + 6 * ts, eqW, 24 * ts, 12 * ts);
+                ctx.fill();
+                ctx.fillStyle = P.surPrim;
+                ajuster(eq, 800, 16 * ts, eqW - 16 * ts);
+                ctx.fillText(eq, tx + 10 * ts, cy + 24 * ts);
+            }
 
             ctx.textAlign = 'center';
             ctx.fillStyle = P.primaire;
-            ctx.font = font(900, 40 * ts);
-            ctx.fillText(signe(p.gain), colGain, cy + 8 * ts);
+            ajuster(c.valeur, 900, 40 * ts, 116 * ts);
+            ctx.fillText(c.valeur, colGain, cy + 8 * ts);
             ctx.font = font(800, 15 * ts);
             espacement(1);
-            ctx.fillText('PTS', colGain, cy + 30 * ts);
+            ctx.fillText(c.unite, colGain, cy + 30 * ts);
             espacement(0);
 
             ctx.textAlign = 'left';
             ctx.fillStyle = P.texte;
-            var titreDetail = p.nb_perfs > 1 ? p.nb_perfs + ' PERFS' : '1 PERF';
-            ajuster(titreDetail, 800, 24 * ts, x + w - 20 * ts - colDetail);
-            ctx.fillText(titreDetail, colDetail, cy - 4 * ts);
+            ajuster(c.titre, 800, 24 * ts, x + w - 20 * ts - colDetail);
+            ctx.fillText(c.titre, colDetail, cy - 4 * ts);
             ctx.fillStyle = P.primaire;
-            var sous = (p.nb_perfs > 1 ? 'LA MEILLEURE À ' : 'À ') + p.adversaire_points + ' PTS';
-            ajuster(sous, 800, 16 * ts, x + w - 20 * ts - colDetail);
-            ctx.fillText(sous, colDetail, cy + 22 * ts);
+            ajuster(c.sous, 800, 16 * ts, x + w - 20 * ts - colDetail);
+            ctx.fillText(c.sous, colDetail, cy + 22 * ts);
         });
+        autres(L, g, top, lignes.length - g.n, 'AUTRE', 'AUTRES');
+    }
+
+    function contenuPerf(p) {
+        return {
+            valeur: signe(p.gain),
+            unite:  'PTS',
+            titre:  p.nb_perfs > 1 ? p.nb_perfs + ' PERFS' : '1 PERF',
+            sous:   (p.nb_perfs > 1 ? 'LA MEILLEURE À ' : 'À ') + p.adversaire_points + ' PTS'
+        };
+    }
+
+    /* Cartons pleins : pas de classement, tout le monde doit apparaître —
+       deux colonnes dès 6 joueurs, carré « 3/3 » à la place du rang. */
+    function dessinerCartons(L, lignes, top) {
+        var cols = lignes.length > 5 ? 2 : 1, gapX = 16 * L.ts;
+        var g = grille(L, top, Math.ceil(lignes.length / cols), L.perfs.rowH, L.perfs.gap);
+        var ts = L.ts * Math.max(g.k, 0.75), h = g.h;
+        var cw = (W - 2 * M - (cols - 1) * gapX) / cols, carre = h * 1.25;
+        var visibles = Math.min(lignes.length, g.n * cols);
+
+        lignes.slice(0, visibles).forEach(function (l, i) {
+            var p = l.p;
+            var x = M + (i % cols) * (cw + gapX), y = top + Math.floor(i / cols) * (h + g.gap), cy = y + h / 2;
+
+            ctx.fillStyle = P.teinte;
+            rectArrondi(x, y, cw, h, 16 * ts);
+            ctx.fill();
+            ctx.save();
+            rectArrondi(x, y, cw, h, 16 * ts);
+            ctx.clip();
+            ctx.fillStyle = P.primaire;
+            ctx.fillRect(x, y, carre, h);
+            ctx.restore();
+            ctx.fillStyle = P.surPrim;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ajuster(p.victoires + '/' + p.victoires, 900, 32 * ts, carre - 12 * ts);
+            ctx.fillText(p.victoires + '/' + p.victoires, x + carre / 2, cy + 2);
+            ctx.textBaseline = 'alphabetic';
+
+            var tx = x + carre + 16 * ts;
+            if (l.photo) {
+                var ar = h / 2 - 8 * ts, ax = tx + ar;
+                ctx.save();
+                ctx.beginPath(); ctx.arc(ax, cy, ar, 0, Math.PI * 2); ctx.closePath();
+                ctx.fillStyle = '#ffffff';
+                ctx.fill();
+                ctx.clip();
+                var s = (ar * 2) / Math.min(l.photo.naturalWidth, l.photo.naturalHeight);
+                ctx.drawImage(l.photo, ax - l.photo.naturalWidth * s / 2, cy - ar, l.photo.naturalWidth * s, l.photo.naturalHeight * s);
+                ctx.restore();
+                tx = ax + ar + 14 * ts;
+            }
+
+            var largeur = x + cw - 16 * ts - tx;
+            var nom = ((p.prenom ? p.prenom + ' ' : '') + String(p.nom)).toUpperCase();
+            ctx.textAlign = 'left';
+            ctx.fillStyle = P.texte;
+            ajuster(nom, 900, 26 * ts, largeur);
+            ctx.fillText(nom, tx, cy - 4 * ts);
+
+            var eq = String(p.equipe).toUpperCase();
+            ctx.font = font(800, 15 * ts);
+            var eqW = Math.min(ctx.measureText(eq).width + 18 * ts, largeur);
+            ctx.fillStyle = P.primaire;
+            rectArrondi(tx, cy + 5 * ts, eqW, 22 * ts, 11 * ts);
+            ctx.fill();
+            ctx.fillStyle = P.surPrim;
+            ajuster(eq, 800, 15 * ts, eqW - 16 * ts);
+            ctx.fillText(eq, tx + 9 * ts, cy + 21 * ts);
+        });
+        autres(L, g, top, lignes.length - visibles, 'AUTRE', 'AUTRES');
+    }
+
+    function scoreSets(sets) {
+        return sets.map(function (s) { return s[0] + '-' + s[1]; }).join('  ');
+    }
+
+    function contenuBelle(p) {
+        var belle = p.sets[p.sets.length - 1];
+        return {
+            valeur: belle[0] + '-' + belle[1],
+            unite:  'À LA BELLE',
+            titre:  p.remontada ? 'REMONTADA !' : (p.finish ? 'AU FINISH' : '3 SETS À 2'),
+            sous:   scoreSets(p.sets)
+        };
+    }
+
+    function contenuPalier(p) {
+        return {
+            rang:   String(p.palier / 100), // nouveau classement
+            valeur: String(p.palier),
+            unite:  'PALIER',
+            titre:  Math.floor(p.mens) + ' PTS',
+            sous:   signe(p.dm) + ' CE MOIS'
+        };
+    }
+
+    /* ------------------------------------------- Résultats des équipes */
+
+    var COULEUR_RESULTAT = { V: 'primaire', N: 'primClair', D: 'discret' };
+
+    function dessinerResultats(L, equipes, top) {
+        var ts = L.ts, x = M, w = W - 2 * M;
+        var g = grille(L, top, equipes.length, L.perfs.rowH, 8 * ts);
+        var n = g.n, h = g.h, gap = g.gap;
+        var k = Math.max(g.k, 0.8); // texte : ajuster() le fait tenir en largeur
+
+        equipes.slice(0, n).forEach(function (e, i) {
+            var y = top + i * (h + gap), cy = y + h / 2;
+            var carre = P[COULEUR_RESULTAT[e.resultat]];
+
+            ctx.fillStyle = P.teinte;
+            rectArrondi(x, y, w, h, 14 * ts * k);
+            ctx.fill();
+            ctx.save();
+            rectArrondi(x, y, w, h, 14 * ts * k);
+            ctx.clip();
+            ctx.fillStyle = carre;
+            ctx.fillRect(x, y, h, h);
+            ctx.restore();
+            ctx.fillStyle = surCouleur(carre);
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.font = font(900, 36 * ts * k);
+            ctx.fillText(e.resultat, x + h / 2, cy + 2);
+
+            // Équipe du club (+ pastille « LEADER » en tête de poule)
+            var tx = x + h + 22 * ts, colScore = x + w * 0.56, colAdv = x + w * 0.66;
+            var leaderW = 0;
+            if (e.rang === 1) {
+                ctx.font = font(900, 16 * ts * k);
+                leaderW = ctx.measureText('LEADER').width + 16 * ts * k * 1.3 + 12 * ts;
+            }
+            ctx.fillStyle = P.texte;
+            ctx.textAlign = 'left';
+            var tNom = ajuster(String(e.equipe).toUpperCase(), 900, 28 * ts * k, colScore - 70 * ts - tx - leaderW);
+            ctx.fillText(String(e.equipe).toUpperCase(), tx, cy + 1);
+            if (e.rang === 1) {
+                ctx.font = font(900, tNom);
+                var nomW = ctx.measureText(String(e.equipe).toUpperCase()).width;
+                pastille('LEADER', tx + nomW + 12 * ts, cy - 16 * ts * k * 1.75 / 2, 16 * ts * k, P.secondaire, P.surSec, 'left');
+            }
+            ctx.textBaseline = 'middle';
+
+            // Score, côté club en premier
+            ctx.textAlign = 'center';
+            ctx.fillStyle = e.resultat === 'D' ? P.texte : P.primaire;
+            ctx.font = font(900, 40 * ts * k);
+            ctx.fillText(e.score + ' – ' + e.score_adversaire, colScore, cy + 2);
+
+            // Adversaire
+            ctx.textAlign = 'left';
+            ctx.fillStyle = P.discret;
+            var adv = (e.domicile ? 'REÇOIT ' : 'CHEZ ') + String(e.adversaire || 'EXEMPT').toUpperCase();
+            ajuster(adv, 800, 20 * ts * k, x + w - 20 * ts - colAdv);
+            ctx.fillText(adv, colAdv, cy + 1);
+            ctx.textBaseline = 'alphabetic';
+        });
+
+        autres(L, g, top, equipes.length - g.n, 'AUTRE ÉQUIPE', 'AUTRES ÉQUIPES');
+    }
+
+    function bilanResultats(equipes) {
+        var b = { V: 0, N: 0, D: 0 };
+        equipes.forEach(function (e) { b[e.resultat]++; });
+        return b;
     }
 
     /* ---------------------------------------------------------- légende */
@@ -613,23 +820,76 @@
         return lignes.join('\n');
     }
 
+    function legendeResultats(equipes) {
+        var ICONE = { V: '✅', N: '🤝', D: '❌' };
+        var lignes = ['🏓 Résultats — ' + libelleWeekend(perfsData.date_debut, perfsData.date_fin).toLowerCase(), ''];
+        equipes.forEach(function (e) {
+            lignes.push(ICONE[e.resultat] + ' ' + e.equipe + ' ' + e.score + '-' + e.score_adversaire + ' ' +
+                (e.domicile ? 'contre ' : 'chez ') + (e.adversaire || 'exempt') + (e.rang === 1 ? ' (leader de sa poule 🔝)' : ''));
+        });
+        var b = bilanResultats(equipes);
+        lignes.push('', 'Bilan : ' + b.V + ' victoire' + (b.V > 1 ? 's' : '') + ', ' + b.N + ' nul' + (b.N > 1 ? 's' : '') + ', ' + b.D + ' défaite' + (b.D > 1 ? 's' : ''));
+        lignes.push(b.V > 0 ? 'Bravo à tous ! 👏' : 'On se remobilise pour la prochaine ! 💪');
+        return lignes.join('\n');
+    }
+
+    function legendeCartons(lignesCartons) {
+        var lignes = ['🏓 Carton plein — ' + libelleWeekend(perfsData.date_debut, perfsData.date_fin).toLowerCase(), ''];
+        lignesCartons.forEach(function (l) {
+            var p = l.p;
+            lignes.push('💯 ' + nomComplet(p) + ' (' + p.equipe + ') : ' + p.victoires + ' victoires sur ' + p.victoires);
+        });
+        lignes.push('', 'Invaincu' + (lignesCartons.length > 1 ? 's' : '') + ' ce week-end, bravo ! 👏');
+        return lignes.join('\n');
+    }
+
+    function legendeBelles(lignesBelles) {
+        var lignes = ['🏓 Victoires à la belle — ' + libelleWeekend(perfsData.date_debut, perfsData.date_fin).toLowerCase(), ''];
+        lignesBelles.forEach(function (l) {
+            var p = l.p;
+            lignes.push('🔥 ' + nomComplet(p) + ' : ' + p.sets.map(function (s) { return s[0] + '-' + s[1]; }).join(' ') +
+                (p.remontada ? ' (remontada après avoir été mené 0-2 !)' : ''));
+        });
+        lignes.push('', 'Du suspense jusqu\'au bout 😅 Bravo !');
+        return lignes.join('\n');
+    }
+
+    function legendePaliers(lignesPaliers) {
+        var lignes = ['🏓 Nouveaux paliers — ' + DATA.moisLabel, ''];
+        lignesPaliers.forEach(function (l) {
+            var p = l.p;
+            lignes.push('🚀 ' + nomComplet(p) + ' passe la barre des ' + p.palier + ' pts (' + Math.floor(p.mens) + ' pts, ' + signe(p.dm) + ' ce mois)');
+        });
+        lignes.push('', 'Félicitations ! 👏');
+        return lignes.join('\n');
+    }
+
     function majLegende(texte) {
         if (legendeEl && !legendeModifiee) legendeEl.value = texte;
     }
 
     /* ------------------------------------------------------------ rendu */
 
+    /* Titre, contenu des lignes, message si vide et légende de chaque liste. */
+    var LISTES = {
+        perfs:   { titre: 'TOP PERFS', contenu: contenuPerf, vide: 'Aucune perf ce week-end… la prochaine sera la bonne !', legende: legendePerfs },
+        cartons: { titre: 'CARTON PLEIN', dessin: dessinerCartons, vide: 'Pas de carton plein ce week-end… la prochaine fois !', legende: legendeCartons },
+        belles:  { titre: 'À LA BELLE', contenu: contenuBelle, vide: 'Aucune victoire à la belle ce week-end.', legende: legendeBelles },
+        paliers: { titre: 'NOUVEAUX PALIERS', contenu: contenuPalier, vide: 'Aucun palier franchi ce mois-ci.', legende: legendePaliers }
+    };
+
     function render() {
         var token = ++renderToken;
         var st = etat();
         var L = LAYOUTS[st.format] || LAYOUTS.carre;
-        var estPerfs = st.visuel === 'perfs';
+        var weekend = CLE_WEEKEND.hasOwnProperty(st.visuel);
+        var podium = st.visuel === 'prog-mens' || st.visuel === 'prog-ann';
 
-        form.querySelectorAll('[data-visuel="prog"]').forEach(function (el) { el.hidden = estPerfs; });
+        form.querySelectorAll('[data-visuel="prog"]').forEach(function (el) { el.hidden = !(podium || st.visuel === 'paliers'); });
         canvas.classList.toggle('is-story', st.format === 'story');
         btn.disabled = true;
 
-        var contenu = estPerfs ? preparerPerfs(L) : preparerPodium(st);
+        var contenu = weekend ? preparerWeekend(L, st.visuel) : (podium ? preparerPodium(st) : preparerPaliers(L, st));
         Promise.all([contenu, chargerImage(DATA.logo)]).then(function (res) {
             if (token !== renderToken) return; // un rendu plus récent a été demandé
             var donnees = res[0], logo = res[1];
@@ -639,24 +899,48 @@
             canvas.height = L.h;
             fond(L);
 
-            if (estPerfs) {
+            if (weekend) {
                 var tag = perfsData ? dateCourte(perfsData.date_debut, perfsData.date_fin) : '';
                 var accent = perfsData && perfsData.tour ? 'J' + perfsData.tour : '';
-                var bas = entete(L, st.club, 'TOP PERFS', accent, tag, logo);
-                if (perfsData && donnees.length) {
-                    bas = resume(L, perfsData.total_perfs + (perfsData.total_perfs > 1 ? ' PERFS' : ' PERF') + '  •  ' +
-                        perfsData.total_joueurs + (perfsData.total_joueurs > 1 ? ' JOUEURS' : ' JOUEUR') + '  •  ' +
-                        signe(perfsData.total_gain) + ' PTS', bas + 40 * L.ts);
+                var titre = st.visuel === 'resultats' ? 'RÉSULTATS' : LISTES[st.visuel].titre;
+                var bas = entete(L, st.club, titre, accent, tag, logo);
+                if (!perfsData || !donnees.length) {
+                    messageVide(L, perfsErreur || (st.visuel === 'resultats' ? 'Aucune rencontre ce week-end.' : LISTES[st.visuel].vide));
+                    majLegende('');
+                } else if (st.visuel === 'resultats') {
+                    var b = bilanResultats(donnees);
+                    bas = resume(L, b.V + ' V  •  ' + b.N + ' N  •  ' + b.D + ' D', bas + 32 * L.ts);
+                    dessinerResultats(L, donnees, bas + 28 * L.ts);
+                    majLegende(legendeResultats(donnees));
+                } else {
+                    if (st.visuel === 'perfs') {
+                        bas = resume(L, perfsData.total_perfs + (perfsData.total_perfs > 1 ? ' PERFS' : ' PERF') + '  •  ' +
+                            perfsData.total_joueurs + (perfsData.total_joueurs > 1 ? ' JOUEURS' : ' JOUEUR') + '  •  ' +
+                            signe(perfsData.total_gain) + ' PTS', bas + 40 * L.ts);
+                    }
+                    if (LISTES[st.visuel].dessin) {
+                        LISTES[st.visuel].dessin(L, donnees, bas + 36 * L.ts);
+                    } else {
+                        dessinerLignes(L, donnees, bas + 36 * L.ts, LISTES[st.visuel].contenu);
+                    }
+                    majLegende(LISTES[st.visuel].legende(donnees));
                 }
-                dessinerPerfs(L, donnees, bas + 36 * L.ts);
-                setStatus(perfsData ? perfsData.rencontres + ' rencontre(s) analysée(s) — victoires contre mieux classé, points au barème FFTT.' : perfsErreur);
-                majLegende(donnees.length ? legendePerfs(donnees) : '');
-            } else {
+                setStatus(perfsData ? perfsData.rencontres + ' rencontre(s) analysée(s) sur le dernier week-end de championnat.' : perfsErreur);
+            } else if (podium) {
                 var tagProg = st.visuel === 'prog-mens' ? DATA.moisLabel : DATA.saisonLabel;
                 entete(L, st.club, 'TOP PROGRESSION', '', tagProg, logo);
                 dessinerPodium(L, donnees);
                 setStatus('');
                 majLegende(donnees.length ? legendePodium(st, donnees) : '');
+            } else {
+                var basPaliers = entete(L, st.club, LISTES.paliers.titre, '', DATA.moisLabel, logo);
+                if (donnees.length) {
+                    dessinerLignes(L, donnees, basPaliers + 50 * L.ts, contenuPalier);
+                } else {
+                    messageVide(L, LISTES.paliers.vide);
+                }
+                setStatus('Joueurs dont les points mensuels ont passé une centaine (nouveau classement) ce mois-ci.');
+                majLegende(donnees.length ? legendePaliers(donnees) : '');
             }
             pied(L, st.club);
             btn.disabled = !donnees.length;
@@ -668,7 +952,11 @@
         var nom = {
             'prog-mens': 'top-progression-' + DATA.moisLabel,
             'prog-ann':  'top-progression-' + DATA.saisonLabel,
-            'perfs':     'top-perfs-' + (perfsData ? perfsData.date_fin : '')
+            'perfs':     'top-perfs-' + (perfsData ? perfsData.date_fin : ''),
+            'resultats': 'resultats-' + (perfsData ? perfsData.date_fin : ''),
+            'cartons':   'carton-plein-' + (perfsData ? perfsData.date_fin : ''),
+            'belles':    'victoires-a-la-belle-' + (perfsData ? perfsData.date_fin : ''),
+            'paliers':   'nouveaux-paliers-' + DATA.moisLabel
         }[st.visuel] + '-' + st.format;
         return nom.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') + '.png';
     }

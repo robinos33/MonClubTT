@@ -15,7 +15,15 @@
                 <legend>Visuel</legend>
                 <label><input type="radio" name="visuel" value="prog-mens" checked> Top Progression du mois</label>
                 <label><input type="radio" name="visuel" value="prog-ann"> Top Progression de la saison</label>
-                <label><input type="radio" name="visuel" value="perfs"> Top perfs du dernier week-end de championnat</label>
+                <label><input type="radio" name="visuel" value="paliers"> Nouveaux paliers de points du mois</label>
+            </fieldset>
+
+            <fieldset>
+                <legend>Dernier week-end de championnat</legend>
+                <label><input type="radio" name="visuel" value="resultats"> Résultats des équipes</label>
+                <label><input type="radio" name="visuel" value="perfs"> Top perfs</label>
+                <label><input type="radio" name="visuel" value="cartons"> Carton plein (joueurs invaincus)</label>
+                <label><input type="radio" name="visuel" value="belles"> Victoires à la belle et remontadas</label>
             </fieldset>
 
             <fieldset>

@@ -5,6 +5,23 @@ Format : [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/)
 
 ---
 
+## [Non publié]
+
+### Ajouté
+
+- Visuels réseaux sociaux « Dernier week-end de championnat », calculés à partir des mêmes feuilles de match que les top perfs (aucun appel API supplémentaire hors classements de poule) :
+  - **Résultats des équipes** : score, adversaire, bilan V / N / D, et pastille « Leader » pour une équipe en tête de sa poule
+  - **Carton plein** : joueurs ayant gagné toutes leurs parties en simple du week-end (2 au minimum), sur deux colonnes pour que tout le monde apparaisse
+  - **Victoires à la belle** : parties gagnées en 5 sets avec le détail des sets, remontadas (menés 0-2) puis belles gagnées aux avantages en tête
+- Visuel « Nouveaux paliers » du mois : joueurs dont les points mensuels passent une centaine (1600, 1700…), avec leur nouveau classement ; le plancher de 500 pts est ignoré
+- Texte de publication pré-rempli pour chaque nouveau visuel
+
+### Modifié
+
+- Les listes des visuels rétrécissent leurs lignes pour tout faire tenir, et signalent « + N autres » au-delà de la taille lisible
+
+---
+
 ## [1.6.5] — 2026-09-25
 
 ### Retiré

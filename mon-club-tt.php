@@ -513,11 +513,25 @@ class MonClubTT_Plugin
         $saison     = monclubtt_debut_saison();
         $joueurs    = new MonClubTT_Joueurs();
         $siteHost   = wp_parse_url(home_url(), PHP_URL_HOST);
+        $players    = $joueurs->getDonneesTopProgression('MF');
+
+        // Paliers de points franchis ce mois-ci, du plus haut au plus bas.
+        $paliers = array();
+        foreach ($players as $player) {
+            $palier = MonClubTT_StatsReseaux::palierFranchi($player['mens'], $player['dm']);
+            if ($palier !== null) {
+                $paliers[] = $player + array('palier' => $palier);
+            }
+        }
+        usort($paliers, function ($a, $b) {
+            return array($b['palier'], $b['mens']) <=> array($a['palier'], $a['mens']);
+        });
 
         wp_localize_script('monclubtt-social-js', 'MonClubTTSocial', array(
             'ajaxurl'     => admin_url('admin-ajax.php'),
             'nonce'       => wp_create_nonce('monclubtt_top_perfs_nonce'),
-            'players'     => $joueurs->getDonneesTopProgression('MF'),
+            'players'     => $players,
+            'paliers'     => $paliers,
             'moisLabel'   => $moisFr[(int) date_i18n('n') - 1] . ' ' . date_i18n('Y'),
             'saisonLabel' => 'Saison ' . $saison . '–' . ($saison + 1),
             'clubName'    => get_bloginfo('name'),
@@ -528,9 +542,11 @@ class MonClubTT_Plugin
     }
 
     /**
-     * Handler AJAX : « top perfs » du dernier week-end de championnat par
-     * équipes (victoires contre mieux classé, points gagnés au barème FFTT),
-     * regroupées par joueur. Les feuilles de match sont mises en cache 7 jours par l'API.
+     * Handler AJAX : statistiques du dernier week-end de championnat par
+     * équipes, lues sur les feuilles de match (mises en cache 7 jours par l'API) :
+     * top perfs (victoires contre mieux classé, points au barème FFTT, regroupées
+     * par joueur), résultats des équipes avec leur place en poule, cartons
+     * pleins et victoires à la belle.
      */
     public function handle_ajax_top_perfs()
     {
@@ -547,11 +563,13 @@ class MonClubTT_Plugin
             return;
         }
 
-        $rencontres = array();
-        $equipes    = new MonClubTT_Equipes();
+        $rencontres  = array();
+        $classements = array();
+        $equipes     = new MonClubTT_Equipes();
         foreach ($equipes->getEquipesSeniorChampionnat('MF') as $equipe) {
             if ($equipe->getIddiv() && $equipe->getIdpoule()) {
-                $rencontres = array_merge($rencontres, (array) $api->getPouleRencontres($equipe->getIddiv(), $equipe->getIdpoule()));
+                $rencontres  = array_merge($rencontres, (array) $api->getPouleRencontres($equipe->getIddiv(), $equipe->getIdpoule()));
+                $classements = array_merge($classements, MonClubTT_TopPerfs::liste($api->getPouleClassement($equipe->getIddiv(), $equipe->getIdpoule())));
             }
         }
 
@@ -561,11 +579,13 @@ class MonClubTT_Plugin
             return;
         }
 
-        $perfs = array();
+        $perfs   = array();
+        $parties = array();
         foreach ($journee as $rencontre) {
             $feuille = $api->getRencontreDetail($rencontre['renc_id'], $rencontre['is_retour']);
             if (is_array($feuille)) {
-                $perfs = array_merge($perfs, MonClubTT_TopPerfs::extrairePerfs($feuille, $rencontre['equipes_club']));
+                $perfs   = array_merge($perfs, MonClubTT_TopPerfs::extrairePerfs($feuille, $rencontre['equipes_club']));
+                $parties = array_merge($parties, MonClubTT_StatsReseaux::partiesDuClub($feuille, $rencontre['equipes_club']));
             }
         }
 
@@ -575,16 +595,20 @@ class MonClubTT_Plugin
         foreach ($joueurs->getJoueurs('MF') as $joueur) {
             $joueursParNom[$this->cleNomJoueur($joueur->getNom() . ' ' . $joueur->getPrenom())] = $joueur;
         }
+        $identite = function ($ligne) use ($joueursParNom) {
+            $joueur = $joueursParNom[$this->cleNomJoueur($ligne['joueur'])] ?? null;
+            return array(
+                'nom'    => $joueur ? $joueur->getNom() : $ligne['joueur'],
+                'prenom' => $joueur ? $joueur->getPrenom() : '',
+                'sex'    => $joueur ? $joueur->getSexe() : $ligne['sexe'],
+                'photo'  => $joueur ? $joueur->getPhotoUrl() : '',
+            );
+        };
 
         $bilan    = MonClubTT_TopPerfs::bilanParJoueur($perfs);
         $resultat = array();
         foreach (MonClubTT_TopPerfs::classer($bilan, 8) as $perf) {
-            $joueur = $joueursParNom[$this->cleNomJoueur($perf['joueur'])] ?? null;
-            $resultat[] = array(
-                'nom'               => $joueur ? $joueur->getNom() : $perf['joueur'],
-                'prenom'            => $joueur ? $joueur->getPrenom() : '',
-                'sex'               => $joueur ? $joueur->getSexe() : $perf['sexe'],
-                'photo'             => $joueur ? $joueur->getPhotoUrl() : '',
+            $resultat[] = $identite($perf) + array(
                 'points'            => $perf['points'],
                 'adversaire_points' => $perf['adversaire_points'],
                 'ecart'             => $perf['ecart'],
@@ -594,10 +618,37 @@ class MonClubTT_Plugin
             );
         }
 
+        $recap = array();
+        foreach (MonClubTT_StatsReseaux::recapEquipes($journee) as $ligne) {
+            $recap[] = $ligne + array('rang' => MonClubTT_StatsReseaux::rangDansPoule($classements, $ligne['equipe']));
+        }
+
+        $cartons = array();
+        foreach (array_slice(MonClubTT_StatsReseaux::cartonsPleins($parties), 0, 24) as $carton) {
+            $cartons[] = $identite($carton) + array(
+                'victoires' => $carton['victoires'],
+                'equipe'    => $carton['equipe'],
+            );
+        }
+
+        $belles = array();
+        foreach (array_slice(MonClubTT_StatsReseaux::victoiresALaBelle($parties), 0, 8) as $belle) {
+            $belles[] = $identite($belle) + array(
+                'adversaire_points' => $belle['adversaire_points'],
+                'equipe'            => $belle['equipe'],
+                'sets'              => $belle['sets'],
+                'remontada'         => $belle['remontada'],
+                'finish'            => $belle['finish'],
+            );
+        }
+
         $dates = array_column($journee, 'date');
         $tours = array_filter(array_column($journee, 'tour'));
         wp_send_json_success(array(
             'perfs'         => $resultat,
+            'equipes'       => $recap,
+            'cartons'       => $cartons,
+            'belles'        => $belles,
             'date_debut'    => min($dates),
             'date_fin'      => max($dates),
             'tour'          => $tours ? max($tours) : null,

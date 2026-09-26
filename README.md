@@ -20,7 +20,7 @@ Plugin WordPress non-officiel pour afficher les données d'un club issues de l'[
 - **Widget tableau de bord** avec bouton de synchronisation rapide
 - **Gestion des équipes** — liste des équipes de championnat sénior, génération / suppression automatique des pages WordPress correspondantes (corbeille réversible)
 - **Vue joueurs** — liste complète des licenciés du club
-- **Réseaux sociaux** — visuels prêts à poster (Top Progression, top perfs du dernier week-end de championnat), générés dans le navigateur et téléchargeables en PNG carré ou story
+- **Réseaux sociaux** — visuels prêts à poster (Top Progression, nouveaux paliers de points, et pour le dernier week-end de championnat : résultats des équipes, top perfs, cartons pleins, victoires à la belle), générés dans le navigateur et téléchargeables en PNG carré ou story, avec un texte de publication pré-rempli
 
 ---
 

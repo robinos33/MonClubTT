@@ -19,6 +19,7 @@
     <source>
         <include>
             <file>models/TopPerfs.php</file>
+            <file>models/StatsReseaux.php</file>
             <file>Utils.php</file>
         </include>
     </source>
