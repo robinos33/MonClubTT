@@ -5,6 +5,12 @@ Format : [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/)
 
 ---
 
+## [1.8.0] — 2026-09-26
+
+### Modifié
+
+- Les tableaux du site (équipes, rencontres, feuilles de match, joueurs) utilisent les couleurs primaire et secondaire du club au lieu du bleu marine par défaut : en-têtes, légendes, lignes alternées, survol, équipe du club, vainqueurs et couleurs hommes / femmes.
+
 ## [1.7.0] — 2026-09-26
 
 ### Ajouté

@@ -3,7 +3,7 @@ Contributors: robinos33
 Tags: table tennis, fftt, club, rankings, results
 Requires at least: 5.0
 Tested up to: 7.0
-Stable tag: 1.7.0
+Stable tag: 1.8.0
 Requires PHP: 7.4
 License: GPLv2
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -59,6 +59,9 @@ Player data is refreshed on manual sync only. League standings and results are c
 Yes. The plugin exposes four filters: `monclubtt_get_joueurs`, `monclubtt_get_equipes`, `monclubtt_get_classement_poule`, `monclubtt_get_rencontres_poule`. See the documentation for usage.
 
 == Changelog ==
+
+= 1.8.0 =
+* Changed: the site tables (teams, matches, match sheets, players) now use the club's primary and secondary colours instead of the default navy blue: headers, captions, striped rows, hover, club team highlight, winners and men / women colours
 
 = 1.7.0 =
 * Added: new social media images for the last team championship weekend, read from the same match sheets as the top performances: team results (score, opponent, W/D/L summary, "Leader" pill for a team top of its pool), "clean sweep" (players who won all their singles, shown on two columns so everyone fits) and five-set wins (set-by-set scores, comebacks from 0-2 and deuce deciders first)
@@ -143,6 +146,9 @@ Yes. The plugin exposes four filters: `monclubtt_get_joueurs`, `monclubtt_get_eq
 * Automatic team page generation and deletion
 
 == Upgrade Notice ==
+
+= 1.8.0 =
+The site tables now follow the club's primary and secondary colours.
 
 = 1.7.0 =
 New social media images: weekend team results, clean sweeps, five-set wins and monthly points milestones.
