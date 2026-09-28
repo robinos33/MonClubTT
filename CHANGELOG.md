@@ -5,6 +5,12 @@ Format : [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/)
 
 ---
 
+## [1.9.0] — 2026-09-28
+
+### Ajouté
+
+- Filtre `monclubtt_get_feuille_rencontre` : les plugins tiers peuvent lire la feuille de match d'une rencontre (joueurs et parties) depuis le cache, sans appel API supplémentaire. Utilisé par TT Team Planner 1.6.0 pour importer les rencontres jouées.
+
 ## [1.8.0] — 2026-09-26
 
 ### Modifié

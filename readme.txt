@@ -3,7 +3,7 @@ Contributors: robinos33
 Tags: table tennis, fftt, club, rankings, results
 Requires at least: 5.0
 Tested up to: 7.0
-Stable tag: 1.8.0
+Stable tag: 1.9.0
 Requires PHP: 7.4
 License: GPLv2
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -56,9 +56,12 @@ Contact the FFTT directly. An App ID and password are provided upon request.
 Player data is refreshed on manual sync only. League standings and results are cached and automatically refreshed at 08:00 and 13:00 each day. Match sheets are cached for 7 days (past results do not change).
 
 = Can I use the data in another plugin? =
-Yes. The plugin exposes four filters: `monclubtt_get_joueurs`, `monclubtt_get_equipes`, `monclubtt_get_classement_poule`, `monclubtt_get_rencontres_poule`. See the documentation for usage.
+Yes. The plugin exposes five filters: `monclubtt_get_joueurs`, `monclubtt_get_equipes`, `monclubtt_get_classement_poule`, `monclubtt_get_rencontres_poule`, `monclubtt_get_feuille_rencontre`. See the documentation for usage.
 
 == Changelog ==
+
+= 1.9.0 =
+* Added: new `monclubtt_get_feuille_rencontre` filter, so other plugins can read a match sheet (players and games) from the cache without an extra API call
 
 = 1.8.0 =
 * Changed: the site tables (teams, matches, match sheets, players) now use the club's primary and secondary colours instead of the default navy blue: headers, captions, striped rows, hover, club team highlight, winners and men / women colours
@@ -146,6 +149,9 @@ Yes. The plugin exposes four filters: `monclubtt_get_joueurs`, `monclubtt_get_eq
 * Automatic team page generation and deletion
 
 == Upgrade Notice ==
+
+= 1.9.0 =
+New filter exposing match sheets to other plugins. Required by TT Team Planner 1.6.0 to import played matches.
 
 = 1.8.0 =
 The site tables now follow the club's primary and secondary colours.

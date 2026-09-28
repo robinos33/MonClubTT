@@ -104,6 +104,13 @@ $rencontres = apply_filters('monclubtt_get_rencontres_poule', null, [
     'division' => '198511',
     'poule'    => '1140384',
 ]);
+
+// Feuille de match d'une rencontre (renc_id et is_retour se lisent dans le
+// champ « lien » des rencontres) : resultat, joueur, partie — ou false
+$feuille = apply_filters('monclubtt_get_feuille_rencontre', null, [
+    'renc_id'   => '6595431',
+    'is_retour' => 0,
+]);
 ```
 
 ---
