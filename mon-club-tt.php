@@ -69,6 +69,7 @@ class MonClubTT_Plugin
         add_filter('monclubtt_get_equipes', array($this, 'get_equipes_data'), 10, 1);
         add_filter('monclubtt_get_classement_poule', array($this, 'get_classement_poule_data'), 10, 2);
         add_filter('monclubtt_get_rencontres_poule', array($this, 'get_rencontres_poule_data'), 10, 2);
+        add_filter('monclubtt_get_feuille_rencontre', array($this, 'get_feuille_rencontre_data'), 10, 2);
 
         // AJAX handlers
         add_action('wp_ajax_monclubtt_sync', array($this, 'handle_ajax_sync'));
@@ -456,6 +457,23 @@ class MonClubTT_Plugin
             return array();
         }
         return $api->getPouleRencontres($params['division'], $params['poule']);
+    }
+
+    /**
+     * Hook pour récupérer la feuille de match d'une rencontre (mise en cache 7 jours)
+     * Usage: $feuille = apply_filters('monclubtt_get_feuille_rencontre', null, array('renc_id' => '6595431', 'is_retour' => 0));
+     * Les identifiants se lisent dans le champ « lien » des rencontres de poule.
+     * @param mixed $value Valeur par défaut (ignorée)
+     * @param array $params Paramètres avec 'renc_id' et 'is_retour' (0 par défaut)
+     * @return array|false Feuille brute (resultat, joueur, partie) ou false si indisponible
+     */
+    public function get_feuille_rencontre_data($value, $params)
+    {
+        $api = MonClubTT_AccesFFTTApi::getInstance();
+        if (!is_object($api) || empty($params['renc_id'])) {
+            return false;
+        }
+        return $api->getRencontreDetail((string) $params['renc_id'], (int) ($params['is_retour'] ?? 0));
     }
 
     /**
