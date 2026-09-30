@@ -3,7 +3,7 @@ Contributors: robinos33
 Tags: table tennis, fftt, club, rankings, results
 Requires at least: 5.0
 Tested up to: 7.0
-Stable tag: 1.9.1
+Stable tag: 1.9.2
 Requires PHP: 7.4
 License: GPLv2
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -59,6 +59,10 @@ Player data is refreshed on manual sync only. League standings and results are c
 Yes. The plugin exposes five filters: `monclubtt_get_joueurs`, `monclubtt_get_equipes`, `monclubtt_get_classement_poule`, `monclubtt_get_rencontres_poule`, `monclubtt_get_feuille_rencontre`. See the documentation for usage.
 
 == Changelog ==
+
+= 1.9.2 =
+* Fixed: all validated licensees are now displayed, including those without monthly points yet (new licensees, club transfers); their progression stays empty until the FFTT provides a comparison base
+* Changed: the players page stats band shows the number of licensees
 
 = 1.9.1 =
 * Fixed: players who have not renewed their licence for the current season are no longer displayed; only validated licences are kept, as in the FFTT app
@@ -152,6 +156,9 @@ Yes. The plugin exposes five filters: `monclubtt_get_joueurs`, `monclubtt_get_eq
 * Automatic team page generation and deletion
 
 == Upgrade Notice ==
+
+= 1.9.2 =
+Shows every validated licensee, including new ones without monthly points yet.
 
 = 1.9.1 =
 Hides players who have not renewed their licence for the current season.

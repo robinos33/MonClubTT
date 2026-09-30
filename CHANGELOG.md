@@ -5,6 +5,13 @@ Format : [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/)
 
 ---
 
+## [1.9.2] — 2026-09-30
+
+### Corrigé
+
+- Tous les licenciés validés sont affichés : ceux qui n'ont pas encore de points mensuels (nouveaux licenciés, arrivées au club) étaient masqués alors qu'ils ont des points officiels. Leur progression reste vide tant que la FFTT n'a pas de base de comparaison, pour ne pas fausser le Top Progression.
+- La bande de stats de la page joueurs indique le nombre de licenciés au lieu des joueurs classés.
+
 ## [1.9.1] — 2026-09-30
 
 ### Corrigé
