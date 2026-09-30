@@ -135,7 +135,7 @@ endif; ?>
     <ul class="monclubtt-stats" data-filtre="<?php echo esc_attr($groupe); ?>"<?php echo $groupe !== 'MF' ? ' hidden' : ''; ?>>
         <li class="monclubtt-stat">
             <span class="monclubtt-stat-val"><?php echo esc_html(number_format_i18n($stats['nb'])); ?></span>
-            <span class="monclubtt-stat-lbl"><?php echo esc_html($groupe === 'F' ? 'Joueuses classées' : 'Joueurs classés'); ?></span>
+            <span class="monclubtt-stat-lbl"><?php echo esc_html($groupe === 'F' ? 'Licenciées' : 'Licenciés'); ?></span>
         </li>
         <li class="monclubtt-stat">
             <span class="monclubtt-stat-val"><?php echo esc_html($stats['meilleur']->getClassement()->getClassementOfficiel()); ?></span>

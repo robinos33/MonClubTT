@@ -40,8 +40,8 @@ if (!class_exists('MonClubTT_Joueurs')) {
             foreach ($joueursData as $joueurData) {
                 if (!empty($joueurData)) {
                     $joueur = new MonClubTT_Joueur($joueurData);
-                    // Exclure les joueurs sans points mensuels : ni comptabilisés
-                    // à la synchronisation, ni affichés côté front/admin.
+                    // Sécurité : une licence sans aucun point (ni mensuel ni
+                    // officiel) n'a rien à afficher dans les tableaux.
                     if ($joueur->getClassement()->getPointsMensuels() <= 0) {
                         continue;
                     }

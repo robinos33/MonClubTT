@@ -21,15 +21,19 @@ class MonClubTT_Classement {
 
     public function __construct($datas) {
         // xml_licence_b.php : 'pointm' = points mensuels, 'point' = points classement (officiel)
-        $pointm  = (float) ($datas['pointm']  ?? 0);
-        $apointm = (float) ($datas['apointm'] ?? 0);
-        $initm   = (float) ($datas['initm']   ?? 0);
-        $pointsOff = (float) ($datas['point'] ?? 0);
+        // Un élément XML vide arrive en tableau : lu comme absent (null).
+        $pointsOff = $this->lirePoints($datas, 'point');
+        $apointm   = $this->lirePoints($datas, 'apointm');
+        $initm     = $this->lirePoints($datas, 'initm');
+        // Pas encore de points mensuels (arrivée au club, nouveau licencié) :
+        // on retombe sur les points officiels.
+        $pointm    = $this->lirePoints($datas, 'pointm') ?? $pointsOff ?? 0.0;
 
         $this->setPointsMensuels($pointm);
-        $this->setPointsOfficiels($pointsOff);
-        $this->setProgressionMensuelle(round($pointm - $apointm, 2));
-        $this->setProgressionAnnuelle(round($pointm - $initm, 2));
+        $this->setPointsOfficiels($pointsOff ?? 0.0);
+        // Sans base de comparaison, pas de progression (sinon « +718 » fictif).
+        $this->setProgressionMensuelle(is_null($apointm) ? 0 : round($pointm - $apointm, 2));
+        $this->setProgressionAnnuelle(is_null($initm) ? 0 : round($pointm - $initm, 2));
         $this->setClassementOfficiel($this->calculerClassementFromPoints($pointsOff));
     }
 
@@ -71,6 +75,14 @@ class MonClubTT_Classement {
 
     public function setClassementOfficiel($classementOfficiel) {
         $this->classementOfficiel = $classementOfficiel;
+    }
+
+    private function lirePoints($datas, $cle) {
+        $valeur = $datas[$cle] ?? null;
+        if (!is_scalar($valeur) || trim((string) $valeur) === '') {
+            return null;
+        }
+        return (float) $valeur;
     }
 
     /**
