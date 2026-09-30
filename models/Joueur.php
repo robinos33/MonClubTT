@@ -14,6 +14,7 @@ if (!class_exists('MonClubTT_Joueur')) {
         private $categorie;
         private $etranger;
         private $photoUrl = '';
+        private $licenceValidee;
 
         /**
          * Initialisation du joueur depuis les données xml_licence_b.php
@@ -28,6 +29,7 @@ if (!class_exists('MonClubTT_Joueur')) {
             $this->setLicence($donnees['licence'] ?? '');
             $this->setCategorie($donnees['cat'] ?? '');
             $this->setEtranger($donnees['natio'] ?? 'F');
+            $this->setLicenceValidee($donnees['validation'] ?? '');
         }
 
         public function getNom() {
@@ -107,6 +109,18 @@ if (!class_exists('MonClubTT_Joueur')) {
 
         public function isEtranger() {
             return $this->etranger;
+        }
+
+        /**
+         * 'validation' porte la date de validation de la licence pour la saison
+         * en cours ; un élément XML vide (licence non reprise) arrive en tableau.
+         */
+        public function setLicenceValidee($validation) {
+            $this->licenceValidee = is_string($validation) && trim($validation) !== '';
+        }
+
+        public function isLicenceValidee() {
+            return $this->licenceValidee;
         }
 
     }
