@@ -45,9 +45,13 @@ if (!class_exists('MonClubTT_Joueurs')) {
                     if ($joueur->getClassement()->getPointsMensuels() <= 0) {
                         continue;
                     }
-                    // Exclusion manuelle (réglages du plugin) : la FFTT ne fournit
-                    // aucun champ fiable pour détecter qu'un licencié a quitté le
-                    // club, son API continue de le rattacher au club.
+                    // Licence non validée pour la saison en cours (joueur qui n'a
+                    // pas repris) : l'appli FFTT ne l'affiche pas non plus.
+                    if (!$joueur->isLicenceValidee()) {
+                        continue;
+                    }
+                    // Exclusion manuelle (réglages du plugin) pour les cas
+                    // particuliers que l'API ne permet pas de distinguer.
                     if (in_array((string) $joueur->getLicence(), $licencesExclues, true)) {
                         continue;
                     }

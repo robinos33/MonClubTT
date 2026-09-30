@@ -5,6 +5,12 @@ Format : [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/)
 
 ---
 
+## [1.9.1] — 2026-09-30
+
+### Corrigé
+
+- Les joueurs qui n'ont pas repris leur licence pour la saison en cours ne sont plus affichés (liste des joueurs, podium, top progression, synchronisation). Seules les licences validées sont retenues, comme dans l'appli FFTT.
+
 ## [1.9.0] — 2026-09-28
 
 ### Ajouté
