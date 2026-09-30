@@ -3,7 +3,7 @@ Contributors: robinos33
 Tags: table tennis, fftt, club, rankings, results
 Requires at least: 5.0
 Tested up to: 7.0
-Stable tag: 1.9.0
+Stable tag: 1.9.1
 Requires PHP: 7.4
 License: GPLv2
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -59,6 +59,9 @@ Player data is refreshed on manual sync only. League standings and results are c
 Yes. The plugin exposes five filters: `monclubtt_get_joueurs`, `monclubtt_get_equipes`, `monclubtt_get_classement_poule`, `monclubtt_get_rencontres_poule`, `monclubtt_get_feuille_rencontre`. See the documentation for usage.
 
 == Changelog ==
+
+= 1.9.1 =
+* Fixed: players who have not renewed their licence for the current season are no longer displayed; only validated licences are kept, as in the FFTT app
 
 = 1.9.0 =
 * Added: new `monclubtt_get_feuille_rencontre` filter, so other plugins can read a match sheet (players and games) from the cache without an extra API call
@@ -149,6 +152,9 @@ Yes. The plugin exposes five filters: `monclubtt_get_joueurs`, `monclubtt_get_eq
 * Automatic team page generation and deletion
 
 == Upgrade Notice ==
+
+= 1.9.1 =
+Hides players who have not renewed their licence for the current season.
 
 = 1.9.0 =
 New filter exposing match sheets to other plugins. Required by TT Team Planner 1.6.0 to import played matches.
