@@ -196,6 +196,14 @@
         return (n > 0 ? '+' : '') + String(n).replace('.', ',');
     }
 
+    /* Inclinaison aléatoire (-20° à 20°) propre à chaque photo, mémorisée
+     * pour que le visuel ne change pas à chaque redessin du canvas. */
+    var inclinaisons = {};
+    function inclinaison(img) {
+        if (!(img.src in inclinaisons)) inclinaisons[img.src] = Math.random() * 40 - 20;
+        return inclinaisons[img.src];
+    }
+
     /* Photo détourée avec liseré blanc suivant la silhouette (comme le widget). */
     function photoSticker(img, cx, cy, hauteur, angle) {
         var w = hauteur * img.naturalWidth / img.naturalHeight;
@@ -421,7 +429,7 @@
         pastille(signe(gagnant.val) + ' PTS', cx, top + 170 * tk, 26 * tk, P.secondaire, P.surSec, 'center');
     }
 
-    function figure(Pd, cx, top, g, i) {
+    function figure(Pd, cx, top, g) {
         var k = Pd.fig;
         var fw = 128 * k, fh = 168 * k;
         var fx = cx + 9 * Pd.tk - fw / 2, fy = top - 4 - fh;
@@ -432,7 +440,7 @@
         if (g.corps) ctx.drawImage(g.corps, fx, fy, fw, fh);
         ctx.restore();
         if (g.photo) {
-            photoSticker(g.photo, fx + 64 * k, fy + 40 * k, 72 * k, [4, -5, 3][i]);
+            photoSticker(g.photo, fx + 64 * k, fy + 40 * k, 72 * k, inclinaison(g.photo));
         }
     }
 
@@ -451,7 +459,7 @@
         [2, 1, 3].forEach(function (rang, i) {
             var top = Pd.baseY - Pd.heights[rang];
             bloc(Pd, rang, cols[rang], top, gagnants[rang - 1]);
-            if (gagnants[rang - 1]) figure(Pd, cols[rang], top, gagnants[rang - 1], i);
+            if (gagnants[rang - 1]) figure(Pd, cols[rang], top, gagnants[rang - 1]);
         });
     }
 
@@ -577,8 +585,10 @@
                 ctx.fillStyle = '#ffffff';
                 ctx.fill();
                 ctx.clip();
+                ctx.translate(ax, cy);
+                ctx.rotate(inclinaison(l.photo) * Math.PI / 180);
                 var s = (ar * 2) / Math.min(l.photo.naturalWidth, l.photo.naturalHeight);
-                ctx.drawImage(l.photo, ax - l.photo.naturalWidth * s / 2, cy - ar, l.photo.naturalWidth * s, l.photo.naturalHeight * s);
+                ctx.drawImage(l.photo, -l.photo.naturalWidth * s / 2, -ar, l.photo.naturalWidth * s, l.photo.naturalHeight * s);
                 ctx.restore();
                 tx = ax + ar + 18 * ts;
             }
@@ -670,8 +680,10 @@
                 ctx.fillStyle = '#ffffff';
                 ctx.fill();
                 ctx.clip();
+                ctx.translate(ax, cy);
+                ctx.rotate(inclinaison(l.photo) * Math.PI / 180);
                 var s = (ar * 2) / Math.min(l.photo.naturalWidth, l.photo.naturalHeight);
-                ctx.drawImage(l.photo, ax - l.photo.naturalWidth * s / 2, cy - ar, l.photo.naturalWidth * s, l.photo.naturalHeight * s);
+                ctx.drawImage(l.photo, -l.photo.naturalWidth * s / 2, -ar, l.photo.naturalWidth * s, l.photo.naturalHeight * s);
                 ctx.restore();
                 tx = ax + ar + 14 * ts;
             }

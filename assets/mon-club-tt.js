@@ -332,6 +332,13 @@ var MonClubTTAvatars = (function () {
         }).slice(0, 3);
     }
 
+    /* Inclinaison aléatoire (-20° à 20°) par photo, gardée d'un mode à l'autre. */
+    var inclinaisons = {};
+    function inclinaison(photo) {
+        if (!(photo in inclinaisons)) inclinaisons[photo] = Math.round(Math.random() * 40 - 20);
+        return inclinaisons[photo];
+    }
+
     function renderPodium(mode) {
         var metric  = mode === 'mens' ? 'dm' : 'da';
         var winners = topThree(metric);
@@ -364,7 +371,7 @@ var MonClubTTAvatars = (function () {
                 var tenue = { maillot: MonClubTTTopProg.maillot };
                 fig.innerHTML = p.sex === 'F' ? avatarFemale(!hasPhoto, tenue) : avatarMale(!hasPhoto, tenue);
                 if (hasPhoto) {
-                    var tilt = [4, -5, 3][i % 3];
+                    var tilt = inclinaison(p.photo);
                     var photoWrap = document.createElement('div');
                     photoWrap.className = 'tp-photo';
                     photoWrap.style.setProperty('--rot', tilt + 'deg');
