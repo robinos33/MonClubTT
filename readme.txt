@@ -3,7 +3,7 @@ Contributors: robinos33
 Tags: table tennis, fftt, club, rankings, results
 Requires at least: 5.0
 Tested up to: 7.0
-Stable tag: 1.9.2
+Stable tag: 1.10.0
 Requires PHP: 7.4
 License: GPLv2
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -59,6 +59,9 @@ Player data is refreshed on manual sync only. League standings and results are c
 Yes. The plugin exposes five filters: `monclubtt_get_joueurs`, `monclubtt_get_equipes`, `monclubtt_get_classement_poule`, `monclubtt_get_rencontres_poule`, `monclubtt_get_feuille_rencontre`. See the documentation for usage.
 
 == Changelog ==
+
+= 1.10.0 =
+* Changed: player photos are tilted randomly between -20° and 20° (players list podium, social media visuals) instead of fixed angles
 
 = 1.9.2 =
 * Fixed: all validated licensees are now displayed, including those without monthly points yet (new licensees, club transfers); their progression stays empty until the FFTT provides a comparison base
@@ -156,6 +159,9 @@ Yes. The plugin exposes five filters: `monclubtt_get_joueurs`, `monclubtt_get_eq
 * Automatic team page generation and deletion
 
 == Upgrade Notice ==
+
+= 1.10.0 =
+Player photos now get a random tilt on podiums and social media visuals.
 
 = 1.9.2 =
 Shows every validated licensee, including new ones without monthly points yet.

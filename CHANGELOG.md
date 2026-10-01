@@ -5,6 +5,12 @@ Format : [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/)
 
 ---
 
+## [1.10.0] — 2026-10-01
+
+### Modifié
+
+- Les photos des joueurs sont inclinées aléatoirement entre -20° et 20° (podium de la liste des joueurs, podium et listes des visuels réseaux sociaux), au lieu d'angles fixes : les visages n'ont plus tous la même orientation.
+
 ## [1.9.2] — 2026-09-30
 
 ### Corrigé
