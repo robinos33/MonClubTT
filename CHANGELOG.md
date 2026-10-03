@@ -5,6 +5,12 @@ Format : [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/)
 
 ---
 
+## [Non publié]
+
+### Ajouté
+
+- Shortcode `[monclubtt_pong]` : jeu de pong aux couleurs du club. Écran de sélection avec les têtes détourées des licenciés (liseré blanc de 6 px), raquette = personnage du podium, adversaire paramétrable (nom, photo, sexe), marqueur à fiches papier, règles du ping (11 points, 2 d'écart, service tous les 2 points), trois niveaux. Jouable au doigt sur mobile, à la souris ou au clavier.
+
 ## [1.10.0] — 2026-10-01
 
 ### Modifié
