@@ -83,6 +83,28 @@ if (!class_exists('MonClubTT_Joueurs')) {
         }
 
         /**
+         * Joueurs proposés dans le jeu de pong, par ordre alphabétique.
+         *
+         * @return array Liste de ['nom', 'prenom', 'sex', 'pts', 'photo'].
+         */
+        public function getDonneesPong() {
+            $donnees = array();
+            foreach ($this->joueurs as $joueur) {
+                $donnees[] = array(
+                    'nom'    => $joueur->getNom(),
+                    'prenom' => $joueur->getPrenom(),
+                    'sex'    => $joueur->getSexe(),
+                    'pts'    => (float) $joueur->getClassement()->getPointsOfficiels(),
+                    'photo'  => $joueur->getPhotoUrl(),
+                );
+            }
+            usort($donnees, function ($a, $b) {
+                return strcasecmp(remove_accents($a['nom'] . ' ' . $a['prenom']), remove_accents($b['nom'] . ' ' . $b['prenom']));
+            });
+            return $donnees;
+        }
+
+        /**
          * Données du podium « Top Progression » (widget front et visuels
          * réseaux sociaux) : joueurs classés uniquement.
          *

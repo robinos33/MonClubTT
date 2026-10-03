@@ -63,6 +63,7 @@ class MonClubTT_Plugin
         add_action('init', array($this, 'monclubtt_style_scripts'));
         add_shortcode('monclubtt_equipe', array($this, 'equipes_front'));
         add_shortcode('monclubtt_joueurs', array($this, 'joueurs_front'));
+        add_shortcode('monclubtt_pong', array($this, 'pong_front'));
 
         // Hooks pour exposer les données en cache aux autres plugins
         add_filter('monclubtt_get_joueurs', array($this, 'get_joueurs_data'), 10, 1);
@@ -126,6 +127,11 @@ class MonClubTT_Plugin
         wp_localize_script('monclubtt-js', 'MonClubTTAjax', array(
             'ajaxurl' => admin_url('admin-ajax.php'),
         ));
+        // Jeu de pong : chargé seulement par le shortcode [monclubtt_pong].
+        $pongCssVer = filemtime(plugin_dir_path(__FILE__) . 'assets/mon-club-tt-pong.css');
+        $pongJsVer  = filemtime(plugin_dir_path(__FILE__) . 'assets/mon-club-tt-pong.js');
+        wp_register_style('monclubtt-pong-css', plugins_url('/assets/mon-club-tt-pong.css', __FILE__), array(), $pongCssVer);
+        wp_register_script('monclubtt-pong-js', plugins_url('/assets/mon-club-tt-pong.js', __FILE__), array('monclubtt-js'), $pongJsVer, true);
     }
 
     public function register_settings()
@@ -382,6 +388,43 @@ class MonClubTT_Plugin
             return ob_get_clean();
         }
         return esc_html__('Invalid shortcode parameters', 'mon-club-tt');
+    }
+
+    /**
+     * Jeu de pong : sélection d'un joueur du club (photo détourée), match
+     * contre un adversaire paramétrable.
+     * @param array $atts adversaire : « Prénom NOM » ; adversaire_titre : sous-titre ;
+     *                    adversaire_photo : ID de média ou URL d'une photo détourée ;
+     *                    adversaire_sexe : M | F ; manches : 1 | 3 | 5
+     * @return string
+     */
+    public function pong_front($atts)
+    {
+        $atts = shortcode_atts(array(
+            'adversaire'       => 'Top 10 mondial',
+            'adversaire_titre' => '',
+            'adversaire_photo' => '',
+            'adversaire_sexe'  => 'M',
+            'manches'          => '3',
+        ), (array) $atts, 'monclubtt_pong');
+
+        $photo = trim((string) $atts['adversaire_photo']);
+        if (ctype_digit($photo)) {
+            $photo = (string) wp_get_attachment_image_url((int) $photo, 'medium');
+        }
+        $adversaire = array(
+            'nom'    => sanitize_text_field($atts['adversaire']),
+            'prenom' => '',
+            'titre'  => sanitize_text_field($atts['adversaire_titre']),
+            'sex'    => $atts['adversaire_sexe'] === 'F' ? 'F' : 'M',
+            'photo'  => $photo !== '' ? esc_url_raw($photo) : '',
+        );
+        $manches = in_array((int) $atts['manches'], array(1, 3, 5), true) ? (int) $atts['manches'] : 3;
+        $joueurs = new MonClubTT_Joueurs();
+
+        ob_start();
+        require __DIR__ . '/views/front/pong.php';
+        return ob_get_clean();
     }
 
     private function getTypeListeJoueurs()
