@@ -18,10 +18,10 @@
     var TABLE = { x: 34, y: 88, w: 292, h: 412 };
     var R = 6;                                   // rayon de la balle
     var HIT_J = 500, HIT_A = 50;                 // lignes de frappe
-    /* Personnage en pose « jeu » (viewBox 188×168) : bras écartés, raquette
+    /* Personnage en pose « jeu » (viewBox 178×168) : bras écartés, raquette
      * tendue. La zone de frappe couvre toute l'envergure, main gauche (x 8)
-     * à bord de raquette (x 182) ; fig.x désigne son centre. */
-    var SVG = { l: 188, centre: 95, corps: 64, raquette: 162, yRaquette: 67, demi: 87 };
+     * à bord de raquette (x 172) ; fig.x désigne son centre. */
+    var SVG = { l: 178, centre: 90, corps: 64, raquette: 152, yRaquette: 67, demi: 82 };
     var MARGE_FRAPPE = 4;                        // tolérance au-delà du dessin
     var FIG_J = { h: 98, hit: HIT_J };           // personnage du joueur (bas)
     var FIG_A = { h: 80, hit: HIT_A };           // adversaire (haut)
@@ -32,7 +32,7 @@
     var ACCELERATION = 1.08;
     /* Effet : la vitesse latérale de la raquette à l'impact donne à la balle
      * une courbe (accélération latérale, px/s²) qui s'atténue en vol. */
-    var EFFET_MAX = 200, EFFET_VITESSE = 450, EFFET_AMORTI = 0.9;
+    var EFFET_MAX = 270, EFFET_VITESSE = 450, EFFET_AMORTI = 0.8;
 
     var NIVEAUX = {
         facile:  { libelle: 'Facile',         vIa: 200, erreur: 60, reaction: 0.5,  lecture: 0.3, v0: 270, vMax: 560 },
@@ -96,7 +96,7 @@
      * navigateurs lui donnent une taille naturelle. */
     function urlAvatar(sexe, avecTete, maillot, pose) {
         var svg = (sexe === 'F' ? MonClubTTAvatars.female : MonClubTTAvatars.male)(avecTete, { maillot: maillot, pose: pose });
-        svg = svg.replace('<svg ', '<svg width="' + (pose === 'jeu' ? 376 : 256) + '" height="336" ');
+        svg = svg.replace('<svg ', '<svg width="' + (pose === 'jeu' ? 356 : 256) + '" height="336" ');
         return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
     }
 

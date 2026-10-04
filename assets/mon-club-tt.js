@@ -181,22 +181,22 @@ var MonClubTTAvatars = (function () {
     }
 
     /* Pose du jeu de pong (opts.pose = 'jeu') : bras écartés, grande raquette
-       tendue sur le côté ; le dessin passe en viewBox 188×168. */
+       tendue sur le côté ; le dessin passe en viewBox 178×168. */
     function brasJeu(peau, maillot, raquette) {
         return '<rect x="8" y="62" width="40" height="11" rx="5.5" fill="' + peau + '"/>' +
             '<rect x="34" y="60" width="13" height="13" rx="4" fill="' + maillot + '"/>' +
-            '<rect x="81" y="62" width="52" height="11" rx="5.5" fill="' + peau + '"/>' +
+            '<rect x="81" y="62" width="42" height="11" rx="5.5" fill="' + peau + '"/>' +
             '<rect x="81" y="60" width="13" height="13" rx="4" fill="' + maillot + '"/>' +
-            '<rect x="128" y="63" width="16" height="9" rx="3" fill="#e7c9a3"/>' +
-            '<ellipse cx="162" cy="67" rx="20" ry="22" fill="' + raquette + '"/>' +
-            '<ellipse cx="162" cy="67" rx="20" ry="22" fill="none" stroke="#fff" stroke-width="2"/>';
+            '<rect x="118" y="63" width="16" height="9" rx="3" fill="#e7c9a3"/>' +
+            '<ellipse cx="152" cy="67" rx="20" ry="22" fill="' + raquette + '"/>' +
+            '<ellipse cx="152" cy="67" rx="20" ry="22" fill="none" stroke="#fff" stroke-width="2"/>';
     }
 
     function avatarMale(showHead, opts) {
         var maillot = opts && valide(opts.maillot) ? opts.maillot : '#2b7cb5';
         var jeu     = !!(opts && opts.pose === 'jeu');
         var ombre   = assombrir(maillot, 0.28);
-        return '<svg viewBox="0 0 ' + (jeu ? 188 : 128) + ' 168" xmlns="http://www.w3.org/2000/svg">' +
+        return '<svg viewBox="0 0 ' + (jeu ? 178 : 128) + ' 168" xmlns="http://www.w3.org/2000/svg">' +
             (jeu ? brasJeu('#e7b48f', maillot, '#d34328') :
             '<g>' +
               '<rect x="84" y="38" width="11" height="34" rx="5.5" fill="#e7b48f" transform="rotate(38 90 55)"/>' +
@@ -233,7 +233,7 @@ var MonClubTTAvatars = (function () {
         var maillot = opts && valide(opts.maillot) ? opts.maillot : '#d34328';
         var jeu     = !!(opts && opts.pose === 'jeu');
         var ombre   = assombrir(maillot, 0.2);
-        return '<svg viewBox="0 0 ' + (jeu ? 188 : 128) + ' 168" xmlns="http://www.w3.org/2000/svg">' +
+        return '<svg viewBox="0 0 ' + (jeu ? 178 : 128) + ' 168" xmlns="http://www.w3.org/2000/svg">' +
             (jeu ? brasJeu('#ecbb98', maillot, '#2b7cb5') :
             '<g>' +
               '<rect x="84" y="38" width="11" height="34" rx="5.5" fill="#ecbb98" transform="rotate(38 90 55)"/>' +
