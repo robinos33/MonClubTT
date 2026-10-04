@@ -72,6 +72,70 @@
 
 .monclubtt-pong .pong-credits a { color: inherit; }
 
+.monclubtt-pong .pong-scores {
+    margin: 22px auto 0;
+    max-width: 480px;
+    padding: 14px 16px 10px;
+    border-radius: 6px;
+    background: linear-gradient(var(--pong-papier), #f1ece0);
+    box-shadow: 0 3px 0 #e2dccd, 0 8px 18px rgba(35, 52, 74, 0.12);
+}
+
+.monclubtt-pong .pong-scores-titre {
+    margin: 0 0 8px;
+    text-align: center;
+    font-size: 1.05rem;
+    font-weight: 900;
+    color: var(--pong-encre);
+}
+
+.monclubtt-pong .pong-scores-liste {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    counter-reset: rang;
+}
+
+.monclubtt-pong .pong-score {
+    display: grid;
+    grid-template-columns: 1.6em minmax(0, 1fr) auto;
+    grid-template-areas: "rang joueur points" "rang detail niveau";
+    column-gap: 8px;
+    padding: 6px 0;
+    border-top: 1px dashed rgba(35, 52, 74, 0.2);
+    font-size: 0.85rem;
+    line-height: 1.25;
+    counter-increment: rang;
+}
+
+.monclubtt-pong .pong-score:first-child { border-top: 0; }
+
+.monclubtt-pong .pong-score::before {
+    content: counter(rang);
+    grid-area: rang;
+    align-self: center;
+    font-weight: 900;
+    font-size: 1.1rem;
+    color: var(--pong-primaire);
+}
+
+.monclubtt-pong .pong-score-joueur { grid-area: joueur; font-weight: 800; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.monclubtt-pong .pong-score-detail { grid-area: detail; color: rgba(35, 52, 74, 0.75); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.monclubtt-pong .pong-score-points { grid-area: points; font-weight: 900; font-variant-numeric: tabular-nums; text-align: right; }
+
+.monclubtt-pong .pong-score-niveau {
+    grid-area: niveau;
+    justify-self: end;
+    padding: 0 6px;
+    border-radius: 999px;
+    background: var(--pong-secondaire);
+    color: #fff;
+    font-size: 0.68rem;
+    font-weight: 800;
+}
+
+.monclubtt-pong .pong-scores-vide { padding: 6px 0; text-align: center; font-size: 0.85rem; color: rgba(35, 52, 74, 0.75); }
+
 .monclubtt-pong .pong-sous-titre { margin: -8px 0 14px; text-align: center; font-size: 0.95rem; }
 
 .monclubtt-pong .pong-retour { display: block; margin: -6px 0 6px; }
@@ -383,6 +447,9 @@
 @keyframes pongApparait {
     from { opacity: 0; transform: translate(-50%, -44%); }
 }
+
+.monclubtt-pong .pong-message-classement { font-size: 0.85rem; font-weight: 700; color: var(--pong-secondaire); }
+.monclubtt-pong .pong-message-classement:empty { display: none; }
 
 .monclubtt-pong .pong-message-titre { font-size: 1.5rem; font-weight: 900; color: var(--pong-primaire); }
 .monclubtt-pong .pong-message-sous { font-size: 0.95rem; }

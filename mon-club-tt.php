@@ -81,6 +81,10 @@ class MonClubTT_Plugin
         add_action('wp_ajax_monclubtt_top_perfs', array($this, 'handle_ajax_top_perfs'));
         add_action('wp_ajax_monclubtt_feuille_match',        array($this, 'handle_ajax_feuille_match'));
         add_action('wp_ajax_nopriv_monclubtt_feuille_match', array($this, 'handle_ajax_feuille_match'));
+        add_action('wp_ajax_monclubtt_pong_scores',          array($this, 'handle_ajax_pong_scores'));
+        add_action('wp_ajax_nopriv_monclubtt_pong_scores',   array($this, 'handle_ajax_pong_scores'));
+        add_action('wp_ajax_monclubtt_pong_fin',             array($this, 'handle_ajax_pong_fin'));
+        add_action('wp_ajax_nopriv_monclubtt_pong_fin',      array($this, 'handle_ajax_pong_fin'));
 
         // Widget dashboard
         add_action('wp_dashboard_setup', array($this, 'add_dashboard_widget'));
@@ -143,6 +147,7 @@ class MonClubTT_Plugin
         register_setting('monclubtt_settings', MonClubTT_Constantes::MONCLUBTT_COULEURS, array('sanitize_callback' => array($this, 'sanitize_couleurs')));
         register_setting('monclubtt_settings', MonClubTT_Constantes::MONCLUBTT_LOGO, array('sanitize_callback' => array($this, 'sanitize_logo')));
         register_setting('monclubtt_settings', MonClubTT_Constantes::MONCLUBTT_PONG_ADVERSAIRES, array('sanitize_callback' => array($this, 'sanitize_pong_adversaires')));
+        register_setting('monclubtt_settings', 'monclubtt_pong_vider_scores', array('sanitize_callback' => array($this, 'sanitize_pong_vider_scores')));
 
         add_settings_section('monclubtt_section', '', array($this, 'section_html'), 'monclubtt_settings');
         add_settings_field(MonClubTT_Constantes::MONCLUBTT_ID_APPLICATION, 'Id Application', array($this, 'id_application_html'), 'monclubtt_settings', 'monclubtt_section');
@@ -152,6 +157,7 @@ class MonClubTT_Plugin
         add_settings_field(MonClubTT_Constantes::MONCLUBTT_LOGO, 'Logo du club', array($this, 'logo_html'), 'monclubtt_settings', 'monclubtt_section');
         add_settings_field(MonClubTT_Constantes::MONCLUBTT_COULEURS, 'Couleurs du club', array($this, 'couleurs_html'), 'monclubtt_settings', 'monclubtt_section');
         add_settings_field(MonClubTT_Constantes::MONCLUBTT_PONG_ADVERSAIRES, 'Adversaires du jeu de pong', array($this, 'pong_adversaires_html'), 'monclubtt_settings', 'monclubtt_section');
+        add_settings_field('monclubtt_pong_vider_scores', 'Meilleurs scores du jeu de pong', array($this, 'pong_vider_scores_html'), 'monclubtt_settings', 'monclubtt_section');
     }
 
     public function section_html()
@@ -333,6 +339,32 @@ class MonClubTT_Plugin
                 $(this).hide();
             });
         });');
+    }
+
+    public function pong_vider_scores_html()
+    {
+        $nb = count(MonClubTT_PongScores::classer((array) get_option(MonClubTT_Constantes::MONCLUBTT_PONG_SCORES, array())));
+        ?>
+        <label>
+            <input type="checkbox" name="monclubtt_pong_vider_scores" value="1">
+            Vider le tableau des meilleurs scores (<?php echo esc_html(sprintf(_n('%d victoire enregistrée', '%d victoires enregistrées', $nb, 'mon-club-tt'), $nb)); ?>)
+        </label>
+        <p class="description">
+            Les scores sont envoyés par les navigateurs des visiteurs : un petit malin peut en inventer un. Videz le tableau s'il contient une entrée douteuse.
+        </p>
+        <?php
+    }
+
+    /**
+     * Case « Vider le tableau » : supprime les scores, rien n'est conservé
+     * dans l'option elle-même.
+     */
+    public function sanitize_pong_vider_scores($valeur)
+    {
+        if ($valeur === '1') {
+            delete_option(MonClubTT_Constantes::MONCLUBTT_PONG_SCORES);
+        }
+        return '';
     }
 
     public function sanitize_pong_adversaires($valeur)
@@ -529,6 +561,7 @@ class MonClubTT_Plugin
         }
         $manches = in_array((int) $atts['manches'], array(1, 3, 5), true) ? (int) $atts['manches'] : 1;
         $joueurs = new MonClubTT_Joueurs();
+        $scores  = $this->classementPong();
 
         ob_start();
         require __DIR__ . '/views/front/pong.php';
@@ -644,6 +677,105 @@ class MonClubTT_Plugin
      * Handler AJAX public : retourne le détail d'une rencontre (feuille de match).
      * Accessible aux visiteurs non connectés (wp_ajax_nopriv).
      */
+    /**
+     * Handler AJAX (public) : tableau des meilleurs scores du jeu de pong,
+     * relu à l'ouverture de la page (qui peut venir d'un cache).
+     */
+    public function handle_ajax_pong_scores()
+    {
+        wp_send_json_success(array('classement' => $this->classementPong()));
+    }
+
+    /**
+     * Handler AJAX (public) : fin d'un match de pong. Une victoire contre un
+     * joueur du top 10 mondial ou du club entre au tableau des meilleurs
+     * scores, après vérification des noms (licenciés du club, adversaires des
+     * réglages) et du score. Le score reste déclaré par le navigateur : limite
+     * d'un envoi toutes les 15 secondes par adresse IP.
+     */
+    public function handle_ajax_pong_fin()
+    {
+        if (!check_ajax_referer('monclubtt_pong', 'nonce', false)) {
+            wp_send_json_error(array('message' => 'Session expirée, rechargez la page.'), 403);
+            return;
+        }
+        $champ = function ($cle) {
+            return sanitize_text_field(wp_unslash($_POST[$cle] ?? '')); // phpcs:ignore WordPress.Security.NonceVerification.Missing -- vérifié ci-dessus
+        };
+        $pj      = (int) $champ('pj');
+        $pa      = (int) $champ('pa');
+        $niveau  = $champ('niveau');
+        $advType = $champ('adv_type');
+
+        $ip  = isset($_SERVER['REMOTE_ADDR']) ? sanitize_text_field(wp_unslash($_SERVER['REMOTE_ADDR'])) : '';
+        $cle = 'monclubtt_pong_' . md5($ip);
+        if (get_transient($cle)) {
+            wp_send_json_error(array('message' => 'Trop de matchs envoyés, réessayez dans un instant.'), 429);
+            return;
+        }
+
+        $joueur     = $this->joueurPong($champ('joueur_nom'), $champ('joueur_prenom'));
+        $adversaire = null;
+        if ($advType === 'club') {
+            $club       = $this->joueurPong($champ('adv_nom'), $champ('adv_prenom'));
+            $adversaire = $club ? trim($club['prenom'] . ' ' . strtoupper($club['nom'])) : null;
+        } elseif ($advType === 'monde') {
+            foreach (monclubtt_get_pong_adversaires() as $liste) {
+                foreach ($liste as $adv) {
+                    if ($adv['nom'] !== '' && $adv['nom'] === $champ('adv_nom')) {
+                        $adversaire = $adv['nom'];
+                    }
+                }
+            }
+        }
+        if (!$joueur || !$adversaire || !in_array($niveau, MonClubTT_PongScores::NIVEAUX, true)
+            || $pj <= $pa || !MonClubTT_PongScores::scoreValide($pj, $pa)) {
+            wp_send_json_error(array('message' => 'Match non enregistré.'), 400);
+            return;
+        }
+        set_transient($cle, 1, 15);
+
+        $resultat = MonClubTT_PongScores::ajouter(
+            (array) get_option(MonClubTT_Constantes::MONCLUBTT_PONG_SCORES, array()),
+            array(
+                'joueur'     => trim($joueur['prenom'] . ' ' . strtoupper($joueur['nom'])),
+                'adversaire' => $adversaire,
+                'niveau'     => $niveau,
+                'pj'         => $pj,
+                'pa'         => $pa,
+                'date'       => time(),
+            )
+        );
+        update_option(MonClubTT_Constantes::MONCLUBTT_PONG_SCORES, $resultat['tableau'], false);
+
+        wp_send_json_success(array(
+            'classement' => array_map(array('MonClubTT_PongScores', 'publique'), $resultat['tableau']),
+            'rang'       => $resultat['rang'],
+        ));
+    }
+
+    /**
+     * Licencié du club proposé dans le jeu, retrouvé par nom et prénom.
+     * @return array|null
+     */
+    private function joueurPong($nom, $prenom)
+    {
+        $joueurs = new MonClubTT_Joueurs();
+        foreach ($joueurs->getDonneesPong() as $joueur) {
+            if ($joueur['nom'] === $nom && $joueur['prenom'] === $prenom) {
+                return $joueur;
+            }
+        }
+        return null;
+    }
+
+    /** Tableau des meilleurs scores, version publique. */
+    private function classementPong()
+    {
+        $tableau = MonClubTT_PongScores::classer((array) get_option(MonClubTT_Constantes::MONCLUBTT_PONG_SCORES, array()));
+        return array_map(array('MonClubTT_PongScores', 'publique'), $tableau);
+    }
+
     public function handle_ajax_feuille_match()
     {
         $rencId   = sanitize_text_field(wp_unslash($_POST['renc_id']   ?? '')); // phpcs:ignore WordPress.Security.NonceVerification.Missing

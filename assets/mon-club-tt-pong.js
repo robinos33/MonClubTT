@@ -410,6 +410,73 @@
             else montrer(ecranAdv);
         }));
 
+        /* ---- Tableau des meilleurs scores (commun à tous les visiteurs) ---- */
+        var blocScores = el('section', 'pong-scores');
+        blocScores.appendChild(el('h4', 'pong-scores-titre', 'Meilleurs scores'));
+        var listeScores = el('ol', 'pong-scores-liste');
+        blocScores.appendChild(listeScores);
+        ecranSel.appendChild(blocScores);
+
+        function afficherScores(liste) {
+            listeScores.innerHTML = '';
+            if (!liste || !liste.length) {
+                listeScores.appendChild(el('li', 'pong-scores-vide', 'Aucune victoire pour l\'instant. À toi d\'ouvrir le tableau !'));
+                return;
+            }
+            liste.forEach(function (e) {
+                var li = el('li', 'pong-score');
+                li.appendChild(el('span', 'pong-score-joueur', e.joueur));
+                li.appendChild(el('span', 'pong-score-detail', 'bat ' + e.adversaire));
+                li.appendChild(el('span', 'pong-score-points', e.pj + '–' + e.pa));
+                if (e.niveau === 'mondial') li.appendChild(el('span', 'pong-score-niveau', NIVEAUX.mondial.libelle));
+                listeScores.appendChild(li);
+            });
+        }
+        afficherScores(cfg.scores);
+
+        function appelAjax(action, donnees) {
+            if (!cfg.ajax) return Promise.reject(new Error('hors ligne'));
+            var corps = new URLSearchParams(donnees || {});
+            corps.set('action', action);
+            return fetch(cfg.ajax, { method: 'POST', credentials: 'same-origin', body: corps })
+                .then(function (r) { return r.json(); })
+                .then(function (r) {
+                    if (!r || !r.success) throw new Error(r && r.data && r.data.message || 'erreur');
+                    return r.data;
+                });
+        }
+        // La page peut venir d'un cache : le tableau est relu à l'ouverture.
+        appelAjax('monclubtt_pong_scores').then(function (d) { afficherScores(d.classement); }, function () {});
+
+        /* Type d'adversaire envoyé au serveur (seuls « monde » et « club » sont classés). */
+        function typeAdversaire(a) {
+            if (adversaires.indexOf(a) >= 0) return 'monde';
+            if (joueurs.indexOf(a) >= 0) return 'club';
+            return 'invite';
+        }
+
+        /* Fin de match : une victoire contre le top 10 ou le club est proposée
+         * au tableau ; ligne mise à jour dans le message de fin. */
+        function envoyerFin(ligne) {
+            var victoire = match.points.joueur > match.points.adversaire;
+            var type = typeAdversaire(adv);
+            if (!victoire || type === 'invite') return;
+            ligne.textContent = 'Enregistrement au tableau…';
+            appelAjax('monclubtt_pong_fin', {
+                nonce: cfg.nonce || '',
+                joueur_nom: etat.joueur.nom, joueur_prenom: etat.joueur.prenom || '',
+                adv_type: type, adv_nom: adv.nom, adv_prenom: adv.prenom || '',
+                niveau: etat.niveau, pj: match.points.joueur, pa: match.points.adversaire
+            }).then(function (d) {
+                afficherScores(d.classement);
+                ligne.textContent = d.rang
+                    ? 'Tu entres ' + (d.rang === 1 ? '1er' : d.rang + 'e') + ' au tableau des meilleurs scores !'
+                    : 'Pas assez pour entrer au tableau des meilleurs scores, cette fois.';
+            }, function (err) {
+                ligne.textContent = 'Score non enregistré : ' + err.message;
+            });
+        }
+
         /* ---- Écran 2 : choix de l'adversaire ---- */
         var ecranAdv = el('div', 'pong-ecran pong-selection pong-choix-adv');
         ecranAdv.hidden = true;
@@ -699,6 +766,9 @@
                         { texte: 'Rejouer', action: nouveauMatch },
                         { texte: 'Changer d\'adversaire', action: retourSelection, secondaire: true }
                     ]);
+                var ligneScore = el('span', 'pong-message-classement');
+                message.insertBefore(ligneScore, message.querySelector('.pong-message-boutons'));
+                envoyerFin(ligneScore);
             }
         }
 

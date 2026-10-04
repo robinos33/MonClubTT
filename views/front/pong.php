@@ -9,6 +9,9 @@ $config   = array(
     'joueurs'    => $joueurs->getDonneesPong(),
     'adversaires' => $adversaires,
     'impose'      => $impose,
+    'scores'      => $scores,
+    'ajax'        => admin_url('admin-ajax.php'),
+    'nonce'       => wp_create_nonce('monclubtt_pong'),
     'manches'    => $manches,
     'couleurs'   => $couleurs,
 );

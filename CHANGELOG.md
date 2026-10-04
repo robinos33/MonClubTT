@@ -9,7 +9,7 @@ Format : [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/)
 
 ### Ajouté
 
-- Shortcode `[monclubtt_pong]` : jeu de pong aux couleurs du club. Écran de sélection avec les têtes détourées des licenciés (liseré blanc de 6 px), raquette = personnage du podium, choix de l'adversaire parmi le top 10 mondial messieurs et dames (liste et photos réglables dans les réglages, crédits photo dans un accordéon discret) ou les joueurs du club, ou au hasard, marqueur à fiches papier, règles du ping (11 points, 2 d'écart, service tous les 2 points), niveaux Normal et Expert, son à chaque point gagné. La balle accélère à chaque frappe d'un échange et prend une courbe selon le déplacement de la raquette à l'impact. Jouable au doigt sur mobile, à la souris ou au clavier.
+- Shortcode `[monclubtt_pong]` : jeu de pong aux couleurs du club. Écran de sélection avec les têtes détourées des licenciés (liseré blanc de 6 px), raquette = personnage du podium, choix de l'adversaire parmi le top 10 mondial messieurs et dames (liste et photos réglables dans les réglages, crédits photo dans un accordéon discret) ou les joueurs du club, ou au hasard, marqueur à fiches papier, règles du ping (11 points, 2 d'écart, service tous les 2 points), niveaux Normal et Expert, son à chaque point gagné, tableau des 10 meilleures victoires commun à tous les visiteurs (vidable dans les réglages). La balle accélère à chaque frappe d'un échange et prend une courbe selon le déplacement de la raquette à l'impact. Jouable au doigt sur mobile, à la souris ou au clavier.
 
 ## [1.10.0] — 2026-10-01
 

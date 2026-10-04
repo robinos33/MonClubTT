@@ -72,6 +72,8 @@ Le visiteur choisit son joueur parmi les licenciés (photo détourée avec liser
 | `adversaire_sexe` | `M`, `F` | `M` | Avatar utilisé pour le corps |
 | `manches` | `1`, `3`, `5` | `1` | Nombre de manches du match (en une manche, le marqueur n'affiche que les points) |
 
+**Meilleurs scores** : les 10 meilleures victoires (contre le top 10 mondial ou un licencié) sont affichées sous la sélection des joueurs, classées par niveau (Expert d'abord), puis écart de points. Commun à tous les visiteurs ; les scores étant déclarés par le navigateur, une case « Vider le tableau » est disponible dans les réglages.
+
 Le plugin ne fournit aucune photo de joueur professionnel : n'utilisez que des images dont le club a les droits, par exemple des photos de Wikimedia Commons sous licence libre. La **légende** de l'image dans la médiathèque sert de crédit, affiché sur l'écran de sélection et sous le jeu (auteur et licence obligatoires pour Commons).
 
 ---

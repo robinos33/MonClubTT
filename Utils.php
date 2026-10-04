@@ -13,6 +13,7 @@ if ( ! class_exists( 'MonClubTT_Constantes' ) ) {
         const MONCLUBTT_COULEURS = 'monclubtt_couleurs';
         const MONCLUBTT_LOGO = 'monclubtt_logo';
         const MONCLUBTT_PONG_ADVERSAIRES = 'monclubtt_pong_adversaires';
+        const MONCLUBTT_PONG_SCORES = 'monclubtt_pong_scores';
         /** Ancienne option (1.6.2), relue tant que les réglages n'ont pas été enregistrés. */
         const MONCLUBTT_SOCIAL_COULEURS = 'monclubtt_social_couleurs';
 
