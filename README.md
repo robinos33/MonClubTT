@@ -58,7 +58,7 @@ Copier le shortcode affiché dans le tableau et le coller dans la page WordPress
 
 ### Jeu de pong
 
-> **Démo** : [ouvrir dans WordPress Playground](https://playground.wordpress.net/?blueprint-url=https://raw.githubusercontent.com/robinos33/MonClubTT/claude/pong-game-club-players-kygatf/demo/playground/blueprint.json) — WordPress complet dans le navigateur, club fictif, photos et réglages (dossier `demo/playground/`, exclu du ZIP).
+> **Démo** : [ouvrir dans WordPress Playground](https://playground.wordpress.net/?blueprint-url=https://raw.githubusercontent.com/robinos33/MonClubTT/master/demo/playground/blueprint.json) — WordPress complet dans le navigateur, club fictif, photos et réglages (dossier `demo/playground/`, exclu du ZIP).
 
 ```
 [monclubtt_pong]

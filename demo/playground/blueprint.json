@@ -15,7 +15,7 @@
       "pluginData": {
         "resource": "git:directory",
         "url": "https://github.com/robinos33/MonClubTT",
-        "ref": "claude/pong-game-club-players-kygatf",
+        "ref": "master",
         "refType": "branch"
       },
       "options": { "activate": true, "targetFolderName": "mon-club-tt" }
