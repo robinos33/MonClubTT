@@ -401,14 +401,67 @@
 
         /* ---- Écran 1 : choix du joueur ---- */
         var ecranSel = el('div', 'pong-ecran pong-selection');
+
+        /* Arrivée par un lien partagé : bandeau « Défi » pour rejouer le même
+         * match (même adversaire, même niveau). */
+        var defi = cfg.defi || null;
+        if (defi) {
+            defi.adv = defi.adv_type === 'monde' ? adversaires.filter(function (a) { return a.nom === defi.adv_nom; })[0]
+                : defi.adv_type === 'club' ? joueurs.filter(function (j) { return j.nom === defi.adv_nom && j.prenom === defi.adv_prenom; })[0]
+                : defi.adv_type === 'invite' && impose && impose.nom === defi.adv_nom ? impose : null;
+            var bandeau = el('div', 'pong-defi');
+            var vainqueur = defi.victoire ? defi.joueur : defi.adversaire;
+            var vaincu = defi.victoire ? defi.adversaire : defi.joueur;
+            var scoreDefi = Math.max(defi.pj, defi.pa) + '–' + Math.min(defi.pj, defi.pa);
+            bandeau.appendChild(el('span', 'pong-defi-label', 'Défi'));
+            bandeau.appendChild(el('strong', 'pong-defi-titre', vainqueur + ' a battu ' + vaincu + ' ' + scoreDefi));
+            bandeau.appendChild(el('span', 'pong-defi-texte', defi.victoire
+                ? 'À toi de battre ' + defi.adversaire + ', et de faire mieux !'
+                : 'Venge ' + defi.joueur + ' : bats ' + defi.adversaire + ' !'));
+            if (defi.adv) {
+                var relever = el('button', 'pong-bouton pong-defi-bouton', 'Relever le défi');
+                relever.type = 'button';
+                relever.addEventListener('click', function () {
+                    etat.defiActif = true;
+                    if (NIVEAUX[defi.niveau]) {
+                        etat.niveau = defi.niveau;
+                        niveaux.querySelectorAll('.pong-niveau').forEach(function (x) {
+                            x.setAttribute('aria-pressed', String(x.dataset.niveau === defi.niveau));
+                        });
+                    }
+                    relever.textContent = 'Choisis ton joueur ↓';
+                    relever.disabled = true;
+                    ecranSel.querySelector('.pong-grille').scrollIntoView({ block: 'start', behavior: 'smooth' });
+                });
+                bandeau.appendChild(relever);
+            }
+            ecranSel.appendChild(bandeau);
+        }
+
         ecranSel.appendChild(el('h3', 'pong-titre', 'Choisis ton joueur'));
         ecranSel.appendChild(grilleCartes(joueurs, couleurs.maillot, function (p) {
             etat.joueur = p;
             clubAdv.masquer(p);
             sousTitreAdv.textContent = 'Tu joues avec ' + nomAffiche(p);
-            if (impose) jouerContre(impose);
+            if (etat.defiActif && defi.adv && defi.adv !== p) jouerContre(defi.adv);
+            else if (impose) jouerContre(impose);
             else montrer(ecranAdv);
         }));
+
+        /* Verdict du défi en fin de match, comparé au match partagé. */
+        function verdictDefi() {
+            if (!etat.defiActif || !defi || adv !== defi.adv) return '';
+            var gagne = match.points.joueur > match.points.adversaire;
+            var score = defi.pj + '–' + defi.pa;
+            if (!defi.victoire) {
+                return gagne ? 'Vengeance accomplie pour ' + defi.joueur + ' !' : defi.adversaire + ' reste invaincu…';
+            }
+            if (!gagne) return 'Défi raté : ' + defi.adversaire + ' a eu le dernier mot.';
+            var moi = match.points.joueur - match.points.adversaire, lui = defi.pj - defi.pa;
+            return moi > lui ? 'Défi relevé : tu fais mieux que ' + defi.joueur + ' (' + score + ') !'
+                : moi === lui ? 'Égalité parfaite avec ' + defi.joueur + ' (' + score + ').'
+                : 'Gagné, mais ' + defi.joueur + ' avait fait mieux (' + score + ').';
+        }
 
         /* ---- Tableau des meilleurs scores (commun à tous les visiteurs) ---- */
         var blocScores = el('section', 'pong-scores');
@@ -484,7 +537,7 @@
          * partage natif du téléphone (image en fichier), sinon l'image à enregistrer. */
         function afficherPartage(zone, p) {
             zone.innerHTML = '';
-            zone.appendChild(el('span', 'pong-partage-titre', 'Partager le match'));
+            zone.appendChild(el('span', 'pong-partage-titre', 'Défie tes amis'));
             var apercu = el('img', 'pong-partage-apercu');
             apercu.src = p.image;
             apercu.alt = 'Image de partage du match';
@@ -814,6 +867,8 @@
                         { texte: 'Rejouer', action: nouveauMatch },
                         { texte: 'Changer d\'adversaire', action: retourSelection, secondaire: true }
                     ]);
+                var verdict = verdictDefi();
+                if (verdict) message.insertBefore(el('strong', 'pong-message-defi', verdict), message.querySelector('.pong-message-boutons'));
                 var ligneScore = el('span', 'pong-message-classement');
                 var zonePartage = el('div', 'pong-partage');
                 message.insertBefore(ligneScore, message.querySelector('.pong-message-boutons'));

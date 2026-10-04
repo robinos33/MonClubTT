@@ -10,6 +10,7 @@ $config   = array(
     'adversaires' => $adversaires,
     'impose'      => $impose,
     'scores'      => $scores,
+    'defi'        => $defi,
     'ajax'        => admin_url('admin-ajax.php'),
     'nonce'       => wp_create_nonce('monclubtt_pong'),
     'page'        => (int) get_the_ID(),

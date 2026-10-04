@@ -566,6 +566,23 @@ class MonClubTT_Plugin
         $joueurs = new MonClubTT_Joueurs();
         $scores  = $this->classementPong();
 
+        // Arrivée par un lien partagé (?pong=ID) : le match devient un défi.
+        $defi  = null;
+        $match = isset($_GET['pong']) ? $this->matchPong(sanitize_key(wp_unslash($_GET['pong']))) : null; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- lecture publique
+        if ($match && (int) $match['post'] === (int) get_the_ID()) {
+            $defi = array(
+                'joueur'     => $match['joueur'],
+                'adversaire' => $match['adversaire'],
+                'pj'         => (int) $match['pj'],
+                'pa'         => (int) $match['pa'],
+                'victoire'   => (bool) $match['victoire'],
+                'niveau'     => $match['niveau'],
+                'adv_type'   => $match['adv_type'] ?? '',
+                'adv_nom'    => $match['adv_nom'] ?? '',
+                'adv_prenom' => $match['adv_prenom'] ?? '',
+            );
+        }
+
         ob_start();
         require __DIR__ . '/views/front/pong.php';
         return ob_get_clean();
@@ -774,6 +791,10 @@ class MonClubTT_Plugin
                 'pa'          => $pa,
                 'victoire'    => $victoire,
                 'niveau'      => $niveau,
+                // Pour rejouer le même match depuis le lien partagé (défi).
+                'adv_type'    => $advType,
+                'adv_nom'     => $champ('adv_nom'),
+                'adv_prenom'  => $champ('adv_prenom'),
                 'post'        => $postId,
                 'date'        => time(),
             ));
@@ -782,7 +803,7 @@ class MonClubTT_Plugin
                 'url'   => add_query_arg('pong', $id, get_permalink($postId)),
                 'image' => add_query_arg('monclubtt_pong_image', $id, home_url('/')),
                 'texte' => $victoire
-                    ? sprintf('J\'ai battu %s %d–%d au Pong du club %s !', $adversaire['affiche'], $pj, $pa, $club)
+                    ? sprintf('J\'ai battu %s %d–%d au Pong du club %s. Tu fais mieux ?', $adversaire['affiche'], $pj, $pa, $club)
                     : sprintf('%s m\'a battu %d–%d au Pong du club %s. Qui me venge ?', $adversaire['affiche'], $pa, $pj, $club),
             );
         }
@@ -968,7 +989,9 @@ class MonClubTT_Plugin
         $titre = $match['victoire']
             ? sprintf('%s bat %s %d–%d', $match['joueur'], $match['adversaire'], $match['pj'], $match['pa'])
             : sprintf('%s bat %s %d–%d', $match['adversaire'], $match['joueur'], $match['pa'], $match['pj']);
-        $desc  = sprintf('Pong du club %s : à toi de jouer !', get_bloginfo('name'));
+        $desc  = $match['victoire']
+            ? sprintf('À toi : bats %s au Pong du club %s. Gratuit, au doigt sur mobile.', $match['adversaire'], get_bloginfo('name'))
+            : sprintf('Venge %s : bats %s au Pong du club %s. Gratuit, au doigt sur mobile.', $match['joueur'], $match['adversaire'], get_bloginfo('name'));
         $url   = add_query_arg('pong', $id, get_permalink((int) $match['post']));
         $image = add_query_arg('monclubtt_pong_image', $id, home_url('/'));
         $balises = array(

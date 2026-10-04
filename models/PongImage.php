@@ -61,12 +61,9 @@ class MonClubTT_PongImage {
 
         imagefilledrectangle($im, 0, 0, $W, $H, $c($coul['fond']));
 
-        // Bandeau du haut : nom du jeu et du club, site à droite.
-        imagefilledrectangle($im, 0, 0, $W, 92, $c($coul['primaire']));
-        self::texte($im, $police, 'PONG DU CLUB · ' . self::majuscules($m['club']), 30, 56, 60, $c('#ffffff'), 'gauche', 760);
-        if ($m['site'] !== '') {
-            self::texte($im, $police, $m['site'], 22, $W - 56, 58, $c('#ffffff', 30), 'droite', 360);
-        }
+        // Bandeau du haut : nom du jeu et du club.
+        imagefilledrectangle($im, 0, 0, $W, 80, $c($coul['primaire']));
+        self::texte($im, $police, 'PONG DU CLUB · ' . self::majuscules($m['club']), 30, $W / 2, 53, $c('#ffffff'), 'centre', $W - 112);
 
         // Joueurs de part et d'autre du marqueur.
         $places = array(
@@ -74,34 +71,49 @@ class MonClubTT_PongImage {
             array('nom' => $m['adversaire'], 'photo' => $m['photo_adversaire'], 'x' => $W - 230, 'teinte' => $coul['secondaire'], 'angle' => -7),
         );
         foreach ($places as $p) {
-            if (!self::tete($im, $p['photo'], $p['x'], 300, 270, $p['angle'])) {
-                self::initiales($im, $police, $p['nom'], $p['x'], 300, 120, $c($p['teinte']), $c('#ffffff'));
+            if (!self::tete($im, $p['photo'], $p['x'], 268, 240, $p['angle'])) {
+                self::initiales($im, $police, $p['nom'], $p['x'], 268, 108, $c($p['teinte']), $c('#ffffff'));
             }
-            self::texte($im, $police, $p['nom'], 34, $p['x'], 520, $c($encre), 'centre', 400);
+            self::texte($im, $police, $p['nom'], 32, $p['x'], 468, $c($encre), 'centre', 400);
         }
 
         // Marqueur à fiches : support, deux fiches papier avec anneaux.
         $cx = $W / 2;
-        self::rectArrondi($im, $cx - 190, 190, $cx + 190, 430, 16, $c('#1f2e42'));
+        self::rectArrondi($im, $cx - 190, 158, $cx + 190, 390, 16, $c('#1f2e42'));
         $fiches = array(array($m['pj'], $coul['primaire'], $cx - 92), array($m['pa'], $coul['secondaire'], $cx + 92));
         foreach ($fiches as list($valeur, $teinte, $fx)) {
-            self::rectArrondi($im, $fx - 78, 232, $fx + 78, 412, 8, $c('#cfc7b4'));
-            self::rectArrondi($im, $fx - 78, 224, $fx + 78, 404, 8, $c('#fbf8f1'));
+            self::rectArrondi($im, $fx - 78, 200, $fx + 78, 376, 8, $c('#cfc7b4'));
+            self::rectArrondi($im, $fx - 78, 192, $fx + 78, 368, 8, $c('#fbf8f1'));
             foreach (array(-36, 36) as $dx) {
-                self::rectArrondi($im, $fx + $dx - 6, 208, $fx + $dx + 6, 240, 6, $c('#aab4bf'));
+                self::rectArrondi($im, $fx + $dx - 6, 176, $fx + $dx + 6, 208, 6, $c('#aab4bf'));
             }
-            self::texte($im, $police, (string) $valeur, 96, $fx, 358, $c($teinte), 'centre', 128);
+            self::texte($im, $police, (string) $valeur, 96, $fx, 324, $c($teinte), 'centre', 128);
         }
 
-        // Résultat sous le marqueur.
-        $resultat = $m['victoire'] ? 'VICTOIRE' : 'DÉFAITE';
+        // Résultat (et niveau) sous le marqueur.
+        $resultat = ($m['victoire'] ? 'VICTOIRE' : 'DÉFAITE') . ($m['niveau_libelle'] !== '' ? ' · ' . self::majuscules($m['niveau_libelle']) : '');
         $fondRes  = $m['victoire'] ? $coul['secondaire'] : $encre;
-        $largeur  = self::largeur($police, 26, $resultat) + 48;
-        self::rectArrondi($im, $cx - $largeur / 2, 446, $cx + $largeur / 2, 494, 24, $c($fondRes));
-        self::texte($im, $police, $resultat, 26, $cx, 482, $c('#ffffff'), 'centre', 400);
-        if ($m['niveau_libelle'] !== '') {
-            self::texte($im, $police, 'Niveau ' . $m['niveau_libelle'], 22, $cx, 584, $c($encre, 40), 'centre', 400);
-        }
+        $largeur  = self::largeur($police, 24, $resultat) + 48;
+        self::rectArrondi($im, $cx - $largeur / 2, 404, $cx + $largeur / 2, 448, 22, $c($fondRes));
+        self::texte($im, $police, $resultat, 24, $cx, 437, $c('#ffffff'), 'centre', 400);
+
+        // Appel à l'action : bandeau du bas, invitation à rejouer le même match.
+        imagefilledrectangle($im, 0, 512, $W, $H, $c($encre));
+        $defi = $m['victoire']
+            ? 'À TOI : BATS ' . self::majuscules($m['adversaire']) . ' !'
+            : 'VENGE ' . self::majuscules($m['joueur']) . ' !';
+        self::texte($im, $police, $defi, 34, 56, 566, $c('#ffffff'), 'gauche', 780);
+        $invitation = $m['site'] !== '' ? 'Joue gratuitement sur ' . $m['site'] : 'Joue gratuitement sur le site du club';
+        self::texte($im, $police, $invitation, 22, 56, 604, $c('#ffffff', 35), 'gauche', 780);
+        // Bouton « JOUER » dessiné (triangle en polygone : pas de dépendance aux glyphes).
+        $bx2 = $W - 56;
+        $bx1 = $bx2 - 236;
+        self::rectArrondi($im, $bx1, 536, $bx2, 606, 35, $c($coul['secondaire']));
+        $lJouer = self::largeur(self::$police, 30, 'JOUER');
+        $x0     = ($bx1 + $bx2) / 2 - ($lJouer + 18 + 26) / 2;
+        self::texte($im, $police, 'JOUER', 30, $x0, 584, $c('#ffffff'), 'gauche', 160);
+        $tx = (int) round($x0 + $lJouer + 18);
+        imagefilledpolygon($im, array($tx, 555, $tx, 587, $tx + 26, 571), $c('#ffffff'));
 
         ob_start();
         imagepng($im, null, 6);

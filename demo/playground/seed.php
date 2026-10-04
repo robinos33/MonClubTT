@@ -113,8 +113,18 @@ $pages = array(
     'pong-contre-coach' => array('Pong contre le coach', '[monclubtt_pong adversaire="Le coach du club" adversaire_titre="Invité spécial" adversaire_photo="' . $coach . '"]'),
     'joueurs'          => array('Joueurs', '[monclubtt_joueurs type="MF"]'),
 );
+$ids = array();
 foreach ($pages as $slug => $page) {
-    wp_insert_post(array('post_type' => 'page', 'post_status' => 'publish', 'post_name' => $slug, 'post_title' => $page[0], 'post_content' => $page[1]));
+    $ids[$slug] = wp_insert_post(array('post_type' => 'page', 'post_status' => 'publish', 'post_name' => $slug, 'post_title' => $page[0], 'post_content' => $page[1]));
 }
+
+// Un match déjà partagé, pour voir la page d'arrivée d'un lien : /jeu-de-pong/?pong=defidemo0001
+update_option(MonClubTT_Constantes::MONCLUBTT_PONG_MATCHS, array(
+    'defidemo0001' => array(
+        'joueur' => 'Louis CARRÈRE', 'adversaire' => 'Felix LEBRUN', 'photo_j' => $photos['9900102'] ?? 0,
+        'photo_a' => (int) $adversaires['M'][1]['photo'], 'pj' => 11, 'pa' => 9, 'victoire' => true, 'niveau' => 'mondial',
+        'adv_type' => 'monde', 'adv_nom' => 'Felix LEBRUN', 'adv_prenom' => '', 'post' => (int) $ids['jeu-de-pong'], 'date' => time(),
+    ),
+), false);
 update_option('permalink_structure', '/%postname%/');
 flush_rewrite_rules();
