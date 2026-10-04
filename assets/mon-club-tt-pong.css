@@ -280,6 +280,8 @@
 
 .monclubtt-pong .pong-fiche--manches { width: 38px; height: 48px; }
 
+.monclubtt-pong .pong-marqueur--une-manche .pong-fiche--manches { display: none; }
+
 /* Anneaux */
 .monclubtt-pong .pong-fiche::before,
 .monclubtt-pong .pong-fiche::after {

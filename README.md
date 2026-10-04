@@ -62,7 +62,7 @@ Copier le shortcode affiché dans le tableau et le coller dans la page WordPress
 [monclubtt_pong]
 ```
 
-Le visiteur choisit son joueur parmi les licenciés (photo détourée avec liseré blanc, sinon avatar dessiné), puis choisit son adversaire : un joueur du top 10 mondial messieurs ou dames, un autre licencié du club, ou « Au hasard », sur une table aux couleurs du club. La liste des 20 adversaires (nom écrit comme sur le site de la WTT, affiché tel quel, + photo détourée de la médiathèque) se règle dans *Mon Club TT › Réglages* ; elle est pré-remplie avec le classement mondial de la semaine 40 de 2026 et doit être tenue à jour à la main. Score sur un marqueur à fiches, manches en 11 points, service alterné tous les 2 points. Au doigt sur mobile, à la souris ou aux flèches + espace sur ordinateur.
+Le visiteur choisit son joueur parmi les licenciés (photo détourée avec liseré blanc, sinon avatar dessiné), puis choisit son adversaire : un joueur du top 10 mondial messieurs ou dames, un autre licencié du club, ou « Au hasard », sur une table aux couleurs du club. La liste des 20 adversaires (nom écrit comme sur le site de la WTT, affiché tel quel, + photo détourée de la médiathèque) se règle dans *Mon Club TT › Réglages* ; elle est pré-remplie avec le classement mondial de la semaine 40 de 2026 et doit être tenue à jour à la main. Score sur un marqueur à fiches, match en une manche de 11 points par défaut, service alterné tous les 2 points. Au doigt sur mobile, à la souris ou aux flèches + espace sur ordinateur.
 
 | Attribut | Valeurs | Défaut | Description |
 |----------|---------|--------|-------------|
@@ -70,7 +70,7 @@ Le visiteur choisit son joueur parmi les licenciés (photo détourée avec liser
 | `adversaire_titre` | texte | — | Sous-titre affiché sur l'écran de sélection |
 | `adversaire_photo` | ID de média ou URL | — | Photo détourée (PNG transparent) de l'adversaire ; à défaut, avatar dessiné |
 | `adversaire_sexe` | `M`, `F` | `M` | Avatar utilisé pour le corps |
-| `manches` | `1`, `3`, `5` | `3` | Nombre de manches du match |
+| `manches` | `1`, `3`, `5` | `1` | Nombre de manches du match (en une manche, le marqueur n'affiche que les points) |
 
 Le plugin ne fournit aucune photo de joueur professionnel : n'utilisez que des images dont le club a les droits, par exemple des photos de Wikimedia Commons sous licence libre. La **légende** de l'image dans la médiathèque sert de crédit, affiché sur l'écran de sélection et sous le jeu (auteur et licence obligatoires pour Commons).
 

@@ -270,7 +270,7 @@
         this.camps.joueur.el.classList.toggle('pong-camp--sert', serveur === 'joueur');
         this.camps.adversaire.el.classList.toggle('pong-camp--sert', serveur === 'adversaire');
         this.annonce.textContent = m.points.joueur + ' à ' + m.points.adversaire +
-            ', manches ' + m.manches.joueur + ' à ' + m.manches.adversaire;
+            (m.gagnantes > 1 ? ', manches ' + m.manches.joueur + ' à ' + m.manches.adversaire : '');
     };
 
     /* ---------------------------------------------------------- règles */
@@ -317,7 +317,7 @@
         // Adversaire imposé par le shortcode : joué dès le choix du joueur.
         var impose = cfg.impose || null;
         var adv = null;
-        var nbManches = [1, 3, 5].indexOf(cfg.manches) >= 0 ? cfg.manches : 3;
+        var nbManches = [1, 3, 5].indexOf(cfg.manches) >= 0 ? cfg.manches : 1;
         var tactile = window.matchMedia && window.matchMedia('(pointer: coarse)').matches;
 
         var etat = {
@@ -487,6 +487,8 @@
         var ecranJeu = el('div', 'pong-ecran pong-jeu');
         ecranJeu.hidden = true;
         var marqueur = new Marqueur();
+        // Match en une manche : pas de fiches de manches sur le marqueur.
+        if (nbManches === 1) marqueur.el.classList.add('pong-marqueur--une-manche');
         ecranJeu.appendChild(marqueur.el);
         var scene = el('div', 'pong-scene');
         var canvas = el('canvas', 'pong-canvas');
@@ -687,9 +689,12 @@
             } else {
                 phase = 'message';
                 var victoire = cote === 'joueur';
+                // En une manche, le score de la manche ; sinon le décompte des manches.
+                var bilan = nbManches === 1
+                    ? match.points.joueur + '–' + match.points.adversaire
+                    : 'manches ' + match.manches.joueur + '–' + match.manches.adversaire;
                 afficherMessage(victoire ? 'Victoire !' : 'Défaite…',
-                    (victoire ? 'Bravo ' + (etat.joueur.prenom || etat.joueur.nom) + ', ' : '') +
-                    'manches ' + match.manches.joueur + '–' + match.manches.adversaire,
+                    (victoire ? 'Bravo ' + (etat.joueur.prenom || etat.joueur.nom) + ', ' : '') + bilan,
                     [
                         { texte: 'Rejouer', action: nouveauMatch },
                         { texte: 'Changer d\'adversaire', action: retourSelection, secondaire: true }

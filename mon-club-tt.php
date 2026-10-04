@@ -481,7 +481,7 @@ class MonClubTT_Plugin
             'adversaire_titre' => '',
             'adversaire_photo' => '',
             'adversaire_sexe'  => 'M',
-            'manches'          => '3',
+            'manches'          => '1',
         ), (array) $atts, 'monclubtt_pong');
 
         // Adversaire imposé par le shortcode (joué d'office, les autres restent
@@ -527,7 +527,7 @@ class MonClubTT_Plugin
                 );
             }
         }
-        $manches = in_array((int) $atts['manches'], array(1, 3, 5), true) ? (int) $atts['manches'] : 3;
+        $manches = in_array((int) $atts['manches'], array(1, 3, 5), true) ? (int) $atts['manches'] : 1;
         $joueurs = new MonClubTT_Joueurs();
 
         ob_start();
