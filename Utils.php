@@ -28,13 +28,14 @@ if ( ! class_exists( 'MonClubTT_Constantes' ) ) {
          * Adversaires par défaut du jeu de pong : top 10 mondial simple
          * (classement mondial WTT/ITTF, semaine 40 de 2026, vérifié sur le site
          * de la WTT le 4 octobre 2026), modifiable dans les réglages
-         * car il change chaque semaine. Format « NOM Prénom » de l'ITTF.
+         * car il change chaque semaine. Noms écrits comme sur le site de la WTT,
+         * affichés tels quels dans le jeu.
          */
         const PONG_ADVERSAIRES_DEFAUT = array(
-            'M' => array('WANG Chuqin', 'LEBRUN Felix', 'MATSUSHIMA Sora', 'HARIMOTO Tomokazu', 'MOREGARD Truls',
-                         'LIN Yun-Ju', 'CALDERANO Hugo', 'LIN Shidong', 'LEBRUN Alexis', 'QIU Dang'),
-            'F' => array('WANG Manyu', 'SUN Yingsha', 'HARIMOTO Miwa', 'KUAI Man', 'WANG Yidi',
-                         'HAYATA Hina', 'CHEN Xingtong', 'ZHU Yuling', 'WINTER Sabine', 'CHEN Yi'),
+            'M' => array('WANG Chuqin', 'Felix LEBRUN', 'Sora MATSUSHIMA', 'Tomokazu HARIMOTO', 'Truls MOREGARD',
+                         'LIN Yun-Ju', 'Hugo CALDERANO', 'LIN Shidong', 'Alexis LEBRUN', 'Dang QIU'),
+            'F' => array('WANG Manyu', 'SUN Yingsha', 'Miwa HARIMOTO', 'KUAI Man', 'WANG Yidi',
+                         'Hina HAYATA', 'CHEN Xingtong', 'ZHU Yuling', 'Sabine WINTER', 'CHEN Yi'),
         );
 
     }
@@ -214,25 +215,6 @@ if ( ! function_exists( 'monclubtt_normaliser_adversaires' ) ) {
             }
         }
         return $adversaires;
-    }
-
-}
-
-if ( ! function_exists( 'monclubtt_decouper_nom_joueur' ) ) {
-
-    /**
-     * Sépare un nom au format ITTF « NOM Prénom » (« LIN Yun-Ju ») : les mots
-     * de tête en majuscules forment le nom. Sinon, tout est gardé en nom.
-     *
-     * @param string $nomComplet
-     * @return array{nom: string, prenom: string}
-     */
-    function monclubtt_decouper_nom_joueur($nomComplet) {
-        $nomComplet = trim((string) $nomComplet);
-        if (preg_match('/^((?:[\p{Lu}\'’-]+\s+)+)(\S.*)$/u', $nomComplet, $m)) {
-            return array('nom' => trim($m[1]), 'prenom' => $m[2]);
-        }
-        return array('nom' => $nomComplet, 'prenom' => '');
     }
 
 }

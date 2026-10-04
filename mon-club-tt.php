@@ -292,7 +292,7 @@ class MonClubTT_Plugin
                         $apercu = $adv['photo'] ? wp_get_attachment_image_url($adv['photo'], 'thumbnail') : ''; ?>
                         <tr class="monclubtt-pong-adversaire">
                             <td><?php echo (int) $i + 1; ?></td>
-                            <td><input type="text" class="regular-text" style="width:13em" name="<?php echo esc_attr($base . '[nom]'); ?>" value="<?php echo esc_attr($adv['nom']); ?>" placeholder="NOM Prénom"></td>
+                            <td><input type="text" class="regular-text" style="width:13em" name="<?php echo esc_attr($base . '[nom]'); ?>" value="<?php echo esc_attr($adv['nom']); ?>" placeholder="Felix LEBRUN"></td>
                             <td style="white-space:nowrap">
                                 <input type="hidden" name="<?php echo esc_attr($base . '[photo]'); ?>" value="<?php echo esc_attr($adv['photo'] ? $adv['photo'] : ''); ?>">
                                 <span class="monclubtt-pong-apercu" style="display:inline-block;width:32px;height:32px;vertical-align:middle"><?php if ($apercu): ?><img src="<?php echo esc_url($apercu); ?>" alt="" style="width:32px;height:32px;object-fit:contain"><?php endif; ?></span>
@@ -306,7 +306,7 @@ class MonClubTT_Plugin
             <?php endforeach; ?>
         </div>
         <p class="description">
-            Shortcode <code>[monclubtt_pong]</code> : l'adversaire est tiré au hasard dans ces 20 joueurs. Format « NOM Prénom », ordre du classement mondial (à mettre à jour, il change chaque semaine).
+            Shortcode <code>[monclubtt_pong]</code> : l'adversaire est tiré au hasard dans ces 20 joueurs. Noms écrits comme sur le site de la WTT (affichés tels quels), dans l'ordre du classement mondial (à mettre à jour, il change chaque semaine).
             Photo : PNG détouré à fond transparent, dont le club a les droits d'utilisation ; sans photo, avatar dessiné. Ligne vide = joueur ignoré.
         </p>
         <?php
@@ -502,10 +502,13 @@ class MonClubTT_Plugin
                         continue;
                     }
                     $photo = $adv['photo'] ? wp_get_attachment_image_url($adv['photo'], 'medium') : '';
-                    $adversaires[] = monclubtt_decouper_nom_joueur($adv['nom']) + array(
-                        'titre' => 'N°' . ($i + 1) . ($sexe === 'F' ? ' mondiale' : ' mondial'),
-                        'sex'   => $sexe,
-                        'photo' => $photo ? $photo : '',
+                    $adversaires[] = array(
+                        'nom'      => $adv['nom'],
+                        'prenom'   => '',
+                        'tel_quel' => true,
+                        'titre'    => 'N°' . ($i + 1) . ($sexe === 'F' ? ' mondiale' : ' mondial'),
+                        'sex'      => $sexe,
+                        'photo'    => $photo ? $photo : '',
                     );
                 }
             }

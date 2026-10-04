@@ -62,7 +62,7 @@ Copier le shortcode affiché dans le tableau et le coller dans la page WordPress
 [monclubtt_pong]
 ```
 
-Le visiteur choisit son joueur parmi les licenciés (photo détourée avec liseré blanc, sinon avatar dessiné), puis affronte un joueur tiré au sort dans le top 10 mondial messieurs ou dames, sur une table aux couleurs du club. La liste des 20 adversaires (nom « NOM Prénom » + photo détourée de la médiathèque) se règle dans *Mon Club TT › Réglages* ; elle est pré-remplie avec le classement ITTF de la semaine 40 de 2026 et doit être tenue à jour à la main. Score sur un marqueur à fiches, manches en 11 points, service alterné tous les 2 points. Au doigt sur mobile, à la souris ou aux flèches + espace sur ordinateur.
+Le visiteur choisit son joueur parmi les licenciés (photo détourée avec liseré blanc, sinon avatar dessiné), puis affronte un joueur tiré au sort dans le top 10 mondial messieurs ou dames, sur une table aux couleurs du club. La liste des 20 adversaires (nom écrit comme sur le site de la WTT, affiché tel quel, + photo détourée de la médiathèque) se règle dans *Mon Club TT › Réglages* ; elle est pré-remplie avec le classement mondial de la semaine 40 de 2026 et doit être tenue à jour à la main. Score sur un marqueur à fiches, manches en 11 points, service alterné tous les 2 points. Au doigt sur mobile, à la souris ou aux flèches + espace sur ordinateur.
 
 | Attribut | Valeurs | Défaut | Description |
 |----------|---------|--------|-------------|

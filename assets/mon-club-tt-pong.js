@@ -66,6 +66,7 @@
     }
 
     function nomAffiche(p) {
+        if (p.tel_quel) return String(p.nom); // adversaires : écrits comme sur la WTT
         return [p.prenom, String(p.nom || '').toUpperCase()].filter(Boolean).join(' ');
     }
 
