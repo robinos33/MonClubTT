@@ -157,6 +157,21 @@
         }
     }
 
+    /* Pictogrammes des réseaux (dessins simplifiés, blancs, viewBox 24×24). */
+    var PICTOS = (function () {
+        function svg(contenu) {
+            return '<svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" focusable="false">' + contenu + '</svg>';
+        }
+        return {
+            Facebook: svg('<path fill="#fff" d="M13.6 21v-7.6h2.6l.4-3h-3V8.5c0-.9.3-1.5 1.5-1.5h1.6V4.3c-.3 0-1.2-.1-2.3-.1-2.3 0-3.9 1.4-3.9 4v2.2H7.9v3h2.6V21z"/>'),
+            Instagram: svg('<rect x="3.5" y="3.5" width="17" height="17" rx="5" fill="none" stroke="#fff" stroke-width="2"/>' +
+                '<circle cx="12" cy="12" r="4" fill="none" stroke="#fff" stroke-width="2"/><circle cx="17.2" cy="6.8" r="1.25" fill="#fff"/>'),
+            X: svg('<path fill="#fff" d="M4 4h4.4L20 20h-4.4z"/><path d="M19.6 4l-6.3 7.1M10.7 12.9L4.4 20" stroke="#fff" stroke-width="1.9" stroke-linecap="round"/>'),
+            WhatsApp: svg('<path d="M12 3.2a8.8 8.8 0 0 0-7.6 13.2L3.3 20.7l4.4-1.1A8.8 8.8 0 1 0 12 3.2z" fill="none" stroke="#fff" stroke-width="1.8" stroke-linejoin="round"/>' +
+                '<path fill="#fff" d="M9.1 7.9c.3-.3.7-.3.9 0l1 1.5c.2.3.2.7-.1.9l-.6.5c.5 1.1 1.3 1.9 2.4 2.4l.5-.6c.3-.3.6-.3.9-.1l1.5 1c.3.2.3.6 0 .9l-.6.7c-.6.6-1.5.8-2.3.5-2.2-.8-3.9-2.5-4.7-4.7-.3-.8-.1-1.7.5-2.3z"/>')
+        };
+    }());
+
     /* ---------------------------------------------------------- son */
 
     var audio = null;
@@ -545,18 +560,26 @@
             apercu.height = 630;
             zone.appendChild(apercu);
             var liens = el('div', 'pong-partage-liens');
-            function lien(texte, url, classe) {
-                var a = el('a', 'pong-partage-lien ' + classe, texte);
+            /* Bouton rond à pictogramme ; le nom du réseau reste lisible par les
+             * lecteurs d'écran (aria-label) et en info-bulle. */
+            function bouton(tag, reseau, classe) {
+                var b = el(tag, 'pong-partage-lien ' + classe);
+                b.innerHTML = PICTOS[reseau];
+                b.setAttribute('aria-label', 'Partager sur ' + reseau);
+                b.title = reseau;
+                liens.appendChild(b);
+                return b;
+            }
+            function lien(reseau, url, classe) {
+                var a = bouton('a', reseau, classe);
                 a.href = url;
                 a.target = '_blank';
                 a.rel = 'noopener noreferrer';
-                liens.appendChild(a);
             }
             var u = encodeURIComponent(p.url), t = encodeURIComponent(p.texte);
             lien('Facebook', 'https://www.facebook.com/sharer/sharer.php?u=' + u, 'pong-partage--facebook');
-            var insta = el('button', 'pong-partage-lien pong-partage--instagram', 'Instagram');
+            var insta = bouton('button', 'Instagram', 'pong-partage--instagram');
             insta.type = 'button';
-            liens.appendChild(insta);
             lien('X', 'https://twitter.com/intent/tweet?text=' + t + '&url=' + u, 'pong-partage--x');
             lien('WhatsApp', 'https://wa.me/?text=' + encodeURIComponent(p.texte + ' ' + p.url), 'pong-partage--whatsapp');
             zone.appendChild(liens);
