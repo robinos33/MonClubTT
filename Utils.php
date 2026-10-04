@@ -12,6 +12,10 @@ if ( ! class_exists( 'MonClubTT_Constantes' ) ) {
         const MONCLUBTT_JOUEUR_PHOTOS = 'monclubtt_joueur_photos';
         const MONCLUBTT_COULEURS = 'monclubtt_couleurs';
         const MONCLUBTT_LOGO = 'monclubtt_logo';
+        const MONCLUBTT_PONG_ADVERSAIRES = 'monclubtt_pong_adversaires';
+        const MONCLUBTT_PONG_SCORES = 'monclubtt_pong_scores';
+        /** Matchs récents partageables (id => données), pour les pages et images de partage. */
+        const MONCLUBTT_PONG_MATCHS = 'monclubtt_pong_matchs';
         /** Ancienne option (1.6.2), relue tant que les réglages n'ont pas été enregistrés. */
         const MONCLUBTT_SOCIAL_COULEURS = 'monclubtt_social_couleurs';
 
@@ -21,6 +25,20 @@ if ( ! class_exists( 'MonClubTT_Constantes' ) ) {
             'secondaire' => '#d34328',
             'fond'       => '#f4f1ea',
             'maillot'    => '#2b7cb5',
+        );
+
+        /**
+         * Adversaires par défaut du jeu de pong : top 10 mondial simple
+         * (classement mondial WTT/ITTF, semaine 40 de 2026, vérifié sur le site
+         * de la WTT le 4 octobre 2026), modifiable dans les réglages
+         * car il change chaque semaine. Noms écrits comme sur le site de la WTT,
+         * affichés tels quels dans le jeu.
+         */
+        const PONG_ADVERSAIRES_DEFAUT = array(
+            'M' => array('WANG Chuqin', 'Felix LEBRUN', 'Sora MATSUSHIMA', 'Tomokazu HARIMOTO', 'Truls MOREGARD',
+                         'LIN Yun-Ju', 'Hugo CALDERANO', 'LIN Shidong', 'Alexis LEBRUN', 'Dang QIU'),
+            'F' => array('WANG Manyu', 'SUN Yingsha', 'Miwa HARIMOTO', 'KUAI Man', 'WANG Yidi',
+                         'Hina HAYATA', 'CHEN Xingtong', 'ZHU Yuling', 'Sabine WINTER', 'CHEN Yi'),
         );
 
     }
@@ -172,6 +190,38 @@ if ( ! function_exists( 'monclubtt_normaliser_couleurs' ) ) {
 
 }
 
+if ( ! function_exists( 'monclubtt_normaliser_adversaires' ) ) {
+
+    /**
+     * Adversaires du jeu de pong : 10 hommes et 10 femmes, dans l'ordre du
+     * classement, chacun avec un nom et l'ID d'une photo de la médiathèque
+     * (0 = avatar dessiné). Sans valeur enregistrée, la liste par défaut.
+     *
+     * @param mixed $valeur Tableau brut (option ou saisie).
+     * @return array{M: array<int, array{nom: string, photo: int}>, F: array<int, array{nom: string, photo: int}>}
+     */
+    function monclubtt_normaliser_adversaires($valeur) {
+        $adversaires = array();
+        foreach (MonClubTT_Constantes::PONG_ADVERSAIRES_DEFAUT as $sexe => $noms) {
+            $saisies = is_array($valeur) && isset($valeur[$sexe]) && is_array($valeur[$sexe]) ? array_values($valeur[$sexe]) : null;
+            foreach ($noms as $i => $defaut) {
+                $ligne = $saisies !== null && isset($saisies[$i]) && is_array($saisies[$i]) ? $saisies[$i] : null;
+                if ($ligne === null) {
+                    $adversaires[$sexe][] = array('nom' => $saisies === null ? $defaut : '', 'photo' => 0);
+                    continue;
+                }
+                $nom = isset($ligne['nom']) && is_string($ligne['nom']) ? trim(preg_replace('/\s+/u', ' ', strip_tags($ligne['nom']))) : '';
+                $adversaires[$sexe][] = array(
+                    'nom'   => function_exists('mb_substr') ? mb_substr($nom, 0, 60) : substr($nom, 0, 60),
+                    'photo' => isset($ligne['photo']) && is_numeric($ligne['photo']) ? max(0, (int) $ligne['photo']) : 0,
+                );
+            }
+        }
+        return $adversaires;
+    }
+
+}
+
 if ( ! function_exists( 'monclubtt_get_couleurs' ) ) {
 
     /**
@@ -187,6 +237,20 @@ if ( ! function_exists( 'monclubtt_get_couleurs' ) ) {
             $couleurs = get_option(MonClubTT_Constantes::MONCLUBTT_SOCIAL_COULEURS, null);
         }
         return monclubtt_normaliser_couleurs($couleurs);
+    }
+
+}
+
+if ( ! function_exists( 'monclubtt_get_pong_adversaires' ) ) {
+
+    /**
+     * Adversaires du jeu de pong enregistrés dans les réglages (top 10
+     * mondial messieurs et dames), liste par défaut sinon.
+     *
+     * @return array{M: array<int, array{nom: string, photo: int}>, F: array<int, array{nom: string, photo: int}>}
+     */
+    function monclubtt_get_pong_adversaires() {
+        return monclubtt_normaliser_adversaires(get_option(MonClubTT_Constantes::MONCLUBTT_PONG_ADVERSAIRES, null));
     }
 
 }

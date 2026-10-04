@@ -3,7 +3,7 @@ Contributors: robinos33
 Tags: table tennis, fftt, club, rankings, results
 Requires at least: 5.0
 Tested up to: 7.0
-Stable tag: 1.10.0
+Stable tag: 1.11.0
 Requires PHP: 7.4
 License: GPLv2
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -29,6 +29,7 @@ Mon Club TT is an unofficial WordPress plugin that connects to the FFTT (Fédér
 
 * `[monclubtt_joueurs type="MF"]` — display club players (M, F, or MF)
 * `[monclubtt_equipe iddiv="198511" idpoule="1140384"]` — display a team's standings and results
+* `[monclubtt_pong]` — table tennis pong game: pick a club player, then pick an opponent from the world top 10 (men or women, editable in the settings) or from the club, with touch, mouse or keyboard; high score table and match sharing (Facebook, Instagram, X, WhatsApp) with a generated Open Graph image
 
 **Requirements:**
 
@@ -59,6 +60,12 @@ Player data is refreshed on manual sync only. League standings and results are c
 Yes. The plugin exposes five filters: `monclubtt_get_joueurs`, `monclubtt_get_equipes`, `monclubtt_get_classement_poule`, `monclubtt_get_rencontres_poule`, `monclubtt_get_feuille_rencontre`. See the documentation for usage.
 
 == Changelog ==
+
+= 1.11.0 =
+* Added: `[monclubtt_pong]` shortcode, a table tennis pong game in the club colors (touch, mouse or keyboard): pick a club player, then an opponent from the world top 10 (men and women) or from the club, Normal or Expert level
+* Added: paper flip scoreboard, table tennis rules, accelerating ball with side spin, high score table shared by all visitors (can be cleared in the settings)
+* Added: match sharing (Facebook, Instagram, X, WhatsApp) with a generated Open Graph image inviting to play; the shared link opens the game on a challenge
+* Added: "Pong game opponents" setting (world top 10, photo from the media library, caption used as photo credit)
 
 = 1.10.0 =
 * Changed: player photos are tilted randomly between -20° and 20° (players list podium, social media visuals) instead of fixed angles
@@ -159,6 +166,9 @@ Yes. The plugin exposes five filters: `monclubtt_get_joueurs`, `monclubtt_get_eq
 * Automatic team page generation and deletion
 
 == Upgrade Notice ==
+
+= 1.11.0 =
+New table tennis pong game shortcode with high scores and match sharing.
 
 = 1.10.0 =
 Player photos now get a random tilt on podiums and social media visuals.

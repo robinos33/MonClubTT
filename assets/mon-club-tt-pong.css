@@ -1,0 +1,567 @@
+/* ===================== PONG DU CLUB ([monclubtt_pong]) =====================
+ * Couleurs du club via les variables posées par le shortcode :
+ * --pong-primaire, --pong-secondaire, --pong-fond.
+ */
+.monclubtt-pong {
+    --pong-primaire: #2b7cb5;
+    --pong-secondaire: #d34328;
+    --pong-fond: #f4f1ea;
+    --pong-encre: #23344a;
+    --pong-papier: #fbf8f1;
+    position: relative;
+    max-width: 640px;
+    margin: 0 auto;
+    color: var(--pong-encre);
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.monclubtt-pong:focus { outline: none; }
+
+.monclubtt-pong [hidden] { display: none !important; }
+
+.monclubtt-pong button { font: inherit; cursor: pointer; }
+
+.monclubtt-pong .pong-sr {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+}
+
+/* ---------------------------------------------------- sélection */
+
+.monclubtt-pong .pong-selection {
+    background: var(--pong-fond);
+    border-radius: 16px;
+    padding: 20px 16px 24px;
+}
+
+.monclubtt-pong .pong-defi {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    max-width: 420px;
+    margin: 0 auto 18px;
+    padding: 14px 16px 16px;
+    border-radius: 6px;
+    background: linear-gradient(var(--pong-papier), #f1ece0);
+    box-shadow: 0 3px 0 #e2dccd, 0 8px 18px rgba(35, 52, 74, 0.15);
+    text-align: center;
+}
+
+.monclubtt-pong .pong-defi-label {
+    padding: 2px 10px;
+    border-radius: 999px;
+    background: var(--pong-secondaire);
+    color: #fff;
+    font-size: 0.72rem;
+    font-weight: 900;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.monclubtt-pong .pong-defi-titre { font-size: 1.05rem; font-weight: 900; line-height: 1.25; }
+.monclubtt-pong .pong-defi-texte { font-size: 0.9rem; }
+.monclubtt-pong .pong-defi-bouton { margin-top: 6px; padding-inline: 24px; }
+.monclubtt-pong .pong-defi-bouton:disabled { opacity: 0.85; cursor: default; }
+.monclubtt-pong .pong-message-defi { font-size: 0.95rem; color: var(--pong-primaire); }
+
+.monclubtt-pong .pong-titre {
+    margin: 0 0 14px;
+    font-size: 1.5rem;
+    font-weight: 900;
+    text-align: center;
+    color: var(--pong-encre);
+}
+
+.monclubtt-pong .pong-credits {
+    margin: 14px auto 0;
+    max-width: 520px;
+    font-size: 0.72rem;
+    line-height: 1.4;
+    color: rgba(35, 52, 74, 0.7);
+}
+
+.monclubtt-pong .pong-credits summary {
+    display: block;
+    cursor: pointer;
+    width: max-content;
+    white-space: nowrap;
+    margin: 0 auto;
+    list-style: none;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+}
+
+.monclubtt-pong .pong-credits summary::-webkit-details-marker { display: none; }
+
+.monclubtt-pong .pong-credits ul { margin: 8px 0 0; padding-left: 1.2em; }
+
+.monclubtt-pong .pong-credits a { color: inherit; }
+
+.monclubtt-pong .pong-scores {
+    margin: 22px auto 0;
+    max-width: 480px;
+    padding: 14px 16px 10px;
+    border-radius: 6px;
+    background: linear-gradient(var(--pong-papier), #f1ece0);
+    box-shadow: 0 3px 0 #e2dccd, 0 8px 18px rgba(35, 52, 74, 0.12);
+}
+
+.monclubtt-pong .pong-scores-titre {
+    margin: 0 0 8px;
+    text-align: center;
+    font-size: 1.05rem;
+    font-weight: 900;
+    color: var(--pong-encre);
+}
+
+.monclubtt-pong .pong-scores-liste {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    counter-reset: rang;
+}
+
+.monclubtt-pong .pong-score {
+    display: grid;
+    grid-template-columns: 1.6em minmax(0, 1fr) auto;
+    grid-template-areas: "rang joueur points" "rang detail niveau";
+    column-gap: 8px;
+    padding: 6px 0;
+    border-top: 1px dashed rgba(35, 52, 74, 0.2);
+    font-size: 0.85rem;
+    line-height: 1.25;
+    counter-increment: rang;
+}
+
+.monclubtt-pong .pong-score:first-child { border-top: 0; }
+
+.monclubtt-pong .pong-score::before {
+    content: counter(rang);
+    grid-area: rang;
+    align-self: center;
+    font-weight: 900;
+    font-size: 1.1rem;
+    color: var(--pong-primaire);
+}
+
+.monclubtt-pong .pong-score-joueur { grid-area: joueur; font-weight: 800; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.monclubtt-pong .pong-score-detail { grid-area: detail; color: rgba(35, 52, 74, 0.75); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.monclubtt-pong .pong-score-points { grid-area: points; font-weight: 900; font-variant-numeric: tabular-nums; text-align: right; }
+
+.monclubtt-pong .pong-score-niveau {
+    grid-area: niveau;
+    justify-self: end;
+    padding: 0 6px;
+    border-radius: 999px;
+    background: var(--pong-secondaire);
+    color: #fff;
+    font-size: 0.68rem;
+    font-weight: 800;
+}
+
+.monclubtt-pong .pong-scores-vide { padding: 6px 0; text-align: center; font-size: 0.85rem; color: rgba(35, 52, 74, 0.75); }
+
+.monclubtt-pong .pong-sous-titre { margin: -8px 0 14px; text-align: center; font-size: 0.95rem; }
+
+.monclubtt-pong .pong-retour { display: block; margin: -6px 0 6px; }
+
+.monclubtt-pong .pong-onglets {
+    display: flex;
+    max-width: 360px;
+    margin: 0 auto 12px;
+    padding: 4px;
+    gap: 4px;
+    border-radius: 999px;
+    background: rgba(35, 52, 74, 0.08);
+}
+
+.monclubtt-pong .pong-onglet {
+    flex: 1;
+    border: 0;
+    border-radius: 999px;
+    padding: 8px 10px;
+    background: transparent;
+    color: var(--pong-encre);
+    font-size: 0.9rem;
+    font-weight: 800;
+}
+
+.monclubtt-pong .pong-onglet[aria-selected="true"] { background: #fff; box-shadow: 0 1px 3px rgba(35, 52, 74, 0.2); }
+
+.monclubtt-pong .pong-hasard { display: block; margin: 0 auto 16px; padding-inline: 28px; }
+
+.monclubtt-pong .pong-carte.pong-carte--moi { display: none; }
+
+.monclubtt-pong .pong-niveaux {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin: 0 0 14px;
+}
+
+.monclubtt-pong .pong-niveau {
+    border: 2px solid var(--pong-primaire);
+    background: #fff;
+    color: var(--pong-primaire);
+    border-radius: 999px;
+    padding: 6px 14px;
+    font-size: 0.9rem;
+    font-weight: 700;
+    line-height: 1.2;
+}
+
+.monclubtt-pong .pong-niveau[aria-pressed="true"] {
+    background: var(--pong-primaire);
+    color: #fff;
+}
+
+.monclubtt-pong .pong-recherche {
+    display: block;
+    width: 100%;
+    max-width: 360px;
+    box-sizing: border-box;
+    margin: 0 auto 16px;
+    padding: 10px 14px;
+    border: 1px solid rgba(35, 52, 74, 0.25);
+    border-radius: 10px;
+    font: inherit;
+    font-size: 16px; /* évite le zoom auto sur iOS */
+    background: #fff;
+}
+
+.monclubtt-pong .pong-grille {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(118px, 1fr));
+    gap: 12px;
+}
+
+.monclubtt-pong .pong-vide { grid-column: 1 / -1; text-align: center; margin: 12px 0; }
+
+.monclubtt-pong .pong-carte {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    padding: 10px 6px 12px;
+    border: 0;
+    border-radius: 14px;
+    background: #fff;
+    color: var(--pong-encre);
+    box-shadow: 0 2px 0 rgba(35, 52, 74, 0.08), 0 6px 14px rgba(35, 52, 74, 0.08);
+    transition: transform 0.12s ease, box-shadow 0.12s ease;
+    min-width: 0;
+}
+
+.monclubtt-pong .pong-carte:hover,
+.monclubtt-pong .pong-carte:focus-visible {
+    transform: translateY(-3px);
+    box-shadow: 0 0 0 3px var(--pong-primaire), 0 10px 18px rgba(35, 52, 74, 0.14);
+    outline: none;
+}
+
+.monclubtt-pong .pong-carte-tete {
+    width: 100px;
+    height: 108px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 4px;
+}
+
+.monclubtt-pong .pong-carte-tete canvas {
+    display: block;
+    max-width: 112px;
+    max-height: 112px;
+    object-fit: contain;
+    filter: drop-shadow(0 4px 5px rgba(15, 20, 26, 0.3));
+}
+
+.monclubtt-pong .pong-carte-nom {
+    font-weight: 900;
+    font-size: 0.85rem;
+    line-height: 1.15;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.monclubtt-pong .pong-carte-prenom { font-size: 0.85rem; line-height: 1.15; }
+
+.monclubtt-pong .pong-carte-pts {
+    margin-top: 4px;
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: var(--pong-primaire);
+    color: #fff;
+    font-size: 0.72rem;
+    font-weight: 800;
+}
+
+/* ---------------------------------------------------- marqueur à fiches */
+
+.monclubtt-pong .pong-jeu {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+
+.monclubtt-pong .pong-marqueur {
+    position: relative;
+    display: flex;
+    gap: 10px;
+    padding: 8px 12px 12px;
+    border-radius: 10px;
+    background: linear-gradient(#2e4260, var(--pong-encre));
+    box-shadow: 0 6px 0 #16212f, 0 10px 18px rgba(15, 20, 26, 0.25);
+    max-width: 100%;
+    box-sizing: border-box;
+}
+
+.monclubtt-pong .pong-camp {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+}
+
+.monclubtt-pong .pong-nom {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    max-width: 150px;
+    color: #fff;
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+.monclubtt-pong .pong-nom-texte { overflow: hidden; text-overflow: ellipsis; }
+
+/* Balle du serveur */
+.monclubtt-pong .pong-service {
+    flex: 0 0 auto;
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 35%, #fff, #f2a24a);
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+.monclubtt-pong .pong-camp--sert .pong-service { opacity: 1; }
+
+.monclubtt-pong .pong-fiches { display: flex; align-items: flex-end; gap: 6px; }
+
+.monclubtt-pong .pong-fiche {
+    position: relative;
+    perspective: 420px;
+    width: 64px;
+    height: 76px;
+    /* tranche des fiches empilées dessous */
+    border-radius: 5px;
+    box-shadow: 0 3px 0 #e2dccd, 0 6px 0 #cfc7b4;
+}
+
+.monclubtt-pong .pong-fiche--manches { width: 38px; height: 48px; }
+
+.monclubtt-pong .pong-marqueur--une-manche .pong-fiche--manches { display: none; }
+
+/* Anneaux */
+.monclubtt-pong .pong-fiche::before,
+.monclubtt-pong .pong-fiche::after {
+    content: "";
+    position: absolute;
+    top: -5px;
+    z-index: 3;
+    width: 6px;
+    height: 12px;
+    border-radius: 3px;
+    background: linear-gradient(90deg, #8a96a3, #e7ecf1 50%, #8a96a3);
+    box-shadow: 0 1px 1px rgba(0, 0, 0, 0.4);
+}
+.monclubtt-pong .pong-fiche::before { left: 22%; }
+.monclubtt-pong .pong-fiche::after { right: 22%; }
+
+.monclubtt-pong .pong-page {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 5px;
+    background: linear-gradient(var(--pong-papier), #f1ece0);
+    font-size: 46px;
+    font-weight: 900;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.04em;
+    transform-origin: 50% 0;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+}
+
+.monclubtt-pong .pong-fiche--manches .pong-page { font-size: 28px; }
+
+.monclubtt-pong .pong-camp--joueur .pong-page { color: var(--pong-primaire); }
+.monclubtt-pong .pong-camp--adversaire .pong-page { color: var(--pong-secondaire); }
+
+/* Trous de perforation sous les anneaux */
+.monclubtt-pong .pong-page::before {
+    content: "";
+    position: absolute;
+    top: 4px;
+    left: 18%;
+    right: 18%;
+    height: 4px;
+    background:
+        radial-gradient(circle, rgba(35, 52, 74, 0.35) 1.5px, transparent 2px) left center / 12px 4px no-repeat,
+        radial-gradient(circle, rgba(35, 52, 74, 0.35) 1.5px, transparent 2px) right center / 12px 4px no-repeat;
+}
+
+.monclubtt-pong .pong-page--tourne {
+    z-index: 2;
+    animation: pongFiche 0.45s cubic-bezier(0.5, 0, 0.75, 0.4) forwards;
+    box-shadow: 0 6px 10px rgba(0, 0, 0, 0.2);
+}
+
+@keyframes pongFiche {
+    to { transform: rotateX(180deg); }
+}
+
+/* ---------------------------------------------------- table */
+
+.monclubtt-pong .pong-scene {
+    position: relative;
+    max-width: 100%;
+    touch-action: none;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+.monclubtt-pong .pong-canvas {
+    display: block;
+    border-radius: 14px;
+    box-shadow: 0 6px 18px rgba(15, 20, 26, 0.18);
+}
+
+.monclubtt-pong .pong-message {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: min(88%, 320px);
+    max-height: calc(100% - 16px);
+    overflow-y: auto;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    padding: 20px 18px;
+    border-radius: 6px;
+    background: linear-gradient(var(--pong-papier), #f1ece0);
+    color: var(--pong-encre);
+    text-align: center;
+    box-shadow: 0 4px 0 #e2dccd, 0 14px 30px rgba(15, 20, 26, 0.35);
+    animation: pongApparait 0.25s ease-out;
+}
+
+@keyframes pongApparait {
+    from { opacity: 0; transform: translate(-50%, -44%); }
+}
+
+.monclubtt-pong .pong-partage { display: flex; flex-direction: column; align-items: center; gap: 6px; width: 100%; margin-top: 6px; }
+.monclubtt-pong .pong-partage:empty { display: none; }
+.monclubtt-pong .pong-partage-titre { font-size: 0.75rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; color: rgba(35, 52, 74, 0.7); }
+.monclubtt-pong .pong-partage-apercu { display: block; width: 100%; height: auto; border-radius: 4px; box-shadow: 0 1px 4px rgba(15, 20, 26, 0.25); }
+.monclubtt-pong .pong-partage-liens { display: flex; justify-content: center; gap: 12px; width: 100%; }
+
+.monclubtt-pong .pong-partage-lien {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 46px;
+    height: 46px;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    text-decoration: none;
+    box-shadow: 0 2px 6px rgba(15, 20, 26, 0.25);
+    transition: transform 0.12s ease;
+}
+
+.monclubtt-pong .pong-partage-lien svg { display: block; width: 24px; height: 24px; }
+
+.monclubtt-pong .pong-partage-lien:hover,
+.monclubtt-pong .pong-partage-lien:focus-visible { transform: translateY(-2px); outline: none; box-shadow: 0 0 0 3px #fff, 0 0 0 5px var(--pong-encre); }
+.monclubtt-pong .pong-partage--facebook { background: #1877f2; }
+.monclubtt-pong .pong-partage--instagram { background: linear-gradient(45deg, #f58529, #dd2a7b 55%, #8134af); }
+.monclubtt-pong .pong-partage--x { background: #0f1419; }
+.monclubtt-pong .pong-partage--whatsapp { background: #1f9e55; }
+.monclubtt-pong .pong-partage-aide { font-size: 0.75rem; }
+.monclubtt-pong .pong-partage-aide:empty { display: none; }
+
+.monclubtt-pong .pong-message-classement { font-size: 0.85rem; font-weight: 700; color: var(--pong-secondaire); }
+.monclubtt-pong .pong-message-classement:empty { display: none; }
+
+.monclubtt-pong .pong-message-titre { font-size: 1.5rem; font-weight: 900; color: var(--pong-primaire); }
+.monclubtt-pong .pong-message-sous { font-size: 0.95rem; }
+.monclubtt-pong .pong-message-boutons { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; width: 100%; }
+
+.monclubtt-pong .pong-bouton {
+    border: 0;
+    border-radius: 10px;
+    padding: 11px 16px;
+    background: var(--pong-secondaire);
+    color: #fff;
+    font-weight: 800;
+}
+
+.monclubtt-pong .pong-bouton--secondaire {
+    background: transparent;
+    color: var(--pong-encre);
+    box-shadow: inset 0 0 0 2px rgba(35, 52, 74, 0.25);
+}
+
+.monclubtt-pong .pong-actions {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    max-width: 520px;
+}
+
+.monclubtt-pong .pong-lien {
+    border: 0;
+    background: none;
+    padding: 6px 4px;
+    color: var(--pong-encre);
+    font-size: 0.9rem;
+    font-weight: 700;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+
+@media (max-width: 380px) {
+    .monclubtt-pong .pong-fiche { width: 54px; height: 66px; }
+    .monclubtt-pong .pong-page { font-size: 40px; }
+    .monclubtt-pong .pong-fiche--manches { width: 32px; height: 42px; }
+    .monclubtt-pong .pong-fiche--manches .pong-page { font-size: 24px; }
+    .monclubtt-pong .pong-nom { max-width: 120px; }
+    .monclubtt-pong .pong-grille { grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .monclubtt-pong .pong-message,
+    .monclubtt-pong .pong-carte { animation: none; transition: none; }
+}

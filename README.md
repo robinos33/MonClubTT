@@ -56,6 +56,30 @@ Plugin WordPress non-officiel pour afficher les données d'un club issues de l'[
 Les valeurs `iddiv` et `idpoule` sont générées automatiquement dans *MonClubTT → Équipes*.  
 Copier le shortcode affiché dans le tableau et le coller dans la page WordPress souhaitée.
 
+### Jeu de pong
+
+> **Démo** : [ouvrir dans WordPress Playground](https://playground.wordpress.net/?blueprint-url=https://raw.githubusercontent.com/robinos33/MonClubTT/master/demo/playground/blueprint.json) — WordPress complet dans le navigateur, club fictif, photos et réglages (dossier `demo/playground/`, exclu du ZIP).
+
+```
+[monclubtt_pong]
+```
+
+Le visiteur choisit son joueur parmi les licenciés (photo détourée avec liseré blanc, sinon avatar dessiné), puis choisit son adversaire : un joueur du top 10 mondial messieurs ou dames, un autre licencié du club, ou « Au hasard », sur une table aux couleurs du club. La liste des 20 adversaires (nom écrit comme sur le site de la WTT, affiché tel quel, + photo détourée de la médiathèque) se règle dans *Mon Club TT › Réglages* ; elle est pré-remplie avec le classement mondial de la semaine 40 de 2026 et doit être tenue à jour à la main. Score sur un marqueur à fiches, match en une manche de 11 points par défaut, service alterné tous les 2 points. Au doigt sur mobile, à la souris ou aux flèches + espace sur ordinateur.
+
+| Attribut | Valeurs | Défaut | Description |
+|----------|---------|--------|-------------|
+| `adversaire` | texte | — | Adversaire joué directement après le choix du joueur (sans écran de choix) ; « Changer d'adversaire » donne ensuite accès au top 10 et au club |
+| `adversaire_titre` | texte | — | Sous-titre affiché sur l'écran de sélection |
+| `adversaire_photo` | ID de média ou URL | — | Photo détourée (PNG transparent) de l'adversaire ; à défaut, avatar dessiné |
+| `adversaire_sexe` | `M`, `F` | `M` | Avatar utilisé pour le corps |
+| `manches` | `1`, `3`, `5` | `1` | Nombre de manches du match (en une manche, le marqueur n'affiche que les points) |
+
+**Meilleurs scores** : les 10 meilleures victoires (contre le top 10 mondial ou un licencié) sont affichées sous la sélection des joueurs, classées par niveau (Expert d'abord), puis écart de points. Commun à tous les visiteurs ; les scores étant déclarés par le navigateur, une case « Vider le tableau » est disponible dans les réglages.
+
+**Partage** : en fin de match, Facebook, X et WhatsApp partagent un lien vers la page du jeu (`?pong=…`) qui porte les balises Open Graph du match ; l'image (1200×630, joueurs, marqueur, résultat, couleurs du club) est dessinée par le serveur avec GD (police Liberation Sans, licence SIL OFL, dans `assets/fonts/`) et mise en cache dans `wp-content/uploads/monclubtt-pong/` (300 derniers matchs). L'image et la description invitent à jouer, et le lien partagé ouvre le jeu sur un **défi** (bandeau « Relever le défi » : même adversaire, même niveau, verdict en fin de partie). Instagram n'ayant pas de lien de partage web, le bouton utilise le partage natif du téléphone (image en fichier), sinon ouvre l'image à enregistrer. Sans GD, le logo du club sert d'image. Une extension SEO (Yoast, Rank Math…) qui ajoute ses propres balises Open Graph peut entrer en concurrence avec celles du match.
+
+Le plugin ne fournit aucune photo de joueur professionnel : n'utilisez que des images dont le club a les droits, par exemple des photos de Wikimedia Commons sous licence libre. La **légende** de l'image dans la médiathèque sert de crédit, affiché sur l'écran de sélection et sous le jeu (auteur et licence obligatoires pour Commons).
+
 ---
 
 ## Génération automatique de pages

@@ -5,6 +5,19 @@ Format : [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/)
 
 ---
 
+## [1.11.0] — 2026-10-04
+
+### Ajouté
+
+- Shortcode `[monclubtt_pong]` : jeu de ping vu du dessus, aux couleurs du club, jouable au doigt sur mobile, à la souris ou au clavier.
+  - Choix du joueur parmi les licenciés (têtes détourées, liseré blanc de 6 px), puis de l'adversaire : top 10 mondial messieurs et dames, joueurs du club ou au hasard ; niveaux Normal et Expert. Attribut `adversaire` pour imposer un invité.
+  - Raquette = personnage du podium en pose de jeu ; balle qui accélère à chaque frappe et prend une courbe selon le déplacement de la raquette à l'impact.
+  - Marqueur à fiches papier, règles du ping (11 points, 2 d'écart, service tous les 2 points), une manche par défaut (`manches` = 1, 3 ou 5), son à chaque point gagné.
+  - Tableau des 10 meilleures victoires commun à tous les visiteurs, vidable dans les réglages.
+  - Partage en fin de partie (Facebook, Instagram, X, WhatsApp) avec une image Open Graph générée pour chaque match, qui invite à jouer ; le lien partagé ouvre le jeu sur un défi (même adversaire, même niveau, verdict en fin de partie).
+- Réglage « Adversaires du jeu de pong » : top 10 mondial messieurs et dames (noms comme sur le site de la WTT, photo de la médiathèque, légende = crédit affiché dans « Crédit photo »).
+- Démo WordPress Playground (`demo/playground/`, hors ZIP).
+
 ## [1.10.0] — 2026-10-01
 
 ### Modifié

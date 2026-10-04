@@ -1,0 +1,8 @@
+Images de la démo WordPress Playground (dossier exclu du ZIP du plugin)
+
+- 9900101.png … 9900112.png, coach.png : têtes dessinées de joueurs fictifs, créées pour le plugin.
+- top-sora-matsushima.png, top-lin-shidong.png, top-kuai-man.png, top-wang-yidi.png, top-chen-yi.png :
+  têtes dessinées génériques (pas des portraits), créées pour le plugin.
+- Autres top-*.png : photos de Wikimedia Commons, recadrées et détourées. Auteur, licence et lien
+  vers la page de chaque photo : voir le tableau $top de seed.php (légendes importées dans la
+  médiathèque). Les détourages de photos CC BY-SA sont diffusés sous la même licence.
