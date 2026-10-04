@@ -47,39 +47,6 @@
     color: var(--pong-encre);
 }
 
-.monclubtt-pong .pong-versus {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    max-width: 360px;
-    margin: 0 auto 14px;
-    padding: 10px 16px 10px 10px;
-    border-radius: 14px;
-    background: var(--pong-secondaire);
-    color: #fff;
-}
-
-.monclubtt-pong .pong-versus-tete {
-    flex: 0 0 auto;
-    width: 64px;
-    height: 64px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.monclubtt-pong .pong-versus-tete canvas {
-    max-width: 72px;
-    max-height: 72px;
-    width: auto !important;
-    height: auto !important;
-    filter: drop-shadow(0 3px 4px rgba(15, 20, 26, 0.35));
-}
-
-.monclubtt-pong .pong-versus-texte { display: flex; flex-direction: column; line-height: 1.2; min-width: 0; }
-.monclubtt-pong .pong-versus-label { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em; opacity: 0.85; }
-.monclubtt-pong .pong-versus-nom { font-size: 1.1rem; font-weight: 900; }
-.monclubtt-pong .pong-versus-titre { font-size: 0.85rem; opacity: 0.9; }
 .monclubtt-pong .pong-credits {
     margin: 14px auto 0;
     max-width: 520px;
@@ -104,6 +71,37 @@
 .monclubtt-pong .pong-credits ul { margin: 8px 0 0; padding-left: 1.2em; }
 
 .monclubtt-pong .pong-credits a { color: inherit; }
+
+.monclubtt-pong .pong-sous-titre { margin: -8px 0 14px; text-align: center; font-size: 0.95rem; }
+
+.monclubtt-pong .pong-retour { display: block; margin: -6px 0 6px; }
+
+.monclubtt-pong .pong-onglets {
+    display: flex;
+    max-width: 360px;
+    margin: 0 auto 12px;
+    padding: 4px;
+    gap: 4px;
+    border-radius: 999px;
+    background: rgba(35, 52, 74, 0.08);
+}
+
+.monclubtt-pong .pong-onglet {
+    flex: 1;
+    border: 0;
+    border-radius: 999px;
+    padding: 8px 10px;
+    background: transparent;
+    color: var(--pong-encre);
+    font-size: 0.9rem;
+    font-weight: 800;
+}
+
+.monclubtt-pong .pong-onglet[aria-selected="true"] { background: #fff; box-shadow: 0 1px 3px rgba(35, 52, 74, 0.2); }
+
+.monclubtt-pong .pong-hasard { display: block; margin: 0 auto 16px; padding-inline: 28px; }
+
+.monclubtt-pong .pong-carte.pong-carte--moi { display: none; }
 
 .monclubtt-pong .pong-niveaux {
     display: flex;

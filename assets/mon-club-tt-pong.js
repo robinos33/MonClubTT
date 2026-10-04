@@ -36,7 +36,7 @@
 
     var NIVEAUX = {
         normal:  { libelle: 'Normal',         vIa: 290, erreur: 32, reaction: 0.66, lecture: 0.6, v0: 310, vMax: 660 },
-        mondial: { libelle: 'Top 10 mondial', vIa: 400, erreur: 14, reaction: 1,    lecture: 0.9, v0: 350, vMax: 760 }
+        mondial: { libelle: 'Expert',         vIa: 400, erreur: 14, reaction: 1,    lecture: 0.9, v0: 350, vMax: 760 }
     };
 
     /* ---------------------------------------------------------- utilitaires */
@@ -311,17 +311,11 @@
         try { cfg = JSON.parse(source.textContent); } catch (e) { return; }
         var couleurs = cfg.couleurs || {};
         var joueurs = cfg.joueurs || [];
-        /* Adversaire tiré au sort (top 10 mondial messieurs et dames), nouveau
-         * tirage à chaque retour à la sélection. */
+        /* Adversaires : top 10 mondial des réglages (ou adversaire imposé par
+         * le shortcode) ; les joueurs du club peuvent aussi être choisis. */
         var adversaires = cfg.adversaires && cfg.adversaires.length ? cfg.adversaires
             : [cfg.adversaire || { nom: 'Top 10 mondial', prenom: '', sex: 'M', photo: '' }];
         var adv = null;
-        function tirerAdversaire() {
-            var choix = adversaires.filter(function (a) { return a !== adv; });
-            if (!choix.length) choix = adversaires;
-            adv = choix[Math.floor(Math.random() * choix.length)];
-        }
-        tirerAdversaire();
         var nbManches = [1, 3, 5].indexOf(cfg.manches) >= 0 ? cfg.manches : 3;
         var tactile = window.matchMedia && window.matchMedia('(pointer: coarse)').matches;
 
@@ -331,17 +325,120 @@
             joueur: null
         };
 
-        /* ---- Écran de sélection ---- */
-        var ecranSel = el('div', 'pong-ecran pong-selection');
-        var titre = el('h3', 'pong-titre', 'Choisis ton joueur');
-        ecranSel.appendChild(titre);
+        var dpr = Math.min(window.devicePixelRatio || 1, 3);
 
-        var versus = el('div', 'pong-versus');
-        var versusTete = el('div', 'pong-versus-tete');
-        var versusTexte = el('div', 'pong-versus-texte');
-        versus.appendChild(versusTete);
-        versus.appendChild(versusTexte);
-        ecranSel.appendChild(versus);
+        function poserTete(conteneur, t, cle) {
+            if (!t) return;
+            var c = sticker(t.img, TETE_GRILLE * (t.photo ? 1 : 0.8) * dpr, BORD_GRILLE * dpr);
+            c.style.width = (c.width / dpr) + 'px';
+            c.style.height = (c.height / dpr) + 'px';
+            c.style.transform = 'rotate(' + inclinaison(cle).toFixed(1) + 'deg)';
+            conteneur.appendChild(c);
+        }
+
+        function sansAccents(t) {
+            return String(t).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
+        }
+
+        /* Grille de cartes (tête détourée, nom, points ou rang), avec une
+         * recherche au-delà de 12 joueurs ; surChoix(joueur) au clic. */
+        function grilleCartes(liste, maillot, surChoix) {
+            var bloc = el('div', 'pong-bloc');
+            var grille = el('div', 'pong-grille');
+            if (liste.length > 12) {
+                var recherche = el('input', 'pong-recherche');
+                recherche.type = 'search';
+                recherche.placeholder = 'Rechercher un joueur…';
+                recherche.setAttribute('aria-label', 'Rechercher un joueur');
+                recherche.addEventListener('input', function () {
+                    var q = sansAccents(recherche.value);
+                    grille.querySelectorAll('.pong-carte').forEach(function (c) {
+                        c.hidden = q !== '' && c.dataset.recherche.indexOf(q) < 0;
+                    });
+                });
+                bloc.appendChild(recherche);
+            }
+            if (!liste.length) grille.appendChild(el('p', 'pong-vide', 'Aucun joueur à afficher pour le moment.'));
+            liste.forEach(function (p, i) {
+                var carte = el('button', 'pong-carte');
+                carte.type = 'button';
+                carte.dataset.index = i;
+                carte.dataset.recherche = sansAccents(p.nom + ' ' + (p.prenom || ''));
+                var tete = el('span', 'pong-carte-tete');
+                carte.appendChild(tete);
+                if (p.tel_quel) {
+                    carte.appendChild(el('span', 'pong-carte-nom', nomAffiche(p)));
+                } else {
+                    carte.appendChild(el('span', 'pong-carte-nom', String(p.nom).toUpperCase()));
+                    carte.appendChild(el('span', 'pong-carte-prenom', p.prenom));
+                }
+                var info = p.titre || (p.pts ? Math.round(p.pts) + ' pts' : '');
+                if (info) carte.appendChild(el('span', 'pong-carte-pts', info));
+                grille.appendChild(carte);
+                teteJoueur(p, maillot).then(function (t) { poserTete(tete, t, p.photo || 'avatar-' + p.nom + p.prenom); });
+            });
+            grille.addEventListener('click', function (e) {
+                var carte = e.target.closest('.pong-carte');
+                if (carte) surChoix(liste[+carte.dataset.index]);
+            });
+            bloc.appendChild(grille);
+            /* Masque la carte du joueur déjà choisi (pas de match contre soi-même). */
+            bloc.masquer = function (joueur) {
+                grille.querySelectorAll('.pong-carte').forEach(function (c) {
+                    c.classList.toggle('pong-carte--moi', liste[+c.dataset.index] === joueur);
+                });
+            };
+            return bloc;
+        }
+
+        function lienRetour(texte, action) {
+            var b = el('button', 'pong-lien pong-retour', texte);
+            b.type = 'button';
+            b.addEventListener('click', action);
+            return b;
+        }
+
+        /* ---- Écran 1 : choix du joueur ---- */
+        var ecranSel = el('div', 'pong-ecran pong-selection');
+        ecranSel.appendChild(el('h3', 'pong-titre', 'Choisis ton joueur'));
+        ecranSel.appendChild(grilleCartes(joueurs, couleurs.maillot, function (p) {
+            etat.joueur = p;
+            clubAdv.masquer(p);
+            sousTitreAdv.textContent = 'Tu joues avec ' + nomAffiche(p);
+            montrer(ecranAdv);
+        }));
+
+        /* ---- Écran 2 : choix de l'adversaire ---- */
+        var ecranAdv = el('div', 'pong-ecran pong-selection pong-choix-adv');
+        ecranAdv.hidden = true;
+        ecranAdv.appendChild(lienRetour('← Changer de joueur', function () { montrer(ecranSel); }));
+        ecranAdv.appendChild(el('h3', 'pong-titre', 'Choisis ton adversaire'));
+        var sousTitreAdv = el('p', 'pong-sous-titre');
+        ecranAdv.appendChild(sousTitreAdv);
+
+        var onglets = el('div', 'pong-onglets');
+        onglets.setAttribute('role', 'tablist');
+        var mondeAdv = grilleCartes(adversaires, couleurs.secondaire, jouerContre);
+        var clubAdv = grilleCartes(joueurs, couleurs.secondaire, jouerContre);
+        var vues = [
+            { libelle: adversaires.length > 1 ? 'Top 10 mondial' : 'Invité', bloc: mondeAdv, liste: adversaires },
+            { libelle: 'Joueurs du club', bloc: clubAdv, liste: joueurs }
+        ];
+        var vueActive = vues[0];
+        vues.forEach(function (v, i) {
+            var b = el('button', 'pong-onglet', v.libelle);
+            b.type = 'button';
+            b.setAttribute('role', 'tab');
+            b.setAttribute('aria-selected', String(i === 0));
+            b.addEventListener('click', function () {
+                vueActive = v;
+                onglets.querySelectorAll('.pong-onglet').forEach(function (x) { x.setAttribute('aria-selected', String(x === b)); });
+                vues.forEach(function (w) { w.bloc.hidden = w !== v; });
+            });
+            onglets.appendChild(b);
+            v.bloc.hidden = i !== 0;
+        });
+        ecranAdv.appendChild(onglets);
 
         var niveaux = el('div', 'pong-niveaux');
         niveaux.setAttribute('role', 'group');
@@ -361,75 +458,27 @@
                 x.setAttribute('aria-pressed', String(x === b));
             });
         });
-        ecranSel.appendChild(niveaux);
+        ecranAdv.appendChild(niveaux);
 
-        var recherche = null;
-        if (joueurs.length > 12) {
-            recherche = el('input', 'pong-recherche');
-            recherche.type = 'search';
-            recherche.placeholder = 'Rechercher un joueur…';
-            recherche.setAttribute('aria-label', 'Rechercher un joueur');
-            ecranSel.appendChild(recherche);
-        }
-
-        var grille = el('div', 'pong-grille');
-        ecranSel.appendChild(grille);
-        if (!joueurs.length) {
-            grille.appendChild(el('p', 'pong-vide', 'Aucun joueur à afficher pour le moment.'));
-        }
-
-        var dpr = Math.min(window.devicePixelRatio || 1, 3);
-        joueurs.forEach(function (p, i) {
-            var carte = el('button', 'pong-carte');
-            carte.type = 'button';
-            carte.dataset.index = i;
-            carte.dataset.recherche = (p.nom + ' ' + p.prenom).toLowerCase()
-                .normalize('NFD').replace(/[̀-ͯ]/g, '');
-            var tete = el('span', 'pong-carte-tete');
-            carte.appendChild(tete);
-            carte.appendChild(el('span', 'pong-carte-nom', String(p.nom).toUpperCase()));
-            carte.appendChild(el('span', 'pong-carte-prenom', p.prenom));
-            if (p.pts) carte.appendChild(el('span', 'pong-carte-pts', Math.round(p.pts) + ' pts'));
-            grille.appendChild(carte);
-            teteJoueur(p, couleurs.maillot).then(function (t) { poserTete(tete, t, p.photo || 'avatar-' + i); });
+        var hasard = el('button', 'pong-bouton pong-hasard', 'Au hasard');
+        hasard.type = 'button';
+        hasard.addEventListener('click', function () {
+            var choix = vueActive.liste.filter(function (a) { return a !== etat.joueur; });
+            if (choix.length) jouerContre(choix[Math.floor(Math.random() * choix.length)]);
         });
+        ecranAdv.appendChild(hasard);
+        ecranAdv.appendChild(mondeAdv);
+        ecranAdv.appendChild(clubAdv);
 
-        function poserTete(conteneur, t, cle) {
-            if (!t) return;
-            var c = sticker(t.img, TETE_GRILLE * (t.photo ? 1 : 0.8) * dpr, BORD_GRILLE * dpr);
-            c.style.width = (c.width / dpr) + 'px';
-            c.style.height = (c.height / dpr) + 'px';
-            c.style.transform = 'rotate(' + inclinaison(cle).toFixed(1) + 'deg)';
-            conteneur.appendChild(c);
+        function jouerContre(a) {
+            adv = a;
+            demarrer(etat.joueur);
         }
 
-        function afficherAdversaire() {
-            var a = adv;
-            versusTexte.innerHTML = '';
-            versusTexte.appendChild(el('span', 'pong-versus-label', 'Ton adversaire'));
-            versusTexte.appendChild(el('strong', 'pong-versus-nom', nomAffiche(a)));
-            if (a.titre) versusTexte.appendChild(el('span', 'pong-versus-titre', a.titre));
-            versusTete.innerHTML = '';
-            teteJoueur(a, couleurs.secondaire).then(function (t) {
-                if (a === adv) poserTete(versusTete, t, a.photo || 'avatar-' + a.nom);
-            });
+        function montrer(ecran) {
+            [ecranSel, ecranAdv, ecranJeu].forEach(function (e) { e.hidden = e !== ecran; });
+            ecran.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
         }
-        afficherAdversaire();
-
-        if (recherche) {
-            recherche.addEventListener('input', function () {
-                var q = recherche.value.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').trim();
-                grille.querySelectorAll('.pong-carte').forEach(function (c) {
-                    c.hidden = q !== '' && c.dataset.recherche.indexOf(q) < 0;
-                });
-            });
-        }
-
-        grille.addEventListener('click', function (e) {
-            var carte = e.target.closest('.pong-carte');
-            if (!carte) return;
-            demarrer(joueurs[+carte.dataset.index]);
-        });
 
         /* ---- Écran de jeu ---- */
         var ecranJeu = el('div', 'pong-ecran pong-jeu');
@@ -447,7 +496,7 @@
         ecranJeu.appendChild(scene);
 
         var actions = el('div', 'pong-actions');
-        var btnChanger = el('button', 'pong-lien', '← Changer de joueur');
+        var btnChanger = el('button', 'pong-lien', '← Changer d\'adversaire');
         btnChanger.type = 'button';
         var btnSon = el('button', 'pong-lien', 'Son : oui');
         btnSon.type = 'button';
@@ -459,6 +508,7 @@
         // Écrans avant les crédits photo posés par le shortcode.
         var credits = root.querySelector('.pong-credits');
         root.insertBefore(ecranSel, credits);
+        root.insertBefore(ecranAdv, credits);
         root.insertBefore(ecranJeu, credits);
         root.classList.add('pong-pret');
         if (!root.hasAttribute('tabindex')) root.tabIndex = -1;
@@ -519,8 +569,7 @@
 
         function demarrer(p) {
             etat.joueur = p;
-            ecranSel.hidden = true;
-            ecranJeu.hidden = false;
+            montrer(ecranJeu);
             marqueur.noms(nomAffiche(p), nomAffiche(adv));
             Promise.all([
                 preparerSprite(p, couleurs.maillot, FIG_J.h),
@@ -530,7 +579,6 @@
                 sprites.adversaire = s[1];
                 dimensionner();
                 nouveauMatch();
-                ecranJeu.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
                 root.focus({ preventScroll: true });
             });
         }
@@ -539,10 +587,7 @@
             cancelAnimationFrame(raf);
             raf = 0;
             phase = 'arret';
-            ecranJeu.hidden = true;
-            ecranSel.hidden = false;
-            tirerAdversaire();
-            afficherAdversaire();
+            montrer(ecranAdv);
         }
 
         function nouveauMatch() {
@@ -644,7 +689,7 @@
                     'manches ' + match.manches.joueur + '–' + match.manches.adversaire,
                     [
                         { texte: 'Rejouer', action: nouveauMatch },
-                        { texte: 'Changer de joueur', action: retourSelection, secondaire: true }
+                        { texte: 'Changer d\'adversaire', action: retourSelection, secondaire: true }
                     ]);
             }
         }
