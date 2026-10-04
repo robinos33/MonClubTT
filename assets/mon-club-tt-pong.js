@@ -313,8 +313,9 @@
         var joueurs = cfg.joueurs || [];
         /* Adversaires : top 10 mondial des réglages (ou adversaire imposé par
          * le shortcode) ; les joueurs du club peuvent aussi être choisis. */
-        var adversaires = cfg.adversaires && cfg.adversaires.length ? cfg.adversaires
-            : [cfg.adversaire || { nom: 'Top 10 mondial', prenom: '', sex: 'M', photo: '' }];
+        var adversaires = cfg.adversaires || [];
+        // Adversaire imposé par le shortcode : joué dès le choix du joueur.
+        var impose = cfg.impose || null;
         var adv = null;
         var nbManches = [1, 3, 5].indexOf(cfg.manches) >= 0 ? cfg.manches : 3;
         var tactile = window.matchMedia && window.matchMedia('(pointer: coarse)').matches;
@@ -405,7 +406,8 @@
             etat.joueur = p;
             clubAdv.masquer(p);
             sousTitreAdv.textContent = 'Tu joues avec ' + nomAffiche(p);
-            montrer(ecranAdv);
+            if (impose) jouerContre(impose);
+            else montrer(ecranAdv);
         }));
 
         /* ---- Écran 2 : choix de l'adversaire ---- */
@@ -421,9 +423,11 @@
         var mondeAdv = grilleCartes(adversaires, couleurs.secondaire, jouerContre);
         var clubAdv = grilleCartes(joueurs, couleurs.secondaire, jouerContre);
         var vues = [
-            { libelle: adversaires.length > 1 ? 'Top 10 mondial' : 'Invité', bloc: mondeAdv, liste: adversaires },
+            { libelle: 'Top 10 mondial', bloc: mondeAdv, liste: adversaires },
             { libelle: 'Joueurs du club', bloc: clubAdv, liste: joueurs }
         ];
+        if (impose) vues.unshift({ libelle: 'Invité', bloc: grilleCartes([impose], couleurs.secondaire, jouerContre), liste: [impose] });
+        vues = vues.filter(function (v) { return v.liste.length; });
         var vueActive = vues[0];
         vues.forEach(function (v, i) {
             var b = el('button', 'pong-onglet', v.libelle);
@@ -467,8 +471,7 @@
             if (choix.length) jouerContre(choix[Math.floor(Math.random() * choix.length)]);
         });
         ecranAdv.appendChild(hasard);
-        ecranAdv.appendChild(mondeAdv);
-        ecranAdv.appendChild(clubAdv);
+        vues.forEach(function (v) { ecranAdv.appendChild(v.bloc); });
 
         function jouerContre(a) {
             adv = a;

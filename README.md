@@ -66,7 +66,7 @@ Le visiteur choisit son joueur parmi les licenciés (photo détourée avec liser
 
 | Attribut | Valeurs | Défaut | Description |
 |----------|---------|--------|-------------|
-| `adversaire` | texte | — | Impose un adversaire unique au lieu du tirage au sort |
+| `adversaire` | texte | — | Adversaire joué directement après le choix du joueur (sans écran de choix) ; « Changer d'adversaire » donne ensuite accès au top 10 et au club |
 | `adversaire_titre` | texte | — | Sous-titre affiché sur l'écran de sélection |
 | `adversaire_photo` | ID de média ou URL | — | Photo détourée (PNG transparent) de l'adversaire ; à défaut, avatar dessiné |
 | `adversaire_sexe` | `M`, `F` | `M` | Avatar utilisé pour le corps |

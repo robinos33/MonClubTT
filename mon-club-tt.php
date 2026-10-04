@@ -484,7 +484,9 @@ class MonClubTT_Plugin
             'manches'          => '3',
         ), (array) $atts, 'monclubtt_pong');
 
-        // Adversaire imposé par le shortcode, sinon tirage dans le top 10 des réglages.
+        // Adversaire imposé par le shortcode (joué d'office, les autres restent
+        // accessibles ensuite) et top 10 mondial des réglages.
+        $impose      = null;
         $adversaires = array();
         $credits     = array();
         if (trim((string) $atts['adversaire']) !== '') {
@@ -497,33 +499,32 @@ class MonClubTT_Plugin
             if ($credit !== '') {
                 $credits[] = array('nom' => sanitize_text_field($atts['adversaire']), 'html' => $credit);
             }
-            $adversaires[] = array(
+            $impose = array(
                 'nom'    => sanitize_text_field($atts['adversaire']),
                 'prenom' => '',
                 'titre'  => sanitize_text_field($atts['adversaire_titre']),
                 'sex'    => $atts['adversaire_sexe'] === 'F' ? 'F' : 'M',
                 'photo'  => $photo !== '' ? esc_url_raw($photo) : '',
             );
-        } else {
-            foreach (monclubtt_get_pong_adversaires() as $sexe => $liste) {
-                foreach ($liste as $i => $adv) {
-                    if ($adv['nom'] === '') {
-                        continue;
-                    }
-                    $photo = $adv['photo'] ? wp_get_attachment_image_url($adv['photo'], 'medium') : '';
-                    $credit = $photo ? $this->creditPhoto($adv['photo']) : '';
-                    if ($credit !== '') {
-                        $credits[] = array('nom' => $adv['nom'], 'html' => $credit);
-                    }
-                    $adversaires[] = array(
-                        'nom'      => $adv['nom'],
-                        'prenom'   => '',
-                        'tel_quel' => true,
-                        'titre'    => 'N°' . ($i + 1) . ($sexe === 'F' ? ' mondiale' : ' mondial'),
-                        'sex'      => $sexe,
-                        'photo'    => $photo ? $photo : '',
-                    );
+        }
+        foreach (monclubtt_get_pong_adversaires() as $sexe => $liste) {
+            foreach ($liste as $i => $adv) {
+                if ($adv['nom'] === '') {
+                    continue;
                 }
+                $photo = $adv['photo'] ? wp_get_attachment_image_url($adv['photo'], 'medium') : '';
+                $credit = $photo ? $this->creditPhoto($adv['photo']) : '';
+                if ($credit !== '') {
+                    $credits[] = array('nom' => $adv['nom'], 'html' => $credit);
+                }
+                $adversaires[] = array(
+                    'nom'      => $adv['nom'],
+                    'prenom'   => '',
+                    'tel_quel' => true,
+                    'titre'    => 'N°' . ($i + 1) . ($sexe === 'F' ? ' mondiale' : ' mondial'),
+                    'sex'      => $sexe,
+                    'photo'    => $photo ? $photo : '',
+                );
             }
         }
         $manches = in_array((int) $atts['manches'], array(1, 3, 5), true) ? (int) $atts['manches'] : 3;

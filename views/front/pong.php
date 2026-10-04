@@ -8,6 +8,7 @@ $couleurs = monclubtt_get_couleurs();
 $config   = array(
     'joueurs'    => $joueurs->getDonneesPong(),
     'adversaires' => $adversaires,
+    'impose'      => $impose,
     'manches'    => $manches,
     'couleurs'   => $couleurs,
 );
