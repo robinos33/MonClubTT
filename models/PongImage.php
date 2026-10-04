@@ -10,18 +10,29 @@ if ( ! class_exists( 'MonClubTT_PongImage' ) ) {
  * joueurs (photo détourée avec liseré blanc, sinon pastille à initiales) de
  * part et d'autre du marqueur à fiches, aux couleurs du club.
  *
- * Rendu côté serveur avec GD + FreeType, uniquement à partir de données
- * vérifiées (aucune image envoyée par le navigateur). Aucune dépendance à
- * WordPress : chemins de fichiers et textes sont fournis par l'appelant.
+ * Rendu côté serveur avec GD, uniquement à partir de données vérifiées
+ * (aucune image envoyée par le navigateur). Texte en police TrueType quand
+ * FreeType fonctionne vraiment, sinon police bitmap de GD agrandie (certains
+ * GD annoncent FreeType sans l'avoir, WordPress Playground par exemple).
+ * Aucune dépendance à WordPress : chemins et textes sont fournis par l'appelant.
  */
 class MonClubTT_PongImage {
 
     const LARGEUR = 1200;
     const HAUTEUR = 630;
 
-    /** GD avec FreeType et PNG disponibles. */
+    /** Police TrueType utilisable pour ce rendu (null : police bitmap de GD). */
+    private static $police = null;
+
+    /** GD avec PNG disponible. */
     public static function disponible() {
-        return function_exists('imagecreatetruecolor') && function_exists('imagettftext') && function_exists('imagepng');
+        return function_exists('imagecreatetruecolor') && function_exists('imagepng');
+    }
+
+    /** FreeType réellement opérationnel avec cette police (mesure d'essai). */
+    private static function freetype($police) {
+        return function_exists('imagettfbbox') && is_readable($police)
+            && is_array(@imagettfbbox(12, 0, $police, 'A')); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged -- avertissement attendu sans FreeType
     }
 
     /**
@@ -31,9 +42,10 @@ class MonClubTT_PongImage {
      * @return string|null PNG binaire, null si GD est indisponible.
      */
     public static function rendre(array $m) {
-        if (!self::disponible() || !is_readable($m['police'])) {
+        if (!self::disponible()) {
             return null;
         }
+        self::$police = self::freetype($m['police']) ? $m['police'] : null;
         $W = self::LARGEUR;
         $H = self::HAUTEUR;
         $im = imagecreatetruecolor($W, $H);
@@ -102,19 +114,59 @@ class MonClubTT_PongImage {
         return function_exists('mb_strtoupper') ? mb_strtoupper($texte, 'UTF-8') : strtoupper($texte);
     }
 
+    /* Police bitmap n° 5 de GD : 9×15 px par caractère, agrandie à la taille voulue. */
+    const BITMAP_L = 9;
+    const BITMAP_H = 15;
+
+    /** Échelle de la police bitmap pour une taille en points (hauteur de capitale comparable). */
+    private static function echelleBitmap($taille) {
+        return max(1, $taille * 1.33 / self::BITMAP_H);
+    }
+
+    /** La police bitmap ne connaît que l'ASCII : accents retirés. */
+    private static function ascii($texte) {
+        $texte = strtr($texte, array(
+            'À' => 'A', 'Â' => 'A', 'Ä' => 'A', 'Ç' => 'C', 'É' => 'E', 'È' => 'E', 'Ê' => 'E', 'Ë' => 'E',
+            'Î' => 'I', 'Ï' => 'I', 'Ô' => 'O', 'Ö' => 'O', 'Ù' => 'U', 'Û' => 'U', 'Ü' => 'U', 'Ÿ' => 'Y',
+            'à' => 'a', 'â' => 'a', 'ä' => 'a', 'ç' => 'c', 'é' => 'e', 'è' => 'e', 'ê' => 'e', 'ë' => 'e',
+            'î' => 'i', 'ï' => 'i', 'ô' => 'o', 'ö' => 'o', 'ù' => 'u', 'û' => 'u', 'ü' => 'u', 'ÿ' => 'y',
+            '–' => '-', '—' => '-', '·' => '-', '’' => "'", 'Œ' => 'OE', 'œ' => 'oe', 'Æ' => 'AE', 'æ' => 'ae',
+        ));
+        return preg_replace('/[^\x20-\x7e]/', '?', $texte);
+    }
+
     private static function largeur($police, $taille, $texte) {
+        if (self::$police === null) {
+            return strlen(self::ascii($texte)) * self::BITMAP_L * self::echelleBitmap($taille);
+        }
         $b = imagettfbbox($taille, 0, $police, $texte);
         return abs($b[2] - $b[0]);
     }
 
-    /** Texte sur une ligne, réduit jusqu'à tenir dans $max pixels. */
+    /** Texte sur une ligne (y = ligne de base), réduit jusqu'à tenir dans $max pixels. */
     private static function texte($im, $police, $texte, $taille, $x, $y, $couleur, $align, $max) {
+        $police = self::$police;
         while ($taille > 12 && self::largeur($police, $taille, $texte) > $max) {
             $taille -= 2;
         }
         $l = self::largeur($police, $taille, $texte);
         $x0 = $align === 'centre' ? $x - $l / 2 : ($align === 'droite' ? $x - $l : $x);
-        imagettftext($im, $taille, 0, (int) round($x0), (int) round($y), $couleur, $police, $texte);
+        if ($police !== null) {
+            imagettftext($im, $taille, 0, (int) round($x0), (int) round($y), $couleur, $police, $texte);
+            return;
+        }
+        // Repli bitmap : texte écrit petit sur un calque transparent puis agrandi.
+        $ascii = self::ascii($texte);
+        $k     = self::echelleBitmap($taille);
+        $petit = self::calque(max(1, strlen($ascii) * self::BITMAP_L), self::BITMAP_H);
+        imagealphablending($petit, true);
+        $rgba = imagecolorsforindex($im, $couleur);
+        imagestring($petit, 5, 0, 0, $ascii, imagecolorallocatealpha($petit, $rgba['red'], $rgba['green'], $rgba['blue'], $rgba['alpha']));
+        $w = (int) round(imagesx($petit) * $k);
+        $h = (int) round(self::BITMAP_H * $k);
+        // Ligne de base de la police bitmap vers 12 px sur 15.
+        imagecopyresized($im, $petit, (int) round($x0), (int) round($y - 12 * $k), 0, 0, $w, $h, imagesx($petit), self::BITMAP_H);
+        imagedestroy($petit);
     }
 
     private static function rectArrondi($im, $x1, $y1, $x2, $y2, $r, $couleur) {

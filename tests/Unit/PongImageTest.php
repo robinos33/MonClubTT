@@ -41,8 +41,28 @@ final class PongImageTest extends TestCase
         $this->assertSame('image/png', $taille['mime']);
     }
 
-    public function test_should_return_null_when_font_missing(): void
+    public function test_should_fall_back_to_bitmap_text_when_font_unusable(): void
     {
-        $this->assertNull(MonClubTT_PongImage::rendre(array('police' => '/chemin/inexistant.ttf')));
+        if (!MonClubTT_PongImage::disponible()) {
+            $this->markTestSkipped('GD indisponible.');
+        }
+
+        $png = MonClubTT_PongImage::rendre(array(
+            'joueur'           => 'Inès GARCIA',
+            'adversaire'       => 'WANG Manyu',
+            'pj'               => 7,
+            'pa'               => 11,
+            'victoire'         => false,
+            'niveau_libelle'   => 'Normal',
+            'photo_joueur'     => '',
+            'photo_adversaire' => '',
+            'club'             => 'Club de test',
+            'site'             => '',
+            'couleurs'         => array('primaire' => '#2b7cb5', 'secondaire' => '#d34328', 'fond' => '#f4f1ea', 'maillot' => '#2b7cb5'),
+            'police'           => '/chemin/inexistant.ttf',
+        ));
+
+        $taille = getimagesizefromstring((string) $png);
+        $this->assertSame(array(1200, 630), array($taille[0], $taille[1]));
     }
 }
