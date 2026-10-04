@@ -20,4 +20,14 @@ $style = '--pong-primaire:' . $couleurs['primaire'] . ';--pong-secondaire:' . $c
         echo wp_json_encode($config, JSON_HEX_TAG | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
     ?></script>
     <noscript><p>Le jeu nécessite JavaScript.</p></noscript>
+    <?php if (!empty($credits)): ?>
+        <details class="pong-credits">
+            <summary>Crédit photo</summary>
+            <ul>
+                <?php foreach ($credits as $credit): ?>
+                    <li><?php echo esc_html($credit['nom']); ?> : <?php echo $credit['html']; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- filtré par wp_kses() dans creditPhoto() ?></li>
+                <?php endforeach; ?>
+            </ul>
+        </details>
+    <?php endif; ?>
 </div>

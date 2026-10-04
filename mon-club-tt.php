@@ -309,7 +309,8 @@ class MonClubTT_Plugin
             Shortcode <code>[monclubtt_pong]</code> : l'adversaire est tiré au hasard dans ces 20 joueurs. Noms écrits comme sur le site de la WTT (affichés tels quels), dans l'ordre du classement mondial (à mettre à jour, il change chaque semaine).
             Photo : PNG détouré à fond transparent, dont le club a les droits d'utilisation ; sans photo, avatar dessiné. Ligne vide = joueur ignoré.<br>
             Crédit : renseignez la <strong>légende</strong> de l'image dans la médiathèque, affichée sous le jeu. Pour une photo de Wikimedia Commons, auteur et licence sont obligatoires,
-            ex. « Jean Dupont, CC BY-SA 4.0, via Wikimedia Commons, détourée » (le jeu ajoute « Photo : » devant).
+            ex. « Jean Dupont, CC BY-SA 4.0, via Wikimedia Commons, détourée », liens vers la page de la photo et la licence acceptés.
+            Les crédits sont regroupés sous le jeu, dans « Crédit photo ».
         </p>
         <?php
         wp_add_inline_script('monclubtt-js', 'jQuery(function($) {
@@ -485,6 +486,7 @@ class MonClubTT_Plugin
 
         // Adversaire imposé par le shortcode, sinon tirage dans le top 10 des réglages.
         $adversaires = array();
+        $credits     = array();
         if (trim((string) $atts['adversaire']) !== '') {
             $photo  = trim((string) $atts['adversaire_photo']);
             $credit = '';
@@ -492,13 +494,15 @@ class MonClubTT_Plugin
                 $credit = $this->creditPhoto((int) $photo);
                 $photo  = (string) wp_get_attachment_image_url((int) $photo, 'medium');
             }
+            if ($credit !== '') {
+                $credits[] = array('nom' => sanitize_text_field($atts['adversaire']), 'html' => $credit);
+            }
             $adversaires[] = array(
                 'nom'    => sanitize_text_field($atts['adversaire']),
                 'prenom' => '',
                 'titre'  => sanitize_text_field($atts['adversaire_titre']),
                 'sex'    => $atts['adversaire_sexe'] === 'F' ? 'F' : 'M',
                 'photo'  => $photo !== '' ? esc_url_raw($photo) : '',
-                'credit' => $credit,
             );
         } else {
             foreach (monclubtt_get_pong_adversaires() as $sexe => $liste) {
@@ -507,6 +511,10 @@ class MonClubTT_Plugin
                         continue;
                     }
                     $photo = $adv['photo'] ? wp_get_attachment_image_url($adv['photo'], 'medium') : '';
+                    $credit = $photo ? $this->creditPhoto($adv['photo']) : '';
+                    if ($credit !== '') {
+                        $credits[] = array('nom' => $adv['nom'], 'html' => $credit);
+                    }
                     $adversaires[] = array(
                         'nom'      => $adv['nom'],
                         'prenom'   => '',
@@ -514,7 +522,6 @@ class MonClubTT_Plugin
                         'titre'    => 'N°' . ($i + 1) . ($sexe === 'F' ? ' mondiale' : ' mondial'),
                         'sex'      => $sexe,
                         'photo'    => $photo ? $photo : '',
-                        'credit'   => $photo ? $this->creditPhoto($adv['photo']) : '',
                     );
                 }
             }
@@ -529,14 +536,15 @@ class MonClubTT_Plugin
 
     /**
      * Crédit d'une photo d'adversaire : légende de l'image dans la
-     * médiathèque (auteur et licence, obligatoires pour Wikimedia Commons).
+     * médiathèque (auteur, licence et source, obligatoires pour Wikimedia
+     * Commons). Seuls les liens sont gardés comme HTML.
      * @param int $attachmentId
-     * @return string
+     * @return string HTML sûr
      */
     private function creditPhoto($attachmentId)
     {
         $legende = wp_get_attachment_caption($attachmentId);
-        return $legende ? sanitize_text_field($legende) : '';
+        return $legende ? trim(wp_kses($legende, array('a' => array('href' => array())))) : '';
     }
 
     private function getTypeListeJoueurs()

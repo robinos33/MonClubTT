@@ -80,16 +80,30 @@
 .monclubtt-pong .pong-versus-label { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em; opacity: 0.85; }
 .monclubtt-pong .pong-versus-nom { font-size: 1.1rem; font-weight: 900; }
 .monclubtt-pong .pong-versus-titre { font-size: 0.85rem; opacity: 0.9; }
-.monclubtt-pong .pong-versus-credit { margin-top: 2px; font-size: 0.7rem; opacity: 0.8; }
-
-.monclubtt-pong .pong-credit {
-    margin: 0;
+.monclubtt-pong .pong-credits {
+    margin: 14px auto 0;
     max-width: 520px;
     font-size: 0.72rem;
-    line-height: 1.3;
-    text-align: center;
-    color: rgba(35, 52, 74, 0.75);
+    line-height: 1.4;
+    color: rgba(35, 52, 74, 0.7);
 }
+
+.monclubtt-pong .pong-credits summary {
+    display: block;
+    cursor: pointer;
+    width: max-content;
+    white-space: nowrap;
+    margin: 0 auto;
+    list-style: none;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+}
+
+.monclubtt-pong .pong-credits summary::-webkit-details-marker { display: none; }
+
+.monclubtt-pong .pong-credits ul { margin: 8px 0 0; padding-left: 1.2em; }
+
+.monclubtt-pong .pong-credits a { color: inherit; }
 
 .monclubtt-pong .pong-niveaux {
     display: flex;
