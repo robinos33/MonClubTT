@@ -26,7 +26,8 @@ if ( ! class_exists( 'MonClubTT_Constantes' ) ) {
 
         /**
          * Adversaires par défaut du jeu de pong : top 10 mondial simple
-         * (classement ITTF, semaine 40 de 2026), modifiable dans les réglages
+         * (classement mondial WTT/ITTF, semaine 40 de 2026, vérifié sur le site
+         * de la WTT le 4 octobre 2026), modifiable dans les réglages
          * car il change chaque semaine. Format « NOM Prénom » de l'ITTF.
          */
         const PONG_ADVERSAIRES_DEFAUT = array(
