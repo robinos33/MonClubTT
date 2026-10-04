@@ -14,20 +14,24 @@
     if (typeof MonClubTTAvatars === 'undefined') return;
 
     /* ---- Géométrie (unités logiques, mises à l'échelle du conteneur) ---- */
-    var W = 360, H = 600;
-    var TABLE = { x: 34, y: 92, w: 292, h: 412 };
+    var W = 360, H = 580;
+    var TABLE = { x: 34, y: 88, w: 292, h: 412 };
     var R = 6;                                   // rayon de la balle
-    var FIG_J = { h: 104, top: 490 };            // personnage du joueur (bas)
-    var FIG_A = { h: 88, top: 4 };               // adversaire (haut)
-    var HIT_J = 500, HIT_A = 96;                 // lignes de frappe
-    var DEMI_RAQ = 38, DECALAGE_RAQ = 8;         // zone de frappe autour du corps
+    var HIT_J = 500, HIT_A = 50;                 // lignes de frappe
+    /* Personnage en pose « jeu » (viewBox 188×168) : bras écartés, raquette
+     * tendue. La zone de frappe couvre toute l'envergure, main gauche (x 8)
+     * à bord de raquette (x 182) ; fig.x désigne son centre. */
+    var SVG = { l: 188, centre: 95, corps: 64, raquette: 162, yRaquette: 67, demi: 87 };
+    var MARGE_FRAPPE = 4;                        // tolérance au-delà du dessin
+    var FIG_J = { h: 98, hit: HIT_J };           // personnage du joueur (bas)
+    var FIG_A = { h: 80, hit: HIT_A };           // adversaire (haut)
     var BORD_GRILLE = 6;                         // liseré blanc (px) des têtes de la sélection
     var TETE_GRILLE = 88;                        // hauteur (px CSS) des têtes de la sélection
 
     var NIVEAUX = {
-        facile:  { libelle: 'Facile',         vIa: 190, erreur: 46, reaction: 0.5,  v0: 230, vMax: 520 },
-        normal:  { libelle: 'Normal',         vIa: 280, erreur: 24, reaction: 0.66, v0: 260, vMax: 600 },
-        mondial: { libelle: 'Top 10 mondial', vIa: 380, erreur: 10, reaction: 1,    v0: 290, vMax: 680 }
+        facile:  { libelle: 'Facile',         vIa: 170, erreur: 60, reaction: 0.5,  v0: 200, vMax: 420 },
+        normal:  { libelle: 'Normal',         vIa: 250, erreur: 32, reaction: 0.66, v0: 230, vMax: 500 },
+        mondial: { libelle: 'Top 10 mondial', vIa: 340, erreur: 14, reaction: 1,    v0: 260, vMax: 600 }
     };
 
     /* ---------------------------------------------------------- utilitaires */
@@ -84,9 +88,9 @@
 
     /* Avatar SVG en image ; largeur/hauteur explicites pour que tous les
      * navigateurs lui donnent une taille naturelle. */
-    function urlAvatar(sexe, avecTete, maillot) {
-        var svg = (sexe === 'F' ? MonClubTTAvatars.female : MonClubTTAvatars.male)(avecTete, { maillot: maillot });
-        svg = svg.replace('<svg ', '<svg width="256" height="336" ');
+    function urlAvatar(sexe, avecTete, maillot, pose) {
+        var svg = (sexe === 'F' ? MonClubTTAvatars.female : MonClubTTAvatars.male)(avecTete, { maillot: maillot, pose: pose });
+        svg = svg.replace('<svg ', '<svg width="' + (pose === 'jeu' ? 376 : 256) + '" height="336" ');
         return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
     }
 
@@ -421,7 +425,8 @@
         var ctx = canvas.getContext('2d');
         var echelle = 1;
         var sprites = { joueur: null, adversaire: null };
-        var figJ = { x: W / 2, vx: 0 }, figA = { x: W / 2 };
+        var figJ = { x: W / 2, vx: 0, demi: SVG.demi * FIG_J.h / 168 + MARGE_FRAPPE };
+        var figA = { x: W / 2, vx: 0, demi: SVG.demi * FIG_A.h / 168 + MARGE_FRAPPE };
         var balle = { x: W / 2, y: H / 2, vx: 0, vy: 0, v: 0, y0: 0, rebond: false, visible: false };
         var match = null;
         var phase = 'arret'; // arret | service | jeu | pause | message
@@ -434,7 +439,7 @@
         /* Personnage : corps de l'avatar (sans tête si photo) + tête détourée. */
         function preparerSprite(p, maillot, hauteur) {
             return chargerImage(p.photo).then(function (photo) {
-                return chargerImage(urlAvatar(p.sex, !photo, maillot)).then(function (corps) {
+                return chargerImage(urlAvatar(p.sex, !photo, maillot, 'jeu')).then(function (corps) {
                     return { p: p, corps: corps, photo: photo, hauteur: hauteur, tete: null, cle: p.photo || 'avatar' };
                 });
             });
@@ -525,9 +530,9 @@
 
         function frapper(fig, sens) {
             var n = NIVEAUX[etat.niveau];
-            var rel = clamp((balle.x - (fig.x + DECALAGE_RAQ)) / DEMI_RAQ, -1, 1);
-            balle.v = Math.min(n.vMax, balle.v * 1.045);
-            var angle = rel * 1.0;
+            var rel = clamp((balle.x - fig.x) / fig.demi, -1, 1);
+            balle.v = Math.min(n.vMax, balle.v * 1.035);
+            var angle = rel * 0.85;
             balle.vx = Math.sin(angle) * balle.v + (fig.vx || 0) * 0.15;
             balle.vy = sens * Math.cos(angle) * balle.v;
             balle.y0 = balle.y;
@@ -548,7 +553,7 @@
         function viserIa() {
             var n = NIVEAUX[etat.niveau];
             ia.erreur = (Math.random() * 2 - 1) * n.erreur;
-            ia.vise = (Math.random() * 2 - 1) * DEMI_RAQ * 0.7;
+            ia.vise = (Math.random() * 2 - 1) * figA.demi * 0.7;
         }
 
         function marquer(cote) {
@@ -656,7 +661,7 @@
             if (touches.g || touches.d) {
                 figJ.x += ((touches.d ? 1 : 0) - (touches.g ? 1 : 0)) * 420 * dt;
             } else if (cible !== null) {
-                figJ.x += (cible - DECALAGE_RAQ - figJ.x) * Math.min(1, dt * 20);
+                figJ.x += (cible - figJ.x) * Math.min(1, dt * 20);
             }
             figJ.x = clamp(figJ.x, 20, W - 20);
             figJ.vx = (figJ.x - avant) / Math.max(dt, 0.001);
@@ -666,15 +671,16 @@
             var n = NIVEAUX[etat.niveau];
             var but = W / 2;
             if (phase === 'jeu' && balle.vy < 0 && balle.y < HIT_J - (HIT_J - HIT_A) * (1 - n.reaction) - 1) {
-                but = predire(HIT_A + R) - DECALAGE_RAQ - ia.vise + ia.erreur;
+                but = predire(HIT_A + R) - ia.vise + ia.erreur;
             } else if (phase === 'jeu' && balle.vy < 0) {
                 but = figA.x; // pas encore réagi
             } else if (phase === 'service' && match.serveur() === 'adversaire') {
                 but = figA.x;
             }
-            var pas = n.vIa * dt;
+            var pas = n.vIa * dt, avant = figA.x;
             figA.x += clamp(but - figA.x, -pas, pas);
             figA.x = clamp(figA.x, 20, W - 20);
+            figA.vx = (figA.x - avant) / Math.max(dt, 0.001);
         }
 
         function step(dt) {
@@ -685,10 +691,10 @@
             if (phase === 'service') {
                 var s = match.serveur();
                 if (s === 'joueur') {
-                    balle.x = figJ.x + DECALAGE_RAQ;
+                    balle.x = figJ.x + (SVG.raquette - SVG.centre) * FIG_J.h / 168;
                     balle.y = HIT_J - R - 4;
                 } else {
-                    balle.x = figA.x + DECALAGE_RAQ;
+                    balle.x = figA.x + (SVG.raquette - SVG.centre) * FIG_A.h / 168;
                     balle.y = HIT_A + R + 4;
                     minuterie -= dt;
                     if (minuterie <= 0) servir('adversaire');
@@ -716,13 +722,13 @@
             }
 
             if (balle.vy > 0 && py + R <= HIT_J && balle.y + R >= HIT_J) {
-                if (Math.abs(balle.x - (figJ.x + DECALAGE_RAQ)) <= DEMI_RAQ + R) {
+                if (Math.abs(balle.x - figJ.x) <= figJ.demi + R) {
                     balle.y = HIT_J - R;
                     frapper(figJ, -1);
                     viserIa();
                 }
             } else if (balle.vy < 0 && py - R >= HIT_A && balle.y - R <= HIT_A) {
-                if (Math.abs(balle.x - (figA.x + DECALAGE_RAQ)) <= DEMI_RAQ + R) {
+                if (Math.abs(balle.x - figA.x) <= figA.demi + R) {
                     balle.y = HIT_A + R;
                     frapper(figA, 1);
                 }
@@ -766,11 +772,19 @@
             ctx.fillRect(TABLE.x + TABLE.w + 8, yf - 6, 6, 10);
         }
 
-        function dessinerFigure(s, fig, top) {
+        /* Corps en pose « jeu », penché dans le sens du déplacement (pivot
+         * aux pieds), tête détourée posée par-dessus. */
+        function dessinerFigure(s, fig, cadre) {
             if (!s) return;
             var k = s.hauteur / 168;
-            var fw = 128 * k, fh = s.hauteur;
-            var fx = fig.x - fw / 2;
+            var fw = SVG.l * k, fh = s.hauteur;
+            var top = cadre.hit - SVG.yRaquette * k;
+            var fx = fig.x - SVG.centre * k;
+            var pied = fx + SVG.corps * k;
+            ctx.save();
+            ctx.translate(pied, top + fh);
+            ctx.rotate(clamp((fig.vx || 0) / 700, -1, 1) * 10 * Math.PI / 180);
+            ctx.translate(-pied, -(top + fh));
             ctx.save();
             ctx.shadowColor = 'rgba(15,20,26,0.25)';
             ctx.shadowBlur = 10 * echelle * dpr;
@@ -779,15 +793,14 @@
             ctx.restore();
             if (s.tete) {
                 var tw = s.tete.width / (echelle * dpr), th = s.tete.height / (echelle * dpr);
-                ctx.save();
-                ctx.translate(fx + 64 * k, top + 40 * k);
+                ctx.translate(fx + SVG.corps * k, top + 40 * k);
                 ctx.rotate(inclinaison(s.cle) * Math.PI / 180);
                 ctx.shadowColor = 'rgba(15,20,26,0.35)';
                 ctx.shadowBlur = 4 * echelle * dpr;
                 ctx.shadowOffsetY = 2 * echelle * dpr;
                 ctx.drawImage(s.tete, -tw / 2, -th / 2, tw, th);
-                ctx.restore();
             }
+            ctx.restore();
         }
 
         function hauteurBalle() {
@@ -838,9 +851,9 @@
             var s = echelle * dpr;
             ctx.setTransform(s, 0, 0, s, 0, 0);
             dessinerTable();
-            dessinerFigure(sprites.adversaire, figA, FIG_A.top);
+            dessinerFigure(sprites.adversaire, figA, FIG_A);
             if (balle.y < TABLE.y + TABLE.h / 2) dessinerBalle();
-            dessinerFigure(sprites.joueur, figJ, FIG_J.top);
+            dessinerFigure(sprites.joueur, figJ, FIG_J);
             if (balle.y >= TABLE.y + TABLE.h / 2) dessinerBalle();
             dessinerToast();
         }

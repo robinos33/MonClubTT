@@ -180,10 +180,24 @@ var MonClubTTAvatars = (function () {
         return /^#[0-9a-f]{6}$/i.test(String(hex || ''));
     }
 
+    /* Pose du jeu de pong (opts.pose = 'jeu') : bras écartés, grande raquette
+       tendue sur le côté ; le dessin passe en viewBox 188×168. */
+    function brasJeu(peau, maillot, raquette) {
+        return '<rect x="8" y="62" width="40" height="11" rx="5.5" fill="' + peau + '"/>' +
+            '<rect x="34" y="60" width="13" height="13" rx="4" fill="' + maillot + '"/>' +
+            '<rect x="81" y="62" width="52" height="11" rx="5.5" fill="' + peau + '"/>' +
+            '<rect x="81" y="60" width="13" height="13" rx="4" fill="' + maillot + '"/>' +
+            '<rect x="128" y="63" width="16" height="9" rx="3" fill="#e7c9a3"/>' +
+            '<ellipse cx="162" cy="67" rx="20" ry="22" fill="' + raquette + '"/>' +
+            '<ellipse cx="162" cy="67" rx="20" ry="22" fill="none" stroke="#fff" stroke-width="2"/>';
+    }
+
     function avatarMale(showHead, opts) {
         var maillot = opts && valide(opts.maillot) ? opts.maillot : '#2b7cb5';
+        var jeu     = !!(opts && opts.pose === 'jeu');
         var ombre   = assombrir(maillot, 0.28);
-        return '<svg viewBox="0 0 128 168" xmlns="http://www.w3.org/2000/svg">' +
+        return '<svg viewBox="0 0 ' + (jeu ? 188 : 128) + ' 168" xmlns="http://www.w3.org/2000/svg">' +
+            (jeu ? brasJeu('#e7b48f', maillot, '#d34328') :
             '<g>' +
               '<rect x="84" y="38" width="11" height="34" rx="5.5" fill="#e7b48f" transform="rotate(38 90 55)"/>' +
               '<rect x="84" y="36" width="11" height="14" rx="4" fill="' + maillot + '" transform="rotate(38 90 43)"/>' +
@@ -192,14 +206,14 @@ var MonClubTTAvatars = (function () {
                 '<ellipse cx="108" cy="22" rx="14" ry="16" fill="none" stroke="#fff" stroke-width="2"/>' +
                 '<rect x="102" y="35" width="7" height="14" rx="3" fill="#e7c9a3" transform="rotate(18 105 42)"/>' +
               '</g>' +
-            '</g>' +
+            '</g>') +
             '<rect x="51" y="108" width="11" height="40" rx="5.5" fill="#e7b48f"/>' +
             '<rect x="66" y="108" width="11" height="40" rx="5.5" fill="#e7b48f"/>' +
             '<path d="M48 146 h15 v6 q0 4 -4 4 h-11 q-3 0 -3 -3 z" fill="#ffffff" stroke="#d9e0e6" stroke-width="1"/>' +
             '<path d="M65 146 h15 v7 q0 3 -3 3 h-12 v-10 z" fill="#ffffff" stroke="#d9e0e6" stroke-width="1"/>' +
             '<path d="M46 92 h36 v15 q0 4 -4 4 h-9 l-5 -10 -5 10 h-9 q-4 0 -4 -4 z" fill="#23344a"/>' +
-            '<rect x="35" y="60" width="11" height="36" rx="5.5" fill="#e7b48f"/>' +
-            '<rect x="35" y="58" width="11" height="13" rx="4" fill="' + maillot + '"/>' +
+            (jeu ? '' : '<rect x="35" y="60" width="11" height="36" rx="5.5" fill="#e7b48f"/>' +
+                '<rect x="35" y="58" width="11" height="13" rx="4" fill="' + maillot + '"/>') +
             '<path d="M44 60 q1 -6 7 -7 l26 0 q6 1 7 7 l0 30 q0 5 -6 5 l-28 0 q-6 0 -6 -5 z" fill="' + maillot + '"/>' +
             '<path d="M44 60 q1 -6 7 -7 l4 0 l0 42 l-9 0 q-2 0 -2 -3 z" fill="' + ombre + '"/>' +
             '<path d="M56 53 l8 8 l8 -8 q-8 -3 -16 0 z" fill="#ffffff"/>' +
@@ -217,8 +231,10 @@ var MonClubTTAvatars = (function () {
 
     function avatarFemale(showHead, opts) {
         var maillot = opts && valide(opts.maillot) ? opts.maillot : '#d34328';
+        var jeu     = !!(opts && opts.pose === 'jeu');
         var ombre   = assombrir(maillot, 0.2);
-        return '<svg viewBox="0 0 128 168" xmlns="http://www.w3.org/2000/svg">' +
+        return '<svg viewBox="0 0 ' + (jeu ? 188 : 128) + ' 168" xmlns="http://www.w3.org/2000/svg">' +
+            (jeu ? brasJeu('#ecbb98', maillot, '#2b7cb5') :
             '<g>' +
               '<rect x="84" y="38" width="11" height="34" rx="5.5" fill="#ecbb98" transform="rotate(38 90 55)"/>' +
               '<rect x="84" y="36" width="11" height="14" rx="4" fill="' + maillot + '" transform="rotate(38 90 43)"/>' +
@@ -227,7 +243,7 @@ var MonClubTTAvatars = (function () {
                 '<ellipse cx="108" cy="22" rx="14" ry="16" fill="none" stroke="#fff" stroke-width="2"/>' +
                 '<rect x="102" y="35" width="7" height="14" rx="3" fill="#e7c9a3" transform="rotate(18 105 42)"/>' +
               '</g>' +
-            '</g>' +
+            '</g>') +
             '<rect x="52" y="112" width="10" height="36" rx="5" fill="#ecbb98"/>' +
             '<rect x="66" y="112" width="10" height="36" rx="5" fill="#ecbb98"/>' +
             '<path d="M49 146 h14 v6 q0 4 -4 4 h-10 q-3 0 -3 -3 z" fill="#ffffff" stroke="#d9e0e6" stroke-width="1"/>' +
@@ -236,8 +252,8 @@ var MonClubTTAvatars = (function () {
             '<path d="M64 90 l0 28" stroke="#1b2839" stroke-width="1.4"/>' +
             '<path d="M54 91 l-3 25" stroke="#1b2839" stroke-width="1.2"/>' +
             '<path d="M74 91 l3 25" stroke="#1b2839" stroke-width="1.2"/>' +
-            '<rect x="35" y="60" width="11" height="36" rx="5.5" fill="#ecbb98"/>' +
-            '<rect x="35" y="58" width="11" height="13" rx="4" fill="' + maillot + '"/>' +
+            (jeu ? '' : '<rect x="35" y="60" width="11" height="36" rx="5.5" fill="#ecbb98"/>' +
+                '<rect x="35" y="58" width="11" height="13" rx="4" fill="' + maillot + '"/>') +
             '<path d="M44 60 q1 -6 7 -7 l26 0 q6 1 7 7 l0 30 q0 5 -6 5 l-28 0 q-6 0 -6 -5 z" fill="' + maillot + '"/>' +
             '<path d="M44 60 q1 -6 7 -7 l4 0 l0 42 l-9 0 q-2 0 -2 -3 z" fill="' + ombre + '"/>' +
             '<path d="M56 53 l8 9 l8 -9 q-8 -3 -16 0 z" fill="#ffffff"/>' +
