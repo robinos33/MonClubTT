@@ -429,7 +429,9 @@
     left: 50%;
     top: 50%;
     transform: translate(-50%, -50%);
-    width: min(84%, 300px);
+    width: min(88%, 320px);
+    max-height: calc(100% - 16px);
+    overflow-y: auto;
     box-sizing: border-box;
     display: flex;
     flex-direction: column;
@@ -447,6 +449,34 @@
 @keyframes pongApparait {
     from { opacity: 0; transform: translate(-50%, -44%); }
 }
+
+.monclubtt-pong .pong-partage { display: flex; flex-direction: column; align-items: center; gap: 6px; width: 100%; margin-top: 6px; }
+.monclubtt-pong .pong-partage:empty { display: none; }
+.monclubtt-pong .pong-partage-titre { font-size: 0.75rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; color: rgba(35, 52, 74, 0.7); }
+.monclubtt-pong .pong-partage-apercu { display: block; width: 100%; height: auto; border-radius: 4px; box-shadow: 0 1px 4px rgba(15, 20, 26, 0.25); }
+.monclubtt-pong .pong-partage-liens { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; width: 100%; }
+
+.monclubtt-pong .pong-partage-lien {
+    display: block;
+    padding: 7px 8px;
+    border: 0;
+    border-radius: 8px;
+    color: #fff;
+    font-size: 0.85rem;
+    font-weight: 800;
+    line-height: 1.2;
+    text-align: center;
+    text-decoration: none;
+}
+
+.monclubtt-pong .pong-partage-lien:hover,
+.monclubtt-pong .pong-partage-lien:focus-visible { color: #fff; filter: brightness(1.1); }
+.monclubtt-pong .pong-partage--facebook { background: #1877f2; }
+.monclubtt-pong .pong-partage--instagram { background: linear-gradient(45deg, #f58529, #dd2a7b 55%, #8134af); }
+.monclubtt-pong .pong-partage--x { background: #0f1419; }
+.monclubtt-pong .pong-partage--whatsapp { background: #1f9e55; }
+.monclubtt-pong .pong-partage-aide { font-size: 0.75rem; }
+.monclubtt-pong .pong-partage-aide:empty { display: none; }
 
 .monclubtt-pong .pong-message-classement { font-size: 0.85rem; font-weight: 700; color: var(--pong-secondaire); }
 .monclubtt-pong .pong-message-classement:empty { display: none; }

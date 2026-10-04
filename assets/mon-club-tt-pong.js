@@ -455,25 +455,73 @@
             return 'invite';
         }
 
-        /* Fin de match : une victoire contre le top 10 ou le club est proposée
-         * au tableau ; ligne mise à jour dans le message de fin. */
-        function envoyerFin(ligne) {
+        /* Fin de match : le match est enregistré pour le partage ; une victoire
+         * contre le top 10 ou le club est en plus proposée au tableau. */
+        function envoyerFin(ligne, zonePartage) {
             var victoire = match.points.joueur > match.points.adversaire;
             var type = typeAdversaire(adv);
-            if (!victoire || type === 'invite') return;
-            ligne.textContent = 'Enregistrement au tableau…';
+            if (victoire && type !== 'invite') ligne.textContent = 'Enregistrement au tableau…';
             appelAjax('monclubtt_pong_fin', {
-                nonce: cfg.nonce || '',
+                nonce: cfg.nonce || '', page: cfg.page || 0,
                 joueur_nom: etat.joueur.nom, joueur_prenom: etat.joueur.prenom || '',
                 adv_type: type, adv_nom: adv.nom, adv_prenom: adv.prenom || '',
                 niveau: etat.niveau, pj: match.points.joueur, pa: match.points.adversaire
             }).then(function (d) {
-                afficherScores(d.classement);
-                ligne.textContent = d.rang
-                    ? 'Tu entres ' + (d.rang === 1 ? '1er' : d.rang + 'e') + ' au tableau des meilleurs scores !'
-                    : 'Pas assez pour entrer au tableau des meilleurs scores, cette fois.';
+                if (d.classement) {
+                    afficherScores(d.classement);
+                    ligne.textContent = d.rang
+                        ? 'Tu entres ' + (d.rang === 1 ? '1er' : d.rang + 'e') + ' au tableau des meilleurs scores !'
+                        : 'Pas assez pour entrer au tableau des meilleurs scores, cette fois.';
+                }
+                if (d.partage) afficherPartage(zonePartage, d.partage);
             }, function (err) {
-                ligne.textContent = 'Score non enregistré : ' + err.message;
+                if (victoire && type !== 'invite') ligne.textContent = 'Score non enregistré : ' + err.message;
+            });
+        }
+
+        /* Partage du match : aperçu de l'image (og:image de la page partagée),
+         * Facebook / X / WhatsApp par leurs liens de partage, Instagram par le
+         * partage natif du téléphone (image en fichier), sinon l'image à enregistrer. */
+        function afficherPartage(zone, p) {
+            zone.innerHTML = '';
+            zone.appendChild(el('span', 'pong-partage-titre', 'Partager le match'));
+            var apercu = el('img', 'pong-partage-apercu');
+            apercu.src = p.image;
+            apercu.alt = 'Image de partage du match';
+            apercu.width = 1200;
+            apercu.height = 630;
+            zone.appendChild(apercu);
+            var liens = el('div', 'pong-partage-liens');
+            function lien(texte, url, classe) {
+                var a = el('a', 'pong-partage-lien ' + classe, texte);
+                a.href = url;
+                a.target = '_blank';
+                a.rel = 'noopener noreferrer';
+                liens.appendChild(a);
+            }
+            var u = encodeURIComponent(p.url), t = encodeURIComponent(p.texte);
+            lien('Facebook', 'https://www.facebook.com/sharer/sharer.php?u=' + u, 'pong-partage--facebook');
+            var insta = el('button', 'pong-partage-lien pong-partage--instagram', 'Instagram');
+            insta.type = 'button';
+            liens.appendChild(insta);
+            lien('X', 'https://twitter.com/intent/tweet?text=' + t + '&url=' + u, 'pong-partage--x');
+            lien('WhatsApp', 'https://wa.me/?text=' + encodeURIComponent(p.texte + ' ' + p.url), 'pong-partage--whatsapp');
+            zone.appendChild(liens);
+            var aide = el('span', 'pong-partage-aide');
+            zone.appendChild(aide);
+
+            // Image préchargée en fichier : le partage natif doit partir du clic même.
+            var fichier = null;
+            fetch(p.image).then(function (r) { return r.blob(); }).then(function (b) {
+                fichier = new File([b], 'pong-du-club.png', { type: b.type || 'image/png' });
+            }, function () {});
+            insta.addEventListener('click', function () {
+                if (fichier && navigator.canShare && navigator.canShare({ files: [fichier] })) {
+                    navigator.share({ files: [fichier], text: p.texte + ' ' + p.url }).catch(function () {});
+                    return;
+                }
+                window.open(p.image, '_blank', 'noopener');
+                aide.textContent = 'Enregistre l\'image, puis publie-la dans Instagram.';
             });
         }
 
@@ -767,8 +815,10 @@
                         { texte: 'Changer d\'adversaire', action: retourSelection, secondaire: true }
                     ]);
                 var ligneScore = el('span', 'pong-message-classement');
+                var zonePartage = el('div', 'pong-partage');
                 message.insertBefore(ligneScore, message.querySelector('.pong-message-boutons'));
-                envoyerFin(ligneScore);
+                message.insertBefore(zonePartage, message.querySelector('.pong-message-boutons'));
+                envoyerFin(ligneScore, zonePartage);
             }
         }
 

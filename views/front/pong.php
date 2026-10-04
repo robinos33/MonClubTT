@@ -12,6 +12,7 @@ $config   = array(
     'scores'      => $scores,
     'ajax'        => admin_url('admin-ajax.php'),
     'nonce'       => wp_create_nonce('monclubtt_pong'),
+    'page'        => (int) get_the_ID(),
     'manches'    => $manches,
     'couleurs'   => $couleurs,
 );
