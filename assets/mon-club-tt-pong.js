@@ -28,10 +28,16 @@
     var BORD_GRILLE = 6;                         // liseré blanc (px) des têtes de la sélection
     var TETE_GRILLE = 88;                        // hauteur (px CSS) des têtes de la sélection
 
+    /* Accélération à chaque frappe d'un même échange (repart de v0 au service). */
+    var ACCELERATION = 1.08;
+    /* Effet : la vitesse latérale de la raquette à l'impact donne à la balle
+     * une courbe (accélération latérale, px/s²) qui s'atténue en vol. */
+    var EFFET_MAX = 200, EFFET_VITESSE = 450, EFFET_AMORTI = 0.9;
+
     var NIVEAUX = {
-        facile:  { libelle: 'Facile',         vIa: 170, erreur: 60, reaction: 0.5,  v0: 200, vMax: 420 },
-        normal:  { libelle: 'Normal',         vIa: 250, erreur: 32, reaction: 0.66, v0: 230, vMax: 500 },
-        mondial: { libelle: 'Top 10 mondial', vIa: 340, erreur: 14, reaction: 1,    v0: 260, vMax: 600 }
+        facile:  { libelle: 'Facile',         vIa: 200, erreur: 60, reaction: 0.5,  lecture: 0.3, v0: 270, vMax: 560 },
+        normal:  { libelle: 'Normal',         vIa: 290, erreur: 32, reaction: 0.66, lecture: 0.6, v0: 310, vMax: 660 },
+        mondial: { libelle: 'Top 10 mondial', vIa: 400, erreur: 14, reaction: 1,    lecture: 0.9, v0: 350, vMax: 760 }
     };
 
     /* ---------------------------------------------------------- utilitaires */
@@ -427,7 +433,7 @@
         var sprites = { joueur: null, adversaire: null };
         var figJ = { x: W / 2, vx: 0, demi: SVG.demi * FIG_J.h / 168 + MARGE_FRAPPE };
         var figA = { x: W / 2, vx: 0, demi: SVG.demi * FIG_A.h / 168 + MARGE_FRAPPE };
-        var balle = { x: W / 2, y: H / 2, vx: 0, vy: 0, v: 0, y0: 0, rebond: false, visible: false };
+        var balle = { x: W / 2, y: H / 2, vx: 0, vy: 0, v: 0, ax: 0, y0: 0, rebond: false, visible: false, trace: [] };
         var match = null;
         var phase = 'arret'; // arret | service | jeu | pause | message
         var minuterie = 0;
@@ -520,6 +526,8 @@
             balle.v = n.v0;
             balle.vx = Math.sin(angle) * balle.v;
             balle.vy = (cote === 'joueur' ? -1 : 1) * Math.cos(angle) * balle.v;
+            balle.ax = 0;
+            balle.trace = [];
             balle.y0 = balle.y;
             balle.rebond = false;
             phase = 'jeu';
@@ -531,23 +539,30 @@
         function frapper(fig, sens) {
             var n = NIVEAUX[etat.niveau];
             var rel = clamp((balle.x - fig.x) / fig.demi, -1, 1);
-            balle.v = Math.min(n.vMax, balle.v * 1.035);
+            balle.v = Math.min(n.vMax, balle.v * ACCELERATION);
             var angle = rel * 0.85;
-            balle.vx = Math.sin(angle) * balle.v + (fig.vx || 0) * 0.15;
+            balle.vx = Math.sin(angle) * balle.v;
             balle.vy = sens * Math.cos(angle) * balle.v;
+            balle.ax = clamp((fig.vx || 0) / EFFET_VITESSE, -1, 1) * EFFET_MAX;
             balle.y0 = balle.y;
             balle.rebond = false;
             tock(sens < 0 ? 560 : 700, etat.son);
         }
 
         /* Où la balle croisera la ligne yCible, rebonds sur les côtés compris. */
-        function predire(yCible) {
+        /* lecture (0 à 1) : part de l'effet que l'adversaire anticipe. */
+        function predire(yCible, lecture) {
             if (!balle.vy) return balle.x;
-            var t = (yCible - balle.y) / balle.vy;
-            var x = balle.x + balle.vx * t;
-            var L = W - 2 * R;
-            var u = (((x - R) % (2 * L)) + 2 * L) % (2 * L);
-            return R + (u > L ? 2 * L - u : u);
+            var x = balle.x, y = balle.y, vx = balle.vx, ax = balle.ax * lecture, pas = 1 / 120;
+            for (var i = 0; i < 600 && (balle.vy > 0 ? y < yCible : y > yCible); i++) {
+                vx += ax * pas;
+                ax *= 1 - EFFET_AMORTI * pas;
+                x += vx * pas;
+                y += balle.vy * pas;
+                if (x < R) { x = 2 * R - x; vx = Math.abs(vx); }
+                if (x > W - R) { x = 2 * (W - R) - x; vx = -Math.abs(vx); }
+            }
+            return x;
         }
 
         function viserIa() {
@@ -671,7 +686,7 @@
             var n = NIVEAUX[etat.niveau];
             var but = W / 2;
             if (phase === 'jeu' && balle.vy < 0 && balle.y < HIT_J - (HIT_J - HIT_A) * (1 - n.reaction) - 1) {
-                but = predire(HIT_A + R) - ia.vise + ia.erreur;
+                but = predire(HIT_A + R, n.lecture) - ia.vise + ia.erreur;
             } else if (phase === 'jeu' && balle.vy < 0) {
                 but = figA.x; // pas encore réagi
             } else if (phase === 'service' && match.serveur() === 'adversaire') {
@@ -709,6 +724,10 @@
             if (phase !== 'jeu') return;
 
             var py = balle.y;
+            balle.vx += balle.ax * dt;
+            balle.ax *= 1 - EFFET_AMORTI * dt;
+            balle.trace.unshift({ x: balle.x, y: balle.y });
+            if (balle.trace.length > 7) balle.trace.pop();
             balle.x += balle.vx * dt;
             balle.y += balle.vy * dt;
             if (balle.x < R) { balle.x = 2 * R - balle.x; balle.vx = Math.abs(balle.vx); }
@@ -814,6 +833,16 @@
         function dessinerBalle() {
             if (!balle.visible) return;
             var z = hauteurBalle();
+            // Sillage visible seulement quand la balle a de l'effet.
+            var effet = Math.abs(balle.ax) / EFFET_MAX;
+            if (phase === 'jeu' && effet > 0.15) {
+                balle.trace.forEach(function (p, i) {
+                    ctx.fillStyle = 'rgba(255,255,255,' + (effet * 0.35 * (1 - i / balle.trace.length)).toFixed(3) + ')';
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y - z * 0.6, R * (1 - i / 10), 0, Math.PI * 2);
+                    ctx.fill();
+                });
+            }
             ctx.fillStyle = 'rgba(15,20,26,0.25)';
             ctx.beginPath();
             ctx.ellipse(balle.x + z * 0.35, balle.y + z * 0.2, R * 0.95, R * 0.7, 0, 0, Math.PI * 2);
