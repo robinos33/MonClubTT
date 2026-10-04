@@ -59,20 +59,20 @@ Copier le shortcode affiché dans le tableau et le coller dans la page WordPress
 ### Jeu de pong
 
 ```
-[monclubtt_pong adversaire="Prénom NOM" adversaire_photo="123"]
+[monclubtt_pong]
 ```
 
-Le visiteur choisit son joueur parmi les licenciés (photo détourée avec liseré blanc, sinon avatar dessiné), puis affronte l'adversaire sur une table aux couleurs du club. Score sur un marqueur à fiches, manches en 11 points, service alterné tous les 2 points. Au doigt sur mobile, à la souris ou aux flèches + espace sur ordinateur.
+Le visiteur choisit son joueur parmi les licenciés (photo détourée avec liseré blanc, sinon avatar dessiné), puis affronte un joueur tiré au sort dans le top 10 mondial messieurs ou dames, sur une table aux couleurs du club. La liste des 20 adversaires (nom « NOM Prénom » + photo détourée de la médiathèque) se règle dans *Mon Club TT › Réglages* ; elle est pré-remplie avec le classement ITTF de la semaine 40 de 2026 et doit être tenue à jour à la main. Score sur un marqueur à fiches, manches en 11 points, service alterné tous les 2 points. Au doigt sur mobile, à la souris ou aux flèches + espace sur ordinateur.
 
 | Attribut | Valeurs | Défaut | Description |
 |----------|---------|--------|-------------|
-| `adversaire` | texte | `Top 10 mondial` | Nom de l'adversaire |
+| `adversaire` | texte | — | Impose un adversaire unique au lieu du tirage au sort |
 | `adversaire_titre` | texte | — | Sous-titre affiché sur l'écran de sélection |
 | `adversaire_photo` | ID de média ou URL | — | Photo détourée (PNG transparent) de l'adversaire ; à défaut, avatar dessiné |
 | `adversaire_sexe` | `M`, `F` | `M` | Avatar utilisé pour le corps |
 | `manches` | `1`, `3`, `5` | `3` | Nombre de manches du match |
 
-La photo de l'adversaire est à fournir par le club : n'utilisez qu'une image dont vous avez les droits.
+Le plugin ne fournit aucune photo de joueur professionnel : n'utilisez que des images dont le club a les droits.
 
 ---
 

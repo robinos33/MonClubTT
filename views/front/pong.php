@@ -7,7 +7,7 @@ wp_enqueue_script('monclubtt-pong-js');
 $couleurs = monclubtt_get_couleurs();
 $config   = array(
     'joueurs'    => $joueurs->getDonneesPong(),
-    'adversaire' => $adversaire,
+    'adversaires' => $adversaires,
     'manches'    => $manches,
     'couleurs'   => $couleurs,
 );

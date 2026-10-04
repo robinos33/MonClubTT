@@ -29,7 +29,7 @@ Mon Club TT is an unofficial WordPress plugin that connects to the FFTT (Fédér
 
 * `[monclubtt_joueurs type="MF"]` — display club players (M, F, or MF)
 * `[monclubtt_equipe iddiv="198511" idpoule="1140384"]` — display a team's standings and results
-* `[monclubtt_pong adversaire="Name" adversaire_photo="123"]` — table tennis pong game: pick a club player, then play against a configurable opponent (touch, mouse or keyboard)
+* `[monclubtt_pong]` — table tennis pong game: pick a club player, then play against a random opponent from the world top 10 (men or women, editable in the settings), with touch, mouse or keyboard
 
 **Requirements:**
 

@@ -12,6 +12,7 @@ if ( ! class_exists( 'MonClubTT_Constantes' ) ) {
         const MONCLUBTT_JOUEUR_PHOTOS = 'monclubtt_joueur_photos';
         const MONCLUBTT_COULEURS = 'monclubtt_couleurs';
         const MONCLUBTT_LOGO = 'monclubtt_logo';
+        const MONCLUBTT_PONG_ADVERSAIRES = 'monclubtt_pong_adversaires';
         /** Ancienne option (1.6.2), relue tant que les réglages n'ont pas été enregistrés. */
         const MONCLUBTT_SOCIAL_COULEURS = 'monclubtt_social_couleurs';
 
@@ -21,6 +22,18 @@ if ( ! class_exists( 'MonClubTT_Constantes' ) ) {
             'secondaire' => '#d34328',
             'fond'       => '#f4f1ea',
             'maillot'    => '#2b7cb5',
+        );
+
+        /**
+         * Adversaires par défaut du jeu de pong : top 10 mondial simple
+         * (classement ITTF, semaine 40 de 2026), modifiable dans les réglages
+         * car il change chaque semaine. Format « NOM Prénom » de l'ITTF.
+         */
+        const PONG_ADVERSAIRES_DEFAUT = array(
+            'M' => array('WANG Chuqin', 'LEBRUN Felix', 'MATSUSHIMA Sora', 'HARIMOTO Tomokazu', 'MOREGARD Truls',
+                         'LIN Yun-Ju', 'CALDERANO Hugo', 'LIN Shidong', 'LEBRUN Alexis', 'QIU Dang'),
+            'F' => array('WANG Manyu', 'SUN Yingsha', 'HARIMOTO Miwa', 'KUAI Man', 'WANG Yidi',
+                         'HAYATA Hina', 'CHEN Xingtong', 'ZHU Yuling', 'WINTER Sabine', 'CHEN Yi'),
         );
 
     }
@@ -172,6 +185,57 @@ if ( ! function_exists( 'monclubtt_normaliser_couleurs' ) ) {
 
 }
 
+if ( ! function_exists( 'monclubtt_normaliser_adversaires' ) ) {
+
+    /**
+     * Adversaires du jeu de pong : 10 hommes et 10 femmes, dans l'ordre du
+     * classement, chacun avec un nom et l'ID d'une photo de la médiathèque
+     * (0 = avatar dessiné). Sans valeur enregistrée, la liste par défaut.
+     *
+     * @param mixed $valeur Tableau brut (option ou saisie).
+     * @return array{M: array<int, array{nom: string, photo: int}>, F: array<int, array{nom: string, photo: int}>}
+     */
+    function monclubtt_normaliser_adversaires($valeur) {
+        $adversaires = array();
+        foreach (MonClubTT_Constantes::PONG_ADVERSAIRES_DEFAUT as $sexe => $noms) {
+            $saisies = is_array($valeur) && isset($valeur[$sexe]) && is_array($valeur[$sexe]) ? array_values($valeur[$sexe]) : null;
+            foreach ($noms as $i => $defaut) {
+                $ligne = $saisies !== null && isset($saisies[$i]) && is_array($saisies[$i]) ? $saisies[$i] : null;
+                if ($ligne === null) {
+                    $adversaires[$sexe][] = array('nom' => $saisies === null ? $defaut : '', 'photo' => 0);
+                    continue;
+                }
+                $nom = isset($ligne['nom']) && is_string($ligne['nom']) ? trim(preg_replace('/\s+/u', ' ', strip_tags($ligne['nom']))) : '';
+                $adversaires[$sexe][] = array(
+                    'nom'   => function_exists('mb_substr') ? mb_substr($nom, 0, 60) : substr($nom, 0, 60),
+                    'photo' => isset($ligne['photo']) && is_numeric($ligne['photo']) ? max(0, (int) $ligne['photo']) : 0,
+                );
+            }
+        }
+        return $adversaires;
+    }
+
+}
+
+if ( ! function_exists( 'monclubtt_decouper_nom_joueur' ) ) {
+
+    /**
+     * Sépare un nom au format ITTF « NOM Prénom » (« LIN Yun-Ju ») : les mots
+     * de tête en majuscules forment le nom. Sinon, tout est gardé en nom.
+     *
+     * @param string $nomComplet
+     * @return array{nom: string, prenom: string}
+     */
+    function monclubtt_decouper_nom_joueur($nomComplet) {
+        $nomComplet = trim((string) $nomComplet);
+        if (preg_match('/^((?:[\p{Lu}\'’-]+\s+)+)(\S.*)$/u', $nomComplet, $m)) {
+            return array('nom' => trim($m[1]), 'prenom' => $m[2]);
+        }
+        return array('nom' => $nomComplet, 'prenom' => '');
+    }
+
+}
+
 if ( ! function_exists( 'monclubtt_get_couleurs' ) ) {
 
     /**
@@ -187,6 +251,20 @@ if ( ! function_exists( 'monclubtt_get_couleurs' ) ) {
             $couleurs = get_option(MonClubTT_Constantes::MONCLUBTT_SOCIAL_COULEURS, null);
         }
         return monclubtt_normaliser_couleurs($couleurs);
+    }
+
+}
+
+if ( ! function_exists( 'monclubtt_get_pong_adversaires' ) ) {
+
+    /**
+     * Adversaires du jeu de pong enregistrés dans les réglages (top 10
+     * mondial messieurs et dames), liste par défaut sinon.
+     *
+     * @return array{M: array<int, array{nom: string, photo: int}>, F: array<int, array{nom: string, photo: int}>}
+     */
+    function monclubtt_get_pong_adversaires() {
+        return monclubtt_normaliser_adversaires(get_option(MonClubTT_Constantes::MONCLUBTT_PONG_ADVERSAIRES, null));
     }
 
 }

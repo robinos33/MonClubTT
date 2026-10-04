@@ -35,7 +35,6 @@
     var EFFET_MAX = 270, EFFET_VITESSE = 450, EFFET_AMORTI = 0.8;
 
     var NIVEAUX = {
-        facile:  { libelle: 'Facile',         vIa: 200, erreur: 60, reaction: 0.5,  lecture: 0.3, v0: 270, vMax: 560 },
         normal:  { libelle: 'Normal',         vIa: 290, erreur: 32, reaction: 0.66, lecture: 0.6, v0: 310, vMax: 660 },
         mondial: { libelle: 'Top 10 mondial', vIa: 400, erreur: 14, reaction: 1,    lecture: 0.9, v0: 350, vMax: 760 }
     };
@@ -179,6 +178,28 @@
         } catch (e) { /* pas d'audio : jeu muet */ }
     }
 
+    /* Petite fanfare quand le joueur marque : trois notes montantes. */
+    function fanfare(son) {
+        if (!son) return;
+        try {
+            audio = audio || new (window.AudioContext || window.webkitAudioContext)();
+            if (audio.state === 'suspended') audio.resume();
+            [523, 659, 988].forEach(function (freq, i) {
+                var t = audio.currentTime + i * 0.085;
+                var osc = audio.createOscillator(), gain = audio.createGain();
+                osc.type = 'square';
+                osc.frequency.setValueAtTime(freq, t);
+                gain.gain.setValueAtTime(0.0001, t);
+                gain.gain.exponentialRampToValueAtTime(0.09, t + 0.01);
+                gain.gain.exponentialRampToValueAtTime(0.001, t + (i === 2 ? 0.28 : 0.1));
+                osc.connect(gain);
+                gain.connect(audio.destination);
+                osc.start(t);
+                osc.stop(t + 0.3);
+            });
+        } catch (e) { /* pas d'audio : jeu muet */ }
+    }
+
     /* ---------------------------------------------------------- marqueur */
 
     /* Fiche papier : changer la valeur fait basculer la page de devant
@@ -289,7 +310,17 @@
         try { cfg = JSON.parse(source.textContent); } catch (e) { return; }
         var couleurs = cfg.couleurs || {};
         var joueurs = cfg.joueurs || [];
-        var adv = cfg.adversaire || { nom: 'Top 10 mondial', prenom: '', sex: 'M', photo: '' };
+        /* Adversaire tiré au sort (top 10 mondial messieurs et dames), nouveau
+         * tirage à chaque retour à la sélection. */
+        var adversaires = cfg.adversaires && cfg.adversaires.length ? cfg.adversaires
+            : [cfg.adversaire || { nom: 'Top 10 mondial', prenom: '', sex: 'M', photo: '' }];
+        var adv = null;
+        function tirerAdversaire() {
+            var choix = adversaires.filter(function (a) { return a !== adv; });
+            if (!choix.length) choix = adversaires;
+            adv = choix[Math.floor(Math.random() * choix.length)];
+        }
+        tirerAdversaire();
         var nbManches = [1, 3, 5].indexOf(cfg.manches) >= 0 ? cfg.manches : 3;
         var tactile = window.matchMedia && window.matchMedia('(pointer: coarse)').matches;
 
@@ -307,9 +338,6 @@
         var versus = el('div', 'pong-versus');
         var versusTete = el('div', 'pong-versus-tete');
         var versusTexte = el('div', 'pong-versus-texte');
-        versusTexte.appendChild(el('span', 'pong-versus-label', 'Ton adversaire'));
-        versusTexte.appendChild(el('strong', 'pong-versus-nom', nomAffiche(adv)));
-        if (adv.titre) versusTexte.appendChild(el('span', 'pong-versus-titre', adv.titre));
         versus.appendChild(versusTete);
         versus.appendChild(versusTexte);
         ecranSel.appendChild(versus);
@@ -374,7 +402,18 @@
             conteneur.appendChild(c);
         }
 
-        teteJoueur(adv, couleurs.secondaire).then(function (t) { poserTete(versusTete, t, adv.photo || 'avatar-adv'); });
+        function afficherAdversaire() {
+            var a = adv;
+            versusTexte.innerHTML = '';
+            versusTexte.appendChild(el('span', 'pong-versus-label', 'Ton adversaire'));
+            versusTexte.appendChild(el('strong', 'pong-versus-nom', nomAffiche(a)));
+            if (a.titre) versusTexte.appendChild(el('span', 'pong-versus-titre', a.titre));
+            versusTete.innerHTML = '';
+            teteJoueur(a, couleurs.secondaire).then(function (t) {
+                if (a === adv) poserTete(versusTete, t, a.photo || 'avatar-' + a.nom);
+            });
+        }
+        afficherAdversaire();
 
         if (recherche) {
             recherche.addEventListener('input', function () {
@@ -499,6 +538,8 @@
             phase = 'arret';
             ecranJeu.hidden = true;
             ecranSel.hidden = false;
+            tirerAdversaire();
+            afficherAdversaire();
         }
 
         function nouveauMatch() {
@@ -575,7 +616,8 @@
             balle.visible = false;
             var resultat = match.marquer(cote);
             marqueur.maj(match);
-            tock(cote === 'joueur' ? 880 : 300, etat.son);
+            if (cote === 'joueur') fanfare(etat.son);
+            else tock(300, etat.son);
             if (resultat === 'point') {
                 montrerToast(cote === 'joueur' ? 'Point !' : 'Point pour ' + (adv.prenom || adv.nom), 0.9);
                 phase = 'pause';

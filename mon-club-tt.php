@@ -142,6 +142,7 @@ class MonClubTT_Plugin
         register_setting('monclubtt_settings', MonClubTT_Constantes::MONCLUBTT_LICENCES_EXCLUES, array('sanitize_callback' => 'monclubtt_sanitize_licences_exclues'));
         register_setting('monclubtt_settings', MonClubTT_Constantes::MONCLUBTT_COULEURS, array('sanitize_callback' => array($this, 'sanitize_couleurs')));
         register_setting('monclubtt_settings', MonClubTT_Constantes::MONCLUBTT_LOGO, array('sanitize_callback' => array($this, 'sanitize_logo')));
+        register_setting('monclubtt_settings', MonClubTT_Constantes::MONCLUBTT_PONG_ADVERSAIRES, array('sanitize_callback' => array($this, 'sanitize_pong_adversaires')));
 
         add_settings_section('monclubtt_section', '', array($this, 'section_html'), 'monclubtt_settings');
         add_settings_field(MonClubTT_Constantes::MONCLUBTT_ID_APPLICATION, 'Id Application', array($this, 'id_application_html'), 'monclubtt_settings', 'monclubtt_section');
@@ -150,6 +151,7 @@ class MonClubTT_Plugin
         add_settings_field(MonClubTT_Constantes::MONCLUBTT_LICENCES_EXCLUES, 'Licences exclues de la liste des joueurs', array($this, 'licences_exclues_html'), 'monclubtt_settings', 'monclubtt_section');
         add_settings_field(MonClubTT_Constantes::MONCLUBTT_LOGO, 'Logo du club', array($this, 'logo_html'), 'monclubtt_settings', 'monclubtt_section');
         add_settings_field(MonClubTT_Constantes::MONCLUBTT_COULEURS, 'Couleurs du club', array($this, 'couleurs_html'), 'monclubtt_settings', 'monclubtt_section');
+        add_settings_field(MonClubTT_Constantes::MONCLUBTT_PONG_ADVERSAIRES, 'Adversaires du jeu de pong', array($this, 'pong_adversaires_html'), 'monclubtt_settings', 'monclubtt_section');
     }
 
     public function section_html()
@@ -274,6 +276,76 @@ class MonClubTT_Plugin
      * @param mixed $valeur
      * @return int
      */
+    public function pong_adversaires_html()
+    {
+        $adversaires = monclubtt_get_pong_adversaires();
+        $option      = MonClubTT_Constantes::MONCLUBTT_PONG_ADVERSAIRES;
+        $titres      = array('M' => 'Top 10 messieurs', 'F' => 'Top 10 dames');
+        ?>
+        <div class="monclubtt-pong-adversaires" style="display:flex;flex-wrap:wrap;gap:24px">
+            <?php foreach ($titres as $sexe => $titre): ?>
+                <table class="widefat striped" style="width:auto">
+                    <thead><tr><th colspan="3"><?php echo esc_html($titre); ?></th></tr></thead>
+                    <tbody>
+                    <?php foreach ($adversaires[$sexe] as $i => $adv):
+                        $base   = $option . '[' . $sexe . '][' . $i . ']';
+                        $apercu = $adv['photo'] ? wp_get_attachment_image_url($adv['photo'], 'thumbnail') : ''; ?>
+                        <tr class="monclubtt-pong-adversaire">
+                            <td><?php echo (int) $i + 1; ?></td>
+                            <td><input type="text" class="regular-text" style="width:13em" name="<?php echo esc_attr($base . '[nom]'); ?>" value="<?php echo esc_attr($adv['nom']); ?>" placeholder="NOM Prénom"></td>
+                            <td style="white-space:nowrap">
+                                <input type="hidden" name="<?php echo esc_attr($base . '[photo]'); ?>" value="<?php echo esc_attr($adv['photo'] ? $adv['photo'] : ''); ?>">
+                                <span class="monclubtt-pong-apercu" style="display:inline-block;width:32px;height:32px;vertical-align:middle"><?php if ($apercu): ?><img src="<?php echo esc_url($apercu); ?>" alt="" style="width:32px;height:32px;object-fit:contain"><?php endif; ?></span>
+                                <button type="button" class="button button-small monclubtt-pong-choisir"><?php echo $adv['photo'] ? 'Changer' : 'Photo'; ?></button>
+                                <button type="button" class="button-link monclubtt-pong-retirer"<?php echo $adv['photo'] ? '' : ' style="display:none"'; ?>>Retirer</button>
+                            </td>
+                        </tr>
+                    <?php endforeach; ?>
+                    </tbody>
+                </table>
+            <?php endforeach; ?>
+        </div>
+        <p class="description">
+            Shortcode <code>[monclubtt_pong]</code> : l'adversaire est tiré au hasard dans ces 20 joueurs. Format « NOM Prénom », ordre du classement mondial (à mettre à jour, il change chaque semaine).
+            Photo : PNG détouré à fond transparent, dont le club a les droits d'utilisation ; sans photo, avatar dessiné. Ligne vide = joueur ignoré.
+        </p>
+        <?php
+        wp_add_inline_script('monclubtt-js', 'jQuery(function($) {
+            $(".monclubtt-pong-adversaires").on("click", ".monclubtt-pong-choisir", function() {
+                var $ligne = $(this).closest("tr");
+                var frame = wp.media({ title: "Photo détourée du joueur", button: { text: "Utiliser cette photo" }, library: { type: "image" }, multiple: false });
+                frame.on("select", function() {
+                    var att = frame.state().get("selection").first().toJSON();
+                    $ligne.find("input[type=hidden]").val(att.id);
+                    $ligne.find(".monclubtt-pong-apercu").html($("<img>", { src: att.sizes && att.sizes.thumbnail ? att.sizes.thumbnail.url : att.url, alt: "", css: { width: 32, height: 32, objectFit: "contain" } }));
+                    $ligne.find(".monclubtt-pong-choisir").text("Changer");
+                    $ligne.find(".monclubtt-pong-retirer").show();
+                });
+                frame.open();
+            }).on("click", ".monclubtt-pong-retirer", function() {
+                var $ligne = $(this).closest("tr");
+                $ligne.find("input[type=hidden]").val("");
+                $ligne.find(".monclubtt-pong-apercu").empty();
+                $ligne.find(".monclubtt-pong-choisir").text("Photo");
+                $(this).hide();
+            });
+        });');
+    }
+
+    public function sanitize_pong_adversaires($valeur)
+    {
+        $adversaires = monclubtt_normaliser_adversaires($valeur);
+        foreach ($adversaires as $sexe => $liste) {
+            foreach ($liste as $i => $adv) {
+                $adversaires[$sexe][$i]['nom'] = sanitize_text_field($adv['nom']);
+                if ($adv['photo'] && $this->sanitize_logo($adv['photo']) === 0) {
+                    $adversaires[$sexe][$i]['photo'] = 0;
+                }
+            }
+        }
+        return $adversaires;
+    }
+
     public function sanitize_logo($valeur)
     {
         $id = absint($valeur);
@@ -393,7 +465,8 @@ class MonClubTT_Plugin
     /**
      * Jeu de pong : sélection d'un joueur du club (photo détourée), match
      * contre un adversaire paramétrable.
-     * @param array $atts adversaire : « Prénom NOM » ; adversaire_titre : sous-titre ;
+     * @param array $atts adversaire : nom d'un adversaire imposé (sinon tirage au sort
+     *                    dans le top 10 mondial des réglages) ; adversaire_titre : sous-titre ;
      *                    adversaire_photo : ID de média ou URL d'une photo détourée ;
      *                    adversaire_sexe : M | F ; manches : 1 | 3 | 5
      * @return string
@@ -401,24 +474,42 @@ class MonClubTT_Plugin
     public function pong_front($atts)
     {
         $atts = shortcode_atts(array(
-            'adversaire'       => 'Top 10 mondial',
+            'adversaire'       => '',
             'adversaire_titre' => '',
             'adversaire_photo' => '',
             'adversaire_sexe'  => 'M',
             'manches'          => '3',
         ), (array) $atts, 'monclubtt_pong');
 
-        $photo = trim((string) $atts['adversaire_photo']);
-        if (ctype_digit($photo)) {
-            $photo = (string) wp_get_attachment_image_url((int) $photo, 'medium');
+        // Adversaire imposé par le shortcode, sinon tirage dans le top 10 des réglages.
+        $adversaires = array();
+        if (trim((string) $atts['adversaire']) !== '') {
+            $photo = trim((string) $atts['adversaire_photo']);
+            if (ctype_digit($photo)) {
+                $photo = (string) wp_get_attachment_image_url((int) $photo, 'medium');
+            }
+            $adversaires[] = array(
+                'nom'    => sanitize_text_field($atts['adversaire']),
+                'prenom' => '',
+                'titre'  => sanitize_text_field($atts['adversaire_titre']),
+                'sex'    => $atts['adversaire_sexe'] === 'F' ? 'F' : 'M',
+                'photo'  => $photo !== '' ? esc_url_raw($photo) : '',
+            );
+        } else {
+            foreach (monclubtt_get_pong_adversaires() as $sexe => $liste) {
+                foreach ($liste as $i => $adv) {
+                    if ($adv['nom'] === '') {
+                        continue;
+                    }
+                    $photo = $adv['photo'] ? wp_get_attachment_image_url($adv['photo'], 'medium') : '';
+                    $adversaires[] = monclubtt_decouper_nom_joueur($adv['nom']) + array(
+                        'titre' => 'N°' . ($i + 1) . ($sexe === 'F' ? ' mondiale' : ' mondial'),
+                        'sex'   => $sexe,
+                        'photo' => $photo ? $photo : '',
+                    );
+                }
+            }
         }
-        $adversaire = array(
-            'nom'    => sanitize_text_field($atts['adversaire']),
-            'prenom' => '',
-            'titre'  => sanitize_text_field($atts['adversaire_titre']),
-            'sex'    => $atts['adversaire_sexe'] === 'F' ? 'F' : 'M',
-            'photo'  => $photo !== '' ? esc_url_raw($photo) : '',
-        );
         $manches = in_array((int) $atts['manches'], array(1, 3, 5), true) ? (int) $atts['manches'] : 3;
         $joueurs = new MonClubTT_Joueurs();
 
