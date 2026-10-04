@@ -1,0 +1,29 @@
+{
+  "$schema": "https://playground.wordpress.net/blueprint-schema.json",
+  "meta": {
+    "title": "Mon Club TT — jeu de pong",
+    "description": "Démo du shortcode [monclubtt_pong] avec un club fictif : sélection, choix de l'adversaire, meilleurs scores, partage et réglages.",
+    "author": "robinos33"
+  },
+  "landingPage": "/jeu-de-pong/",
+  "preferredVersions": { "php": "8.2", "wp": "latest" },
+  "features": { "networking": true },
+  "login": true,
+  "steps": [
+    {
+      "step": "installPlugin",
+      "pluginData": {
+        "resource": "git:directory",
+        "url": "https://github.com/robinos33/MonClubTT",
+        "ref": "claude/pong-game-club-players-kygatf",
+        "refType": "branch"
+      },
+      "options": { "activate": true, "targetFolderName": "mon-club-tt" }
+    },
+    { "step": "setSiteOptions", "options": { "blogname": "US Pongistes (démo)" } },
+    {
+      "step": "runPHP",
+      "code": "<?php require '/wordpress/wp-load.php'; require WP_PLUGIN_DIR . '/mon-club-tt/demo/playground/seed.php';"
+    }
+  ]
+}
