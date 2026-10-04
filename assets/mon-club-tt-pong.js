@@ -409,6 +409,7 @@
             versusTexte.appendChild(el('span', 'pong-versus-label', 'Ton adversaire'));
             versusTexte.appendChild(el('strong', 'pong-versus-nom', nomAffiche(a)));
             if (a.titre) versusTexte.appendChild(el('span', 'pong-versus-titre', a.titre));
+            if (a.credit) versusTexte.appendChild(el('span', 'pong-versus-credit', 'Photo : ' + a.credit));
             versusTete.innerHTML = '';
             teteJoueur(a, couleurs.secondaire).then(function (t) {
                 if (a === adv) poserTete(versusTete, t, a.photo || 'avatar-' + a.nom);
@@ -455,6 +456,8 @@
         actions.appendChild(btnChanger);
         actions.appendChild(btnSon);
         ecranJeu.appendChild(actions);
+        var credit = el('p', 'pong-credit');
+        ecranJeu.appendChild(credit);
 
         root.appendChild(ecranSel);
         root.appendChild(ecranJeu);
@@ -520,6 +523,9 @@
             ecranSel.hidden = true;
             ecranJeu.hidden = false;
             marqueur.noms(nomAffiche(p), nomAffiche(adv));
+            // Crédit obligatoire des photos sous licence (Wikimedia Commons…).
+            credit.textContent = adv.credit ? 'Photo (' + nomAffiche(adv) + ') : ' + adv.credit : '';
+            credit.hidden = !adv.credit;
             Promise.all([
                 preparerSprite(p, couleurs.maillot, FIG_J.h),
                 preparerSprite(adv, couleurs.secondaire, FIG_A.h)

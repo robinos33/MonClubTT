@@ -72,7 +72,7 @@ Le visiteur choisit son joueur parmi les licenciés (photo détourée avec liser
 | `adversaire_sexe` | `M`, `F` | `M` | Avatar utilisé pour le corps |
 | `manches` | `1`, `3`, `5` | `3` | Nombre de manches du match |
 
-Le plugin ne fournit aucune photo de joueur professionnel : n'utilisez que des images dont le club a les droits.
+Le plugin ne fournit aucune photo de joueur professionnel : n'utilisez que des images dont le club a les droits, par exemple des photos de Wikimedia Commons sous licence libre. La **légende** de l'image dans la médiathèque sert de crédit, affiché sur l'écran de sélection et sous le jeu (auteur et licence obligatoires pour Commons).
 
 ---
 
