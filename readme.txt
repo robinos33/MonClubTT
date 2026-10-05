@@ -3,7 +3,7 @@ Contributors: robinos33
 Tags: table tennis, fftt, club, rankings, results
 Requires at least: 5.0
 Tested up to: 7.0
-Stable tag: 1.15.0
+Stable tag: 1.15.1
 Requires PHP: 7.4
 License: GPLv2
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -60,6 +60,9 @@ Player data is refreshed on manual sync only. League standings and results are c
 Yes. The plugin exposes five filters: `monclubtt_get_joueurs`, `monclubtt_get_equipes`, `monclubtt_get_classement_poule`, `monclubtt_get_rencontres_poule`, `monclubtt_get_feuille_rencontre`. See the documentation for usage.
 
 == Changelog ==
+
+= 1.15.1 =
+* Fixed: an exempt team was shown as a draw (0-0) in the "Team results" image; it now has no result nor score, "EXEMPT" is shown instead of the opponent, and it is left out of the wins / draws / losses count and the post caption tally
 
 = 1.15.0 =
 * Changed: social media images now come in a single format, 4:5 portrait (1080 × 1350), shown in full in both the Instagram and Facebook feeds; the square and story formats are removed
@@ -184,6 +187,9 @@ Yes. The plugin exposes five filters: `monclubtt_get_joueurs`, `monclubtt_get_eq
 * Automatic team page generation and deletion
 
 == Upgrade Notice ==
+
+= 1.15.1 =
+Exempt teams are no longer counted as a draw in the team results image.
 
 = 1.15.0 =
 Social media images now use a single 4:5 portrait format; the team results image shows all teams (up to 16).

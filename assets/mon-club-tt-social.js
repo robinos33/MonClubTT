@@ -733,6 +733,12 @@
 
     var COULEUR_RESULTAT = { V: 'primaire', N: 'primClair', D: 'discret' };
 
+    /* Équipe exempte : ni résultat ni score, « EXEMPT » à la place. Repli sur
+       l'adversaire vide pour des données calculées avant le champ « exempt ». */
+    function estExempte(e) {
+        return e.exempt === true || e.resultat === 'E' || !e.adversaire;
+    }
+
     /* Une colonne tant que les lignes gardent au moins 70 % de leur hauteur ;
        au-delà, deux colonnes de cartes ; s'il en reste encore, la dernière
        case annonce « + N autres ». */
@@ -771,28 +777,31 @@
        (et pastille « LEADER ») sur une seconde ligne quand la carte est assez haute. */
     function carteResultat(L, e, x, y, w, h) {
         var ts = L.ts, k = Math.min(1, h / (80 * ts)), cy = y + h / 2;
-        var carre = P[COULEUR_RESULTAT[e.resultat]], c = Math.min(h, 64 * ts);
+        var exempte = estExempte(e), c = Math.min(h, 64 * ts);
         ctx.fillStyle = P.teinte;
         rectArrondi(x, y, w, h, 12 * ts * k);
         ctx.fill();
-        ctx.save();
-        rectArrondi(x, y, w, h, 12 * ts * k);
-        ctx.clip();
-        ctx.fillStyle = carre;
-        ctx.fillRect(x, y, c, h);
-        ctx.restore();
-        ctx.fillStyle = surCouleur(carre);
-        ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
-        ctx.font = font(900, 30 * ts * Math.max(k, 0.8));
-        ctx.fillText(e.resultat, x + c / 2, cy + 2);
+        if (!exempte) {
+            var carre = P[COULEUR_RESULTAT[e.resultat]];
+            ctx.save();
+            rectArrondi(x, y, w, h, 12 * ts * k);
+            ctx.clip();
+            ctx.fillStyle = carre;
+            ctx.fillRect(x, y, c, h);
+            ctx.restore();
+            ctx.fillStyle = surCouleur(carre);
+            ctx.textAlign = 'center';
+            ctx.font = font(900, 30 * ts * Math.max(k, 0.8));
+            ctx.fillText(e.resultat, x + c / 2, cy + 2);
+        }
 
-        // Score calé à droite, côté club en premier
-        var score = e.score + ' – ' + e.score_adversaire, droite = x + w - 14 * ts;
-        ctx.font = font(900, 32 * ts * Math.max(k, 0.8));
+        // Score calé à droite, côté club en premier ; « EXEMPT » pour une équipe exempte
+        var droite = x + w - 14 * ts, score = exempte ? 'EXEMPT' : e.score + ' – ' + e.score_adversaire;
+        ctx.font = exempte ? font(800, 20 * ts * Math.max(k, 0.8)) : font(900, 32 * ts * Math.max(k, 0.8));
         var scoreW = ctx.measureText(score).width;
         ctx.textAlign = 'right';
-        ctx.fillStyle = e.resultat === 'D' ? P.texte : P.primaire;
+        ctx.fillStyle = exempte ? P.discret : (e.resultat === 'D' ? P.texte : P.primaire);
         ctx.fillText(score, droite, cy + 2);
 
         var tx = x + c + 14 * ts, largeur = droite - scoreW - 14 * ts - tx;
@@ -809,10 +818,12 @@
                 ctx.textAlign = 'left';
                 ctx.textBaseline = 'middle';
             }
-            var adv = (e.domicile ? 'REÇOIT ' : 'CHEZ ') + String(e.adversaire || 'EXEMPT').toUpperCase();
-            ctx.fillStyle = P.discret;
-            ajuster(adv, 800, 17 * ts, droite - scoreW - 14 * ts - ax);
-            ctx.fillText(adv, ax, ly + 1);
+            if (!exempte) {
+                var adv = (e.domicile ? 'REÇOIT ' : 'CHEZ ') + String(e.adversaire).toUpperCase();
+                ctx.fillStyle = P.discret;
+                ajuster(adv, 800, 17 * ts, droite - scoreW - 14 * ts - ax);
+                ctx.fillText(adv, ax, ly + 1);
+            }
         }
         ctx.textBaseline = 'alphabetic';
     }
@@ -825,23 +836,25 @@
         var k = Math.max(g.k, 0.8); // texte : ajuster() le fait tenir en largeur
 
         equipes.slice(0, n).forEach(function (e, i) {
-            var y = top + i * (h + gap), cy = y + h / 2;
-            var carre = P[COULEUR_RESULTAT[e.resultat]];
+            var y = top + i * (h + gap), cy = y + h / 2, exempte = estExempte(e);
 
             ctx.fillStyle = P.teinte;
             rectArrondi(x, y, w, h, 14 * ts * k);
             ctx.fill();
-            ctx.save();
-            rectArrondi(x, y, w, h, 14 * ts * k);
-            ctx.clip();
-            ctx.fillStyle = carre;
-            ctx.fillRect(x, y, h, h);
-            ctx.restore();
-            ctx.fillStyle = surCouleur(carre);
-            ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
-            ctx.font = font(900, 36 * ts * k);
-            ctx.fillText(e.resultat, x + h / 2, cy + 2);
+            if (!exempte) {
+                var carre = P[COULEUR_RESULTAT[e.resultat]];
+                ctx.save();
+                rectArrondi(x, y, w, h, 14 * ts * k);
+                ctx.clip();
+                ctx.fillStyle = carre;
+                ctx.fillRect(x, y, h, h);
+                ctx.restore();
+                ctx.fillStyle = surCouleur(carre);
+                ctx.textAlign = 'center';
+                ctx.font = font(900, 36 * ts * k);
+                ctx.fillText(e.resultat, x + h / 2, cy + 2);
+            }
 
             // Équipe du club (+ pastille « LEADER » en tête de poule)
             var tx = x + h + 22 * ts, colScore = x + w * 0.56, colAdv = x + w * 0.66;
@@ -861,16 +874,18 @@
             }
             ctx.textBaseline = 'middle';
 
-            // Score, côté club en premier
-            ctx.textAlign = 'center';
-            ctx.fillStyle = e.resultat === 'D' ? P.texte : P.primaire;
-            ctx.font = font(900, 40 * ts * k);
-            ctx.fillText(e.score + ' – ' + e.score_adversaire, colScore, cy + 2);
+            // Score, côté club en premier (aucun pour une équipe exempte)
+            if (!exempte) {
+                ctx.textAlign = 'center';
+                ctx.fillStyle = e.resultat === 'D' ? P.texte : P.primaire;
+                ctx.font = font(900, 40 * ts * k);
+                ctx.fillText(e.score + ' – ' + e.score_adversaire, colScore, cy + 2);
+            }
 
-            // Adversaire
+            // Adversaire, ou « EXEMPT »
             ctx.textAlign = 'left';
             ctx.fillStyle = P.discret;
-            var adv = (e.domicile ? 'REÇOIT ' : 'CHEZ ') + String(e.adversaire || 'EXEMPT').toUpperCase();
+            var adv = exempte ? 'EXEMPT' : (e.domicile ? 'REÇOIT ' : 'CHEZ ') + String(e.adversaire).toUpperCase();
             ajuster(adv, 800, 20 * ts * k, x + w - 20 * ts - colAdv);
             ctx.fillText(adv, colAdv, cy + 1);
             ctx.textBaseline = 'alphabetic';
@@ -881,7 +896,7 @@
 
     function bilanResultats(equipes) {
         var b = { V: 0, N: 0, D: 0 };
-        equipes.forEach(function (e) { b[e.resultat]++; });
+        equipes.forEach(function (e) { if (!estExempte(e)) b[e.resultat]++; });
         return b;
     }
 
@@ -918,8 +933,12 @@
         var ICONE = { V: '✅', N: '🤝', D: '❌' };
         var lignes = ['🏓 Résultats — ' + libelleWeekend(perfsData.date_debut, perfsData.date_fin).toLowerCase(), ''];
         equipes.forEach(function (e) {
+            if (estExempte(e)) {
+                lignes.push('⏸️ ' + e.equipe + ' : exempt');
+                return;
+            }
             lignes.push(ICONE[e.resultat] + ' ' + e.equipe + ' ' + e.score + '-' + e.score_adversaire + ' ' +
-                (e.domicile ? 'contre ' : 'chez ') + (e.adversaire || 'exempt') + (e.rang === 1 ? ' (leader de sa poule 🔝)' : ''));
+                (e.domicile ? 'contre ' : 'chez ') + e.adversaire + (e.rang === 1 ? ' (leader de sa poule 🔝)' : ''));
         });
         var b = bilanResultats(equipes);
         lignes.push('', 'Bilan : ' + b.V + ' victoire' + (b.V > 1 ? 's' : '') + ', ' + b.N + ' nul' + (b.N > 1 ? 's' : '') + ', ' + b.D + ' défaite' + (b.D > 1 ? 's' : ''));

@@ -29,7 +29,10 @@ class MonClubTT_StatsReseaux {
      * pour un derby), triées par nom (ordre naturel : 2 avant 10).
      *
      * @param array $journee Rencontres issues de MonClubTT_TopPerfs::rencontresDerniereJournee().
-     * @return array Liste de ['equipe', 'adversaire', 'score', 'score_adversaire', 'resultat' (V/N/D), 'domicile' (bool)].
+     * Équipe exempte (adversaire vide ou « Exempt ») : ni score ni résultat,
+     * 'resultat' vaut 'E' et 'exempt' true.
+     *
+     * @return array Liste de ['equipe', 'adversaire', 'score', 'score_adversaire', 'resultat' (V/N/D/E), 'domicile' (bool), 'exempt' (bool)].
      */
     public static function recapEquipes(array $journee) {
         $recap = array();
@@ -39,16 +42,31 @@ class MonClubTT_StatsReseaux {
                 if ($equipe === '' || !in_array($equipe, $rencontre['equipes_club'], true)) {
                     continue;
                 }
-                $adverse = 1 - $i;
+                $adverse    = 1 - $i;
+                $adversaire = trim((string) ($rencontre['equipes'][$adverse] ?? ''));
+                if ($adversaire === '' || strcasecmp($adversaire, 'exempt') === 0) {
+                    // La FFTT renvoie un score 0-0 face à un adversaire vide : ce n'est pas un nul.
+                    $recap[] = array(
+                        'equipe'           => $equipe,
+                        'adversaire'       => '',
+                        'score'            => null,
+                        'score_adversaire' => null,
+                        'resultat'         => 'E',
+                        'domicile'         => $i === 0,
+                        'exempt'           => true,
+                    );
+                    continue;
+                }
                 $pour    = (int) $rencontre['scores'][$i];
                 $contre  = (int) $rencontre['scores'][$adverse];
                 $recap[] = array(
                     'equipe'           => $equipe,
-                    'adversaire'       => (string) ($rencontre['equipes'][$adverse] ?? ''),
+                    'adversaire'       => $adversaire,
                     'score'            => $pour,
                     'score_adversaire' => $contre,
                     'resultat'         => $pour > $contre ? 'V' : ($pour < $contre ? 'D' : 'N'),
                     'domicile'         => $i === 0,
+                    'exempt'           => false,
                 );
             }
         }
