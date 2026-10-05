@@ -319,7 +319,9 @@ var MonClubTTAvatars = (function () {
     var POSES = {
         attente: { libre: [-42, 104, -30, 121], coude: [45, 104], main: [36, 121], angle: 28 },
         cd:      { libre: [-44, 99, -57, 114], coude: [50, 95], main: [69, 99], angle: 58 },
-        rv:      { libre: [-47, 103, -55, 119], coude: [9, 107], main: [-18, 103], angle: -58 }
+        rv:      { libre: [-47, 103, -55, 119], coude: [9, 107], main: [-18, 103], angle: -58 },
+        // Podium : debout, poing serré, raquette levée à côté de la tête.
+        podium:  { libre: [-44, 104, -38, 82], coude: [44, 74], main: [56, 54], angle: 18, jambes: [13, 124, 17, 155, 20, 182] }
     };
 
     function raquette(x, y, angle, revers) {
@@ -330,10 +332,10 @@ var MonClubTTAvatars = (function () {
             '<path d="M-2 9.5 l-0.6 -21 M1.6 9.5 l0.5 -21" stroke="#a87a45" stroke-width="0.9"/>' +
             '<path d="M-5 10 q5 2 10 0 l-0.2 -2.4 q-4.8 1.6 -9.6 0 z" fill="#6b4a2b"/>' +
             // plateau : bande de chant, revêtement, ombre interne, logo, reflet
-            '<ellipse cx="0" cy="-31" rx="18.4" ry="19.4" fill="#151515" stroke="' + TRAIT + '" stroke-width="1"/>' +
-            '<ellipse cx="0" cy="-31" rx="16" ry="17" fill="' + face + '"/>' +
-            '<path d="M-4.6 -16.4 h9.2 l-1.4 3.4 h-6.4 z" fill="#f4f4f4" opacity="0.85"/>' +
-            '<path d="M-10 -41 q7 -6.5 15.5 -3.4" stroke="' + reflet + '" stroke-width="2.6" fill="none" stroke-linecap="round" opacity="0.9"/>' +
+            '<ellipse cx="0" cy="-34" rx="15.4" ry="20.4" fill="#151515" stroke="' + TRAIT + '" stroke-width="1"/>' +
+            '<ellipse cx="0" cy="-34" rx="13.2" ry="18.2" fill="' + face + '"/>' +
+            '<path d="M-4 -19 h8 l-1.2 3 h-5.6 z" fill="#f4f4f4" opacity="0.85"/>' +
+            '<path d="M-8 -45 q5.5 -6.5 12.5 -4" stroke="' + reflet + '" stroke-width="2.6" fill="none" stroke-linecap="round" opacity="0.9"/>' +
         '</g>';
     }
 
@@ -364,8 +366,8 @@ var MonClubTTAvatars = (function () {
             // sourcils, yeux, nez, bouche, joues
             '<path d="M-13 41 q5 -3 9 -1 M4 40 q5 -2 9 1" stroke="' + cheveux + '" stroke-width="2.2" fill="none" stroke-linecap="round"/>' +
             '<ellipse cx="-8" cy="48" rx="3.6" ry="4.2" fill="#fff"/><ellipse cx="8" cy="48" rx="3.6" ry="4.2" fill="#fff"/>' +
-            '<circle cx="-7.2" cy="48.6" r="2.4" fill="#4a3426"/><circle cx="8.8" cy="48.6" r="2.4" fill="#4a3426"/>' +
-            '<circle cx="-6.5" cy="47.7" r="0.8" fill="#fff"/><circle cx="9.5" cy="47.7" r="0.8" fill="#fff"/>' +
+            '<g class="mctt-pupilles"><circle cx="-7.2" cy="48.6" r="2.4" fill="#4a3426"/><circle cx="8.8" cy="48.6" r="2.4" fill="#4a3426"/>' +
+            '<circle cx="-6.5" cy="47.7" r="0.8" fill="#fff"/><circle cx="9.5" cy="47.7" r="0.8" fill="#fff"/></g>' +
             '<path d="M1 52 q2.4 4.4 -1.4 5.4" stroke="' + assombrir(peau, 0.25) + '" stroke-width="1.4" fill="none" stroke-linecap="round"/>' +
             '<path d="M-5.5 61 q5.5 4 11 0" stroke="#9c5a44" stroke-width="1.8" fill="none" stroke-linecap="round"/>' +
             '<ellipse cx="-13" cy="57" rx="3.6" ry="2.2" fill="#e8846a" opacity="0.32"/><ellipse cx="13" cy="57" rx="3.6" ry="2.2" fill="#e8846a" opacity="0.32"/>' +
@@ -420,7 +422,8 @@ var MonClubTTAvatars = (function () {
 
         // ---- jambes : cuisse, mollet galbé, chaussette, chaussure
         [-1, 1].forEach(function (c) {
-            var hanche = [13 * c, 124], genou = [28 * c, 155], cheville = [36 * c, 181];
+            var j = p.jambes || [13, 124, 28, 155, 36, 181];
+            var hanche = [j[0] * c, j[1]], genou = [j[2] * c, j[3]], cheville = [j[4] * c, j[5]];
             s += membre(lerp(genou, cheville, 0.12), 6.2, lerp(genou, cheville, 0.45), 6.6, peau, ombrePeau);
             s += membre(genou, 6.4, cheville, 4.2, peau, ombrePeau);
             s += capsule(lerp(genou, cheville, 0.72), 5.2, cheville, 4.8, 'fill="#fff" stroke="' + TRAIT + '" stroke-width="' + EP + '"');
@@ -507,8 +510,12 @@ var MonClubTTAvatars = (function () {
             opts = opts || {};
             var pose = POSES[opts.pose] ? opts.pose : 'attente';
             var tenue = SELECTIONS[opts.tenue] || (valide(opts.tenue) ? opts.tenue : (sexe === 'F' ? '#d34328' : '#2b7cb5'));
-            return '<svg viewBox="-128 0 256 200" xmlns="http://www.w3.org/2000/svg">' +
-                corps(sexe === 'F' ? 'F' : 'M', pose, tenue, opts.tete !== false) + '</svg>';
+            var femme = sexe === 'F';
+            // opts.tete === 'seule' : la tête dessinée seule, même repère, pour l'animer à part.
+            var contenu = opts.tete === 'seule'
+                ? tete(femme, femme ? '#ecbb98' : '#e3ad86', tenueDe(tenue).maillot)
+                : corps(femme ? 'F' : 'M', pose, tenue, opts.tete !== false && opts.tete !== 'corps');
+            return '<svg viewBox="-128 0 256 200" xmlns="http://www.w3.org/2000/svg">' + contenu + '</svg>';
         };
     }());
     return { male: avatarMale, female: avatarFemale, joueur: joueurPong, SELECTIONS: SELECTIONS };
@@ -534,8 +541,7 @@ var MonClubTTAvatars = (function () {
     var BASE_Y = 470, DX = 18, DY = -13;
     var MEDAL_COLOR = { 1: '#f0b429', 2: '#aeb9c4', 3: '#c8794a' };
 
-    var avatarMale   = MonClubTTAvatars.male;
-    var avatarFemale = MonClubTTAvatars.female;
+    var joueur = MonClubTTAvatars.joueur;
 
     /* ---- Bloc SVG du podium ---- */
     function blockSVG(rank) {
@@ -621,24 +627,29 @@ var MonClubTTAvatars = (function () {
                 var val  = p[metric];
                 var sign = val > 0 ? '+' : '';
 
-                /* Avatar : photo détourée si disponible, sinon avatar dessiné */
+                /* Joueur en pose de victoire ; la tête (photo détourée, sinon
+                 * tête dessinée) est un calque à part qui suit le curseur. */
                 var hasPhoto = p.photo && p.photo.length;
                 var fig = document.createElement('div');
                 fig.className = 'tp-figure tp-figure--anim';
                 fig.style.cssText = 'left:' + (c.cx + DX / 2) + 'px;bottom:' + (498 - c.top - 4) + 'px;animation-delay:' + (i * 0.08) + 's';
-                var tenue = { maillot: MonClubTTTopProg.maillot };
-                fig.innerHTML = p.sex === 'F' ? avatarFemale(!hasPhoto, tenue) : avatarMale(!hasPhoto, tenue);
+                var opts = { pose: 'podium', tenue: MonClubTTTopProg.maillot };
+                fig.innerHTML = joueur(p.sex, Object.assign({ tete: 'corps' }, opts));
+                var tete = document.createElement('div');
+                tete.className = 'tp-tete';
                 if (hasPhoto) {
-                    var tilt = inclinaison(p.photo);
                     var photoWrap = document.createElement('div');
                     photoWrap.className = 'tp-photo';
-                    photoWrap.style.setProperty('--rot', tilt + 'deg');
+                    photoWrap.style.setProperty('--rot', inclinaison(p.photo) + 'deg');
                     var photoImg = document.createElement('img');
                     photoImg.src = p.photo;
                     photoImg.alt = '';
                     photoWrap.appendChild(photoImg);
-                    fig.appendChild(photoWrap);
+                    tete.appendChild(photoWrap);
+                } else {
+                    tete.innerHTML = joueur(p.sex, Object.assign({ tete: 'seule' }, opts));
                 }
+                fig.appendChild(tete);
                 stage.appendChild(fig);
                 (function (el) {
                     setTimeout(function () { el.classList.remove('tp-figure--anim'); }, 700 + i * 80);
@@ -698,6 +709,52 @@ var MonClubTTAvatars = (function () {
         host.style.height = Math.round(scalable.offsetHeight * scale) + 'px';
     }
 
+    /* Têtes qui suivent le curseur (ou le doigt posé sur le podium) : elles
+     * pivotent et tournent légèrement vers lui autour du cou, les pupilles des
+     * têtes dessinées le suivent. Sans mouvement depuis 2,5 s, retour en douceur
+     * à la pose de repos. Rien si l'appareil demande moins d'animations. */
+    function suivreCurseur(stage) {
+        if (!stage || !window.requestAnimationFrame) return;
+        if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+        var cible = null, dernier = 0, raf = 0, etats = new WeakMap();
+        function lim(v) { return Math.max(-1, Math.min(1, v)); }
+        function suivre(e) {
+            cible = { x: e.clientX, y: e.clientY };
+            dernier = performance.now();
+            if (!raf) raf = requestAnimationFrame(boucle);
+        }
+        document.addEventListener('pointermove', function (e) { if (e.pointerType === 'mouse') suivre(e); }, { passive: true });
+        stage.addEventListener('pointerdown', function (e) { if (e.pointerType !== 'mouse') suivre(e); }, { passive: true });
+        stage.addEventListener('pointermove', function (e) { if (e.pointerType !== 'mouse') suivre(e); }, { passive: true });
+
+        function boucle(t) {
+            raf = 0;
+            var actif = cible && t - dernier < 2500, enMouvement = false;
+            stage.querySelectorAll('.tp-tete').forEach(function (el) {
+                var h = etats.get(el) || { rot: 0, ry: 0, rx: 0, tx: 0, ty: 0, px: 0, py: 0 };
+                var b = { rot: 0, ry: 0, rx: 0, tx: 0, ty: 0, px: 0, py: 0 };
+                if (actif) {
+                    var r = el.getBoundingClientRect();
+                    var dx = cible.x - (r.left + r.width / 2), dy = cible.y - (r.top + r.height * 0.23);
+                    var nx = lim(dx / 420), ny = lim(dy / 320), d = Math.hypot(dx, dy) || 1, k = Math.min(1, d / 120);
+                    b = { rot: nx * 12, ry: nx * 18, rx: -ny * 12, tx: nx * 5, ty: ny * 4, px: dx / d * k * 1.6, py: dy / d * k * 1.3 };
+                }
+                var lissage = actif ? 0.18 : 0.06;
+                Object.keys(b).forEach(function (p) {
+                    h[p] += (b[p] - h[p]) * lissage;
+                    if (Math.abs(b[p] - h[p]) > 0.02) enMouvement = true;
+                });
+                etats.set(el, h);
+                el.style.transform = 'translate(' + h.tx.toFixed(2) + 'px,' + h.ty.toFixed(2) + 'px) perspective(500px) rotateY(' +
+                    h.ry.toFixed(2) + 'deg) rotateX(' + h.rx.toFixed(2) + 'deg) rotate(' + h.rot.toFixed(2) + 'deg)';
+                var pupilles = el.querySelector('.mctt-pupilles');
+                if (pupilles) pupilles.setAttribute('transform', 'translate(' + h.px.toFixed(2) + ' ' + h.py.toFixed(2) + ')');
+            });
+            // Tant que des têtes bougent ou suivent encore : sinon la boucle s'arrête.
+            if (actif || enMouvement) raf = requestAnimationFrame(boucle);
+        }
+    }
+
     function escTp(str) {
         return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
     }
@@ -714,6 +771,7 @@ var MonClubTTAvatars = (function () {
         });
         scalePodium();
         window.addEventListener('resize', scalePodium);
+        suivreCurseur(document.getElementById('monclubtt-tp-stage'));
         document.addEventListener('monclubtt:filtre', function (e) {
             filtreSexe = e.detail.sexe;
             renderPodium(modeCourant);

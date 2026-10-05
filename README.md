@@ -47,6 +47,8 @@ Plugin WordPress non-officiel pour afficher les données d'un club issues de l'[
 |----------|---------|--------|-------------|
 | `type` | `M`, `F`, `MF` | `MF` | Sexe affiché |
 
+Au-dessus de la liste, le podium Top Progression montre les 3 plus fortes progressions du mois ou de la saison : joueurs dessinés en pose de victoire, aux couleurs du club, avec leur photo détourée. Les têtes suivent le curseur (ou le doigt posé sur le podium) et reviennent à leur pose après 2,5 s sans mouvement ; elles restent fixes si l'appareil demande de réduire les animations.
+
 ### Page d'équipe
 
 ```

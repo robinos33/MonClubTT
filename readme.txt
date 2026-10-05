@@ -3,7 +3,7 @@ Contributors: robinos33
 Tags: table tennis, fftt, club, rankings, results
 Requires at least: 5.0
 Tested up to: 7.0
-Stable tag: 1.13.0
+Stable tag: 1.14.0
 Requires PHP: 7.4
 License: GPLv2
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -60,6 +60,11 @@ Player data is refreshed on manual sync only. League standings and results are c
 Yes. The plugin exposes five filters: `monclubtt_get_joueurs`, `monclubtt_get_equipes`, `monclubtt_get_classement_poule`, `monclubtt_get_rencontres_poule`, `monclubtt_get_feuille_rencontre`. See the documentation for usage.
 
 == Changelog ==
+
+= 1.14.0 =
+* Changed: the Top Progression podium (players list) and the social media podium image use the new detailed players, in a victory pose (standing, fist clenched, racket raised)
+* Added: on the site podium, the players' heads follow the mouse cursor (or the finger on the podium) and return to rest after 2.5 s; static when reduced motion is requested
+* Changed: more oval racket blade, in the pong game too
 
 = 1.13.0 =
 * Changed: new pong players, drawn in a match stance with the racket held in the hand (red forehand, black backhand); forehand or backhand pose on each hit, bigger head, ground shadow, opponent behind the table; same hit zone
@@ -175,6 +180,9 @@ Yes. The plugin exposes five filters: `monclubtt_get_joueurs`, `monclubtt_get_eq
 * Automatic team page generation and deletion
 
 == Upgrade Notice ==
+
+= 1.14.0 =
+New detailed players on the Top Progression podium and social media image, with heads following the cursor on the site.
 
 = 1.13.0 =
 New pong players in a match stance, with national team kits for the world top 10.

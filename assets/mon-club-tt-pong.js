@@ -22,7 +22,7 @@
      * fig.x désigne l'axe du corps, centre de la zone de frappe (± demi).
      * Plateau de la raquette en attente en (raquette, yRaquette), tête photo
      * centrée en yTete, haute de tete unités. */
-    var SVG = { l: 256, h: 200, raquette: 51, yRaquette: 94, pied: 190, yTete: 46, tete: 94, demi: 82 };
+    var SVG = { l: 256, h: 200, raquette: 52, yRaquette: 91, pied: 190, yTete: 46, tete: 94, demi: 82 };
     var MARGE_FRAPPE = 4;                        // tolérance au-delà du dessin
     var FIG_J = { h: 116, hit: HIT_J };          // personnage du joueur (bas)
     var FIG_A = { h: 96, hit: HIT_A };           // adversaire (haut)

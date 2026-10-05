@@ -5,6 +5,17 @@ Format : [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/)
 
 ---
 
+## [1.14.0] — 2026-10-05
+
+### Modifié
+
+- Podium Top Progression (page joueurs) et visuel réseaux sociaux du podium : nouveaux joueurs détaillés du pong, en pose de victoire (debout, poing serré, raquette levée), tête photo agrandie d'environ 25 %.
+- Raquette plus ovale, dans le jeu de pong aussi.
+
+### Ajouté
+
+- Podium du site : les têtes suivent le curseur (ou le doigt posé sur le podium), pivotent et tournent légèrement vers lui, les pupilles des têtes dessinées suivent aussi ; retour à la pose de repos après 2,5 s sans mouvement. Têtes fixes si l'appareil demande moins d'animations.
+
 ## [1.13.0] — 2026-10-05
 
 ### Ajouté
