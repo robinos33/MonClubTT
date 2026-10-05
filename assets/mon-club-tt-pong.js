@@ -1,8 +1,8 @@
 /* ===================== PONG DU CLUB (shortcode [monclubtt_pong]) =====================
  * Jeu de ping vu du dessus, rendu dans un <canvas> : le joueur choisit sa tête
- * parmi les licenciés du club, puis affronte un « top 10 mondial ». La raquette
- * est le personnage du podium (corps dessiné au maillot du club + photo
- * détourée). Score sur un marqueur à fiches papier, règles du ping : manches
+ * parmi les licenciés du club, puis affronte un « top 10 mondial ». Les
+ * raquettes sont des joueurs dessinés en position de match (maillot du club,
+ * ou de sa sélection pour le top 10, et photo détourée). Score sur un marqueur à fiches papier, règles du ping : manches
  * en 11 points, 2 points d'écart, service alterné tous les 2 points (à chaque
  * point à partir de 10-10).
  *
@@ -18,13 +18,16 @@
     var TABLE = { x: 34, y: 88, w: 292, h: 412 };
     var R = 6;                                   // rayon de la balle
     var HIT_J = 500, HIT_A = 50;                 // lignes de frappe
-    /* Personnage en pose « jeu » (viewBox 178×168) : bras écartés, raquette
-     * tendue. La zone de frappe couvre toute l'envergure, main gauche (x 8)
-     * à bord de raquette (x 172) ; fig.x désigne son centre. */
-    var SVG = { l: 178, centre: 90, corps: 64, raquette: 152, yRaquette: 67, demi: 82 };
+    /* Joueur dessiné (MonClubTTAvatars.joueur, viewBox -128..128 × 0..200) ;
+     * fig.x désigne l'axe du corps, centre de la zone de frappe (± demi).
+     * Plateau de la raquette en attente en (raquette, yRaquette), tête photo
+     * centrée en yTete, haute de tete unités. */
+    var SVG = { l: 256, h: 200, raquette: 51, yRaquette: 94, pied: 190, yTete: 46, tete: 94, demi: 82 };
     var MARGE_FRAPPE = 4;                        // tolérance au-delà du dessin
-    var FIG_J = { h: 98, hit: HIT_J };           // personnage du joueur (bas)
-    var FIG_A = { h: 80, hit: HIT_A };           // adversaire (haut)
+    var FIG_J = { h: 116, hit: HIT_J };          // personnage du joueur (bas)
+    var FIG_A = { h: 96, hit: HIT_A };           // adversaire (haut)
+    var POSES = ['attente', 'cd', 'rv'];
+    var DUREE_COUP = 0.25;                       // pose de coup droit / revers après une frappe (s)
     var BORD_GRILLE = 6;                         // liseré blanc (px) des têtes de la sélection
     var TETE_GRILLE = 88;                        // hauteur (px CSS) des têtes de la sélection
 
@@ -94,9 +97,16 @@
 
     /* Avatar SVG en image ; largeur/hauteur explicites pour que tous les
      * navigateurs lui donnent une taille naturelle. */
-    function urlAvatar(sexe, avecTete, maillot, pose) {
-        var svg = (sexe === 'F' ? MonClubTTAvatars.female : MonClubTTAvatars.male)(avecTete, { maillot: maillot, pose: pose });
-        svg = svg.replace('<svg ', '<svg width="' + (pose === 'jeu' ? 356 : 256) + '" height="336" ');
+    function urlAvatar(sexe, avecTete, maillot) {
+        var svg = (sexe === 'F' ? MonClubTTAvatars.female : MonClubTTAvatars.male)(avecTete, { maillot: maillot });
+        svg = svg.replace('<svg ', '<svg width="256" height="336" ');
+        return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+    }
+
+    /* Joueur du jeu dans une pose ; tenue = couleur du club ou code pays. */
+    function urlJoueur(sexe, tenue, pose, avecTete) {
+        var svg = MonClubTTAvatars.joueur(sexe, { tenue: tenue, pose: pose, tete: avecTete })
+            .replace('<svg ', '<svg width="' + SVG.l * 2 + '" height="' + SVG.h * 2 + '" ');
         return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
     }
 
@@ -838,8 +848,8 @@
         var ctx = canvas.getContext('2d');
         var echelle = 1;
         var sprites = { joueur: null, adversaire: null };
-        var figJ = { x: W / 2, vx: 0, demi: SVG.demi * FIG_J.h / 168 + MARGE_FRAPPE };
-        var figA = { x: W / 2, vx: 0, demi: SVG.demi * FIG_A.h / 168 + MARGE_FRAPPE };
+        var figJ = { x: W / 2, vx: 0, coup: '', tCoup: 0, demi: SVG.demi * FIG_J.h / SVG.h + MARGE_FRAPPE };
+        var figA = { x: W / 2, vx: 0, coup: '', tCoup: 0, demi: SVG.demi * FIG_A.h / SVG.h + MARGE_FRAPPE };
         var balle = { x: W / 2, y: H / 2, vx: 0, vy: 0, v: 0, ax: 0, y0: 0, rebond: false, visible: false, trace: [] };
         var match = null;
         var phase = 'arret'; // arret | service | jeu | pause | message
@@ -849,10 +859,15 @@
         var raf = 0, dernier = 0;
         var toast = { texte: '', t: 0 };
 
-        /* Personnage : corps de l'avatar (sans tête si photo) + tête détourée. */
-        function preparerSprite(p, maillot, hauteur) {
+        /* Personnage : corps dessiné dans ses trois poses (sans tête si photo)
+         * + tête détourée. */
+        function preparerSprite(p, tenue, hauteur) {
             return chargerImage(p.photo).then(function (photo) {
-                return chargerImage(urlAvatar(p.sex, !photo, maillot, 'jeu')).then(function (corps) {
+                return Promise.all(POSES.map(function (pose) {
+                    return chargerImage(urlJoueur(p.sex, tenue, pose, !photo));
+                })).then(function (images) {
+                    var corps = {};
+                    POSES.forEach(function (pose, i) { corps[pose] = images[i]; });
                     return { p: p, corps: corps, photo: photo, hauteur: hauteur, tete: null, cle: p.photo || 'avatar' };
                 });
             });
@@ -862,8 +877,8 @@
             ['joueur', 'adversaire'].forEach(function (cote) {
                 var s = sprites[cote];
                 if (!s || !s.photo) return;
-                var k = s.hauteur / 168;
-                var hTete = 72 * k * echelle * dpr;
+                var k = s.hauteur / SVG.h;
+                var hTete = SVG.tete * k * echelle * dpr;
                 s.tete = sticker(s.photo, hTete, 6 * hTete / TETE_GRILLE);
             });
         }
@@ -898,7 +913,7 @@
             marqueur.noms(nomAffiche(p), nomAffiche(adv));
             Promise.all([
                 preparerSprite(p, couleurs.maillot, FIG_J.h),
-                preparerSprite(adv, couleurs.secondaire, FIG_A.h)
+                preparerSprite(adv, adv.pays || couleurs.secondaire, FIG_A.h)
             ]).then(function (s) {
                 sprites.joueur = s[0];
                 sprites.adversaire = s[1];
@@ -919,6 +934,7 @@
             match = new Match(nbManches);
             marqueur.maj(match);
             figJ.x = W / 2; figA.x = W / 2;
+            figJ.tCoup = figA.tCoup = 0;
             masquerMessage();
             preparerService();
             if (!raf) { dernier = performance.now(); raf = requestAnimationFrame(boucle); }
@@ -954,6 +970,9 @@
             var n = NIVEAUX[etat.niveau];
             var rel = clamp((balle.x - fig.x) / fig.demi, -1, 1);
             balle.v = Math.min(n.vMax, balle.v * ACCELERATION);
+            // Coup droit si la balle arrive du côté de la raquette, revers sinon.
+            fig.coup = balle.x >= fig.x ? 'cd' : 'rv';
+            fig.tCoup = DUREE_COUP;
             var angle = rel * 0.85;
             balle.vx = Math.sin(angle) * balle.v;
             balle.vy = sens * Math.cos(angle) * balle.v;
@@ -1129,15 +1148,17 @@
         function step(dt) {
             deplacerJoueur(dt);
             deplacerIa(dt);
+            figJ.tCoup = Math.max(0, figJ.tCoup - dt);
+            figA.tCoup = Math.max(0, figA.tCoup - dt);
             if (toast.t > 0) toast.t -= dt;
 
             if (phase === 'service') {
                 var s = match.serveur();
                 if (s === 'joueur') {
-                    balle.x = figJ.x + (SVG.raquette - SVG.centre) * FIG_J.h / 168;
+                    balle.x = figJ.x + SVG.raquette * FIG_J.h / SVG.h;
                     balle.y = HIT_J - R - 4;
                 } else {
-                    balle.x = figA.x + (SVG.raquette - SVG.centre) * FIG_A.h / 168;
+                    balle.x = figA.x + SVG.raquette * FIG_A.h / SVG.h;
                     balle.y = HIT_A + R + 4;
                     minuterie -= dt;
                     if (minuterie <= 0) servir('adversaire');
@@ -1185,10 +1206,13 @@
         }
 
         /* ---- Rendu ---- */
-        function dessinerTable() {
-            var prim = couleurs.primaire || '#2b7cb5';
+        function dessinerFond() {
             ctx.fillStyle = couleurs.fond || '#f4f1ea';
             ctx.fillRect(0, 0, W, H);
+        }
+
+        function dessinerTable() {
+            var prim = couleurs.primaire || '#2b7cb5';
             // ombre portée de la table
             ctx.fillStyle = 'rgba(15,20,26,0.16)';
             ctx.fillRect(TABLE.x + 6, TABLE.y + 8, TABLE.w, TABLE.h);
@@ -1219,28 +1243,34 @@
             ctx.fillRect(TABLE.x + TABLE.w + 8, yf - 6, 6, 10);
         }
 
-        /* Corps en pose « jeu », penché dans le sens du déplacement (pivot
-         * aux pieds), tête détourée posée par-dessus. */
+        /* Joueur dans sa pose (coup droit ou revers juste après une frappe),
+         * ombre au sol, penché dans le sens du déplacement (pivot aux pieds),
+         * tête détourée posée par-dessus. */
         function dessinerFigure(s, fig, cadre) {
             if (!s) return;
-            var k = s.hauteur / 168;
+            var k = s.hauteur / SVG.h;
             var fw = SVG.l * k, fh = s.hauteur;
             var top = cadre.hit - SVG.yRaquette * k;
-            var fx = fig.x - SVG.centre * k;
-            var pied = fx + SVG.corps * k;
+            var fx = fig.x - SVG.l / 2 * k;
+            var pied = top + SVG.pied * k;
+            var corps = s.corps[fig.tCoup > 0 && fig.coup ? fig.coup : 'attente'];
             ctx.save();
-            ctx.translate(pied, top + fh);
+            ctx.fillStyle = 'rgba(15,20,26,0.16)';
+            ctx.beginPath();
+            ctx.ellipse(fig.x, pied + 2 * k, 58 * k, 8 * k, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.translate(fig.x, pied);
             ctx.rotate(clamp((fig.vx || 0) / 700, -1, 1) * 10 * Math.PI / 180);
-            ctx.translate(-pied, -(top + fh));
+            ctx.translate(-fig.x, -pied);
             ctx.save();
-            ctx.shadowColor = 'rgba(15,20,26,0.25)';
-            ctx.shadowBlur = 10 * echelle * dpr;
-            ctx.shadowOffsetY = 4 * echelle * dpr;
-            if (s.corps) ctx.drawImage(s.corps, fx, top, fw, fh);
+            ctx.shadowColor = 'rgba(15,20,26,0.22)';
+            ctx.shadowBlur = 8 * echelle * dpr;
+            ctx.shadowOffsetY = 3 * echelle * dpr;
+            if (corps) ctx.drawImage(corps, fx, top, fw, fh);
             ctx.restore();
             if (s.tete) {
                 var tw = s.tete.width / (echelle * dpr), th = s.tete.height / (echelle * dpr);
-                ctx.translate(fx + SVG.corps * k, top + 40 * k);
+                ctx.translate(fig.x, top + SVG.yTete * k);
                 ctx.rotate(inclinaison(s.cle) * Math.PI / 180);
                 ctx.shadowColor = 'rgba(15,20,26,0.35)';
                 ctx.shadowBlur = 4 * echelle * dpr;
@@ -1307,8 +1337,10 @@
         function rendu() {
             var s = echelle * dpr;
             ctx.setTransform(s, 0, 0, s, 0, 0);
-            dessinerTable();
+            dessinerFond();
+            // L'adversaire passe derrière la table : le bord cache ses pieds.
             dessinerFigure(sprites.adversaire, figA, FIG_A);
+            dessinerTable();
             if (balle.y < TABLE.y + TABLE.h / 2) dessinerBalle();
             dessinerFigure(sprites.joueur, figJ, FIG_J);
             if (balle.y >= TABLE.y + TABLE.h / 2) dessinerBalle();

@@ -5,6 +5,17 @@ Format : [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/)
 
 ---
 
+## [Non publié]
+
+### Ajouté
+
+- Jeu de pong : champ « Pays » pour chaque adversaire du top 10 (16 sélections proposées, prérempli pour le classement actuel) ; le joueur porte une tenue aux couleurs de sa sélection, inspirée du drapeau (mini-drapeau sur la poitrine). Attribut `adversaire_pays` pour l'adversaire imposé. Sans pays, couleur secondaire du club.
+
+### Modifié
+
+- Jeu de pong : nouveaux personnages, dessinés en position de match (jambes fléchies, contour, ombrage, maillot à liserés, chaussures) avec la raquette tenue dans le poing (plateau à bande de chant, manche évasé, rouge en coup droit, noir en revers). Pose de coup droit ou de revers à chaque frappe, tête agrandie d'environ 30 %, ombre au sol, adversaire derrière la table. Zone de frappe inchangée.
+- Les réglages enregistrés avant l'arrivée du champ pays reprennent le pays du joueur par défaut de même nom.
+
 ## [1.12.0] — 2026-10-05
 
 ### Ajouté
