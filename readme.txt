@@ -63,6 +63,7 @@ Yes. The plugin exposes five filters: `monclubtt_get_joueurs`, `monclubtt_get_eq
 
 = 1.12.0 =
 * Added: full screen button in the pong game (Fullscreen API when available, otherwise the game covers the browser window, iPhone included)
+* Added: looping background music for the pong game ("Pong game music" setting: audio file from the media library or direct link to an audio file), can be muted by the player
 * Changed: the pong game screen (scoreboard, table, buttons) always fits the visible window height; compact scoreboard on short screens (phone in landscape)
 
 = 1.11.0 =
@@ -172,7 +173,7 @@ Yes. The plugin exposes five filters: `monclubtt_get_joueurs`, `monclubtt_get_eq
 == Upgrade Notice ==
 
 = 1.12.0 =
-Full screen mode for the pong game, which now always fits the screen height.
+Full screen mode and background music for the pong game, which now always fits the screen height.
 
 = 1.11.0 =
 New table tennis pong game shortcode with high scores and match sharing.

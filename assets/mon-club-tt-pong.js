@@ -335,9 +335,18 @@
         var nbManches = [1, 3, 5].indexOf(cfg.manches) >= 0 ? cfg.manches : 1;
         var tactile = window.matchMedia && window.matchMedia('(pointer: coarse)').matches;
 
+        /* Préférences du visiteur (son, musique), gardées sur son appareil. */
+        function lirePref(cle, defaut) {
+            try { var v = localStorage.getItem('monclubtt-pong-' + cle); return v === null ? defaut : v === '1'; } catch (e) { return defaut; }
+        }
+        function ecrirePref(cle, v) {
+            try { localStorage.setItem('monclubtt-pong-' + cle, v ? '1' : '0'); } catch (e) { /* stockage indisponible */ }
+        }
+
         var etat = {
             niveau: 'normal',
-            son: true,
+            son: lirePref('son', true),
+            musique: lirePref('musique', true),
             joueur: null
         };
 
@@ -695,15 +704,19 @@
         var btnChanger = el('button', 'pong-lien', '← Adversaire');
         btnChanger.title = 'Changer d\'adversaire';
         btnChanger.type = 'button';
-        var btnSon = el('button', 'pong-lien', 'Son : oui');
+        var btnSon = el('button', 'pong-lien pong-bouton-icone');
         btnSon.type = 'button';
-        btnSon.setAttribute('aria-pressed', 'true');
-        var btnPlein = el('button', 'pong-lien pong-bouton-plein');
+        var btnMusique = el('button', 'pong-lien pong-bouton-icone');
+        btnMusique.type = 'button';
+        var btnPlein = el('button', 'pong-lien pong-bouton-icone');
         btnPlein.type = 'button';
         btnPlein.setAttribute('aria-pressed', 'false');
+        var reglagesSon = el('span', 'pong-reglages-son');
+        reglagesSon.appendChild(btnPlein);
+        reglagesSon.appendChild(btnSon);
+        if (cfg.musique) reglagesSon.appendChild(btnMusique);
         actions.appendChild(btnChanger);
-        actions.appendChild(btnPlein);
-        actions.appendChild(btnSon);
+        actions.appendChild(reglagesSon);
         ecranJeu.appendChild(actions);
 
         // Écrans avant les crédits photo posés par le shortcode.
@@ -714,22 +727,76 @@
         root.classList.add('pong-pret');
         if (!root.hasAttribute('tabindex')) root.tabIndex = -1;
 
+        /* ---- Effets sonores et musique de fond ---- */
+        var PICTO_SON = '<path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z" fill="currentColor"/>';
+        var PICTO_NOTE = '<path d="M9.5 17.5V6.5l9-2v11" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><circle cx="7" cy="17.5" r="2.6" fill="currentColor"/><circle cx="16" cy="15.5" r="2.6" fill="currentColor"/>';
+        var ONDES = '<path d="M15 9.2a4 4 0 0 1 0 5.6M17.6 6.8a7.5 7.5 0 0 1 0 10.4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>';
+        var BARRE = '<path d="M3.5 3.5l17 17" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>';
+        function picto(contenu) {
+            return '<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" focusable="false">' + contenu + '</svg>';
+        }
+        function majBoutonsSon() {
+            btnSon.innerHTML = picto(PICTO_SON + (etat.son ? ONDES : BARRE));
+            btnSon.setAttribute('aria-pressed', String(etat.son));
+            btnSon.classList.toggle('pong-coupe', !etat.son);
+            btnSon.setAttribute('aria-label', 'Effets sonores');
+            btnSon.title = etat.son ? 'Couper les effets sonores' : 'Activer les effets sonores';
+            btnMusique.innerHTML = picto(PICTO_NOTE + (etat.musique ? '' : BARRE));
+            btnMusique.setAttribute('aria-pressed', String(etat.musique));
+            btnMusique.classList.toggle('pong-coupe', !etat.musique);
+            btnMusique.setAttribute('aria-label', 'Musique');
+            btnMusique.title = etat.musique ? 'Couper la musique' : 'Activer la musique';
+        }
+        majBoutonsSon();
         btnSon.addEventListener('click', function () {
             etat.son = !etat.son;
-            btnSon.textContent = 'Son : ' + (etat.son ? 'oui' : 'non');
-            btnSon.setAttribute('aria-pressed', String(etat.son));
+            ecrirePref('son', etat.son);
+            majBoutonsSon();
         });
+
+        /* Musique en boucle : lancée au premier geste du visiteur (règle des
+         * navigateurs), coupée quand l'onglet est caché. */
+        var musique = null, musiqueLancee = false;
+        function jouerMusique() {
+            if (!cfg.musique || !etat.musique || document.hidden) return;
+            if (!musique) {
+                musique = new Audio(cfg.musique);
+                musique.loop = true;
+                musique.preload = 'auto';
+                musique.volume = 0.35;
+            }
+            var lecture = musique.play();
+            musiqueLancee = true;
+            if (lecture && lecture.catch) lecture.catch(function () { musiqueLancee = false; });
+        }
+        function couperMusique() { if (musique) musique.pause(); }
+        if (cfg.musique) {
+            root.addEventListener('pointerdown', function () { if (!musiqueLancee) jouerMusique(); }, true);
+            root.addEventListener('keydown', function () { if (!musiqueLancee) jouerMusique(); }, true);
+            btnMusique.addEventListener('click', function () {
+                etat.musique = !etat.musique;
+                ecrirePref('musique', etat.musique);
+                majBoutonsSon();
+                if (etat.musique) jouerMusique(); else couperMusique();
+            });
+            document.addEventListener('visibilitychange', function () {
+                if (document.hidden) couperMusique();
+                else if (musiqueLancee) jouerMusique();
+            });
+        }
         btnChanger.addEventListener('click', retourSelection);
 
         /* ---- Plein écran ----
          * API Fullscreen quand le navigateur la permet ; sinon (iPhone, cadre
          * qui l'interdit) le jeu couvre la fenêtre en position fixe. */
         var pleinEcran = false, vraiPleinEcran = false;
-        var PICTO_PLEIN = '<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><path d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
-        var PICTO_REDUIRE = '<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><path d="M9 4v5H4M20 9h-5V4M15 20v-5h5M4 15h5v5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+        var PICTO_PLEIN = '<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" focusable="false"><path d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+        var PICTO_REDUIRE = '<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" focusable="false"><path d="M9 4v5H4M20 9h-5V4M15 20v-5h5M4 15h5v5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
         function majBoutonPlein() {
-            btnPlein.innerHTML = (pleinEcran ? PICTO_REDUIRE : PICTO_PLEIN) + '<span>' + (pleinEcran ? 'Réduire' : 'Plein écran') + '</span>';
+            btnPlein.innerHTML = pleinEcran ? PICTO_REDUIRE : PICTO_PLEIN;
             btnPlein.setAttribute('aria-pressed', String(pleinEcran));
+            btnPlein.setAttribute('aria-label', 'Plein écran');
+            btnPlein.title = pleinEcran ? 'Quitter le plein écran' : 'Plein écran';
         }
         majBoutonPlein();
         function elementPleinEcran() { return document.fullscreenElement || document.webkitFullscreenElement || null; }

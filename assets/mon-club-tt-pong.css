@@ -543,14 +543,21 @@
     white-space: nowrap;
 }
 
-.monclubtt-pong .pong-bouton-plein {
+.monclubtt-pong .pong-reglages-son { display: inline-flex; gap: 4px; }
+
+.monclubtt-pong .pong-bouton-icone {
     display: inline-flex;
     align-items: center;
-    gap: 5px;
+    justify-content: center;
+    width: 36px;
+    height: 32px;
+    padding: 0;
+    border-radius: 8px;
     text-decoration: none;
 }
 
-.monclubtt-pong .pong-bouton-plein span { text-decoration: underline; text-underline-offset: 3px; }
+.monclubtt-pong .pong-bouton-icone.pong-coupe { opacity: 0.55; }
+.monclubtt-pong .pong-bouton-icone:focus-visible { outline: 2px solid var(--pong-encre); outline-offset: 1px; }
 
 /* Plein écran : vrai (API Fullscreen) ou simulé (position fixe sur la fenêtre). */
 .monclubtt-pong.pong-plein-ecran {

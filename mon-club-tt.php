@@ -150,6 +150,7 @@ class MonClubTT_Plugin
         register_setting('monclubtt_settings', MonClubTT_Constantes::MONCLUBTT_COULEURS, array('sanitize_callback' => array($this, 'sanitize_couleurs')));
         register_setting('monclubtt_settings', MonClubTT_Constantes::MONCLUBTT_LOGO, array('sanitize_callback' => array($this, 'sanitize_logo')));
         register_setting('monclubtt_settings', MonClubTT_Constantes::MONCLUBTT_PONG_ADVERSAIRES, array('sanitize_callback' => array($this, 'sanitize_pong_adversaires')));
+        register_setting('monclubtt_settings', MonClubTT_Constantes::MONCLUBTT_PONG_MUSIQUE, array('sanitize_callback' => array($this, 'sanitize_pong_musique')));
         register_setting('monclubtt_settings', 'monclubtt_pong_vider_scores', array('sanitize_callback' => array($this, 'sanitize_pong_vider_scores')));
 
         add_settings_section('monclubtt_section', '', array($this, 'section_html'), 'monclubtt_settings');
@@ -160,6 +161,7 @@ class MonClubTT_Plugin
         add_settings_field(MonClubTT_Constantes::MONCLUBTT_LOGO, 'Logo du club', array($this, 'logo_html'), 'monclubtt_settings', 'monclubtt_section');
         add_settings_field(MonClubTT_Constantes::MONCLUBTT_COULEURS, 'Couleurs du club', array($this, 'couleurs_html'), 'monclubtt_settings', 'monclubtt_section');
         add_settings_field(MonClubTT_Constantes::MONCLUBTT_PONG_ADVERSAIRES, 'Adversaires du jeu de pong', array($this, 'pong_adversaires_html'), 'monclubtt_settings', 'monclubtt_section');
+        add_settings_field(MonClubTT_Constantes::MONCLUBTT_PONG_MUSIQUE, 'Musique du jeu de pong', array($this, 'pong_musique_html'), 'monclubtt_settings', 'monclubtt_section');
         add_settings_field('monclubtt_pong_vider_scores', 'Meilleurs scores du jeu de pong', array($this, 'pong_vider_scores_html'), 'monclubtt_settings', 'monclubtt_section');
     }
 
@@ -342,6 +344,51 @@ class MonClubTT_Plugin
                 $(this).hide();
             });
         });');
+    }
+
+    public function pong_musique_html()
+    {
+        $valeur = (string) get_option(MonClubTT_Constantes::MONCLUBTT_PONG_MUSIQUE, '');
+        $url    = monclubtt_get_pong_musique_url();
+        $option = MonClubTT_Constantes::MONCLUBTT_PONG_MUSIQUE;
+        ?>
+        <div class="monclubtt-pong-musique">
+            <input type="text" class="regular-text" name="<?php echo esc_attr($option); ?>" value="<?php echo esc_attr($valeur); ?>" placeholder="https://…/musique.mp3">
+            <button type="button" class="button monclubtt-pong-musique-choisir">Choisir dans la médiathèque</button>
+            <?php if ($url): ?>
+                <p><audio controls preload="none" src="<?php echo esc_url($url); ?>" style="max-width:100%"></audio></p>
+            <?php endif; ?>
+        </div>
+        <p class="description">
+            Musique de fond du jeu, en boucle : fichier audio de la médiathèque ou adresse directe d'un fichier MP3, OGG, M4A ou WAV (un lien YouTube, Spotify ou Deezer ne fonctionne pas).
+            Elle démarre au premier toucher du visiteur et se coupe avec le bouton musique du jeu. Vide = pas de musique.
+            N'utilisez qu'une musique dont le club a les droits (libre de droits, ou licence adaptée).
+        </p>
+        <?php
+        wp_add_inline_script('monclubtt-js', 'jQuery(function($) {
+            $(".monclubtt-pong-musique-choisir").on("click", function() {
+                var $champ = $(this).siblings("input[type=text]");
+                var frame = wp.media({ title: "Musique du jeu de pong", button: { text: "Utiliser cette musique" }, library: { type: "audio" }, multiple: false });
+                frame.on("select", function() {
+                    $champ.val(frame.state().get("selection").first().toJSON().id);
+                });
+                frame.open();
+            });
+        });');
+    }
+
+    /**
+     * Musique du jeu : ID d'une pièce jointe audio, ou URL http(s) ; sinon vide.
+     */
+    public function sanitize_pong_musique($valeur)
+    {
+        $valeur = trim((string) $valeur);
+        if (ctype_digit($valeur)) {
+            $id = (int) $valeur;
+            return get_post_type($id) === 'attachment' && strpos((string) get_post_mime_type($id), 'audio/') === 0 ? (string) $id : '';
+        }
+        $url = esc_url_raw($valeur, array('http', 'https'));
+        return $url ? $url : '';
     }
 
     public function pong_vider_scores_html()
@@ -565,6 +612,7 @@ class MonClubTT_Plugin
         $manches = in_array((int) $atts['manches'], array(1, 3, 5), true) ? (int) $atts['manches'] : 1;
         $joueurs = new MonClubTT_Joueurs();
         $scores  = $this->classementPong();
+        $musique = monclubtt_get_pong_musique_url();
 
         // Arrivée par un lien partagé (?pong=ID) : le match devient un défi.
         $defi  = null;

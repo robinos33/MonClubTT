@@ -9,11 +9,12 @@ Format : [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/)
 
 ### Ajouté
 
-- Jeu de pong : bouton « Plein écran » (API Fullscreen quand le navigateur la permet, sinon le jeu couvre la fenêtre, iPhone compris ; sortie par « Réduire » ou Échap).
+- Jeu de pong : bouton « Plein écran » (API Fullscreen quand le navigateur la permet, sinon le jeu couvre la fenêtre, iPhone compris ; sortie par le même bouton ou Échap).
+- Jeu de pong : musique de fond en boucle, réglage « Musique du jeu de pong » (fichier audio de la médiathèque ou adresse d'un fichier MP3/OGG/M4A/WAV). Elle démarre au premier toucher et se coupe avec un bouton ; le choix du visiteur (musique, effets sonores) est mémorisé sur son appareil.
 
 ### Modifié
 
-- Jeu de pong : l'écran de jeu (marqueur, table, boutons) tient toujours dans la hauteur visible de la fenêtre (100vh, barres du navigateur mobile déduites) ; marqueur compact quand la fenêtre est basse (téléphone en paysage).
+- Jeu de pong : l'écran de jeu (marqueur, table, boutons) tient toujours dans la hauteur visible de la fenêtre (100vh, barres du navigateur mobile déduites) ; marqueur compact quand la fenêtre est basse (téléphone en paysage) ; plein écran, effets sonores et musique en boutons à pictogramme.
 
 ## [1.11.0] — 2026-10-04
 
