@@ -740,7 +740,92 @@
 
     var COULEUR_RESULTAT = { V: 'primaire', N: 'primClair', D: 'discret' };
 
+    /* Une colonne tant que les lignes gardent au moins 70 % de leur hauteur ;
+       au-delà, deux colonnes de cartes. En carré, 16 équipes tiennent en
+       entier ; au-delà, la dernière case annonce « + N autres ». */
     function dessinerResultats(L, equipes, top) {
+        var ts = L.ts, gap = 8 * ts;
+        var dispo = L.footY - 24 * ts - top;
+        if ((dispo + gap) / equipes.length - gap >= L.perfs.rowH * 0.7) {
+            ligneResultats(L, equipes, top);
+            return;
+        }
+        var colGap = 16 * ts, cw = (W - 2 * M - colGap) / 2;
+        var hMin = 42 * ts, hMax = 96 * ts;
+        var rangs = Math.ceil(equipes.length / 2), places = equipes.length;
+        if ((dispo + gap) / rangs - gap < hMin) {
+            rangs = Math.floor((dispo + gap) / (hMin + gap));
+            places = rangs * 2 - 1; // dernière case : « + N autres »
+        }
+        var h = Math.min(hMax, (dispo + gap) / rangs - gap);
+        // Par colonne : la colonne de gauche d'abord, l'ordre se lit de haut en bas.
+        equipes.slice(0, places).forEach(function (e, i) {
+            var col = Math.floor(i / rangs), rang = i % rangs;
+            carteResultat(L, e, M + col * (cw + colGap), top + rang * (h + gap), cw, h);
+        });
+        var reste = equipes.length - places;
+        if (reste > 0) {
+            ctx.fillStyle = P.discret;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.font = font(800, 22 * ts);
+            ctx.fillText('+ ' + reste + ' ' + (reste > 1 ? 'AUTRES ÉQUIPES' : 'AUTRE ÉQUIPE'), M + cw + colGap + cw / 2, top + (rangs - 1) * (h + gap) + h / 2);
+            ctx.textBaseline = 'alphabetic';
+        }
+    }
+
+    /* Carte d'une équipe en deux colonnes : résultat, nom, score ; adversaire
+       (et pastille « LEADER ») sur une seconde ligne quand la carte est assez haute. */
+    function carteResultat(L, e, x, y, w, h) {
+        var ts = L.ts, k = Math.min(1, h / (80 * ts)), cy = y + h / 2;
+        var carre = P[COULEUR_RESULTAT[e.resultat]], c = Math.min(h, 64 * ts);
+        ctx.fillStyle = P.teinte;
+        rectArrondi(x, y, w, h, 12 * ts * k);
+        ctx.fill();
+        ctx.save();
+        rectArrondi(x, y, w, h, 12 * ts * k);
+        ctx.clip();
+        ctx.fillStyle = carre;
+        ctx.fillRect(x, y, c, h);
+        ctx.restore();
+        ctx.fillStyle = surCouleur(carre);
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.font = font(900, 30 * ts * Math.max(k, 0.8));
+        ctx.fillText(e.resultat, x + c / 2, cy + 2);
+
+        // Score calé à droite, côté club en premier
+        var score = e.score + ' – ' + e.score_adversaire, droite = x + w - 14 * ts;
+        ctx.font = font(900, 32 * ts * Math.max(k, 0.8));
+        var scoreW = ctx.measureText(score).width;
+        ctx.textAlign = 'right';
+        ctx.fillStyle = e.resultat === 'D' ? P.texte : P.primaire;
+        ctx.fillText(score, droite, cy + 2);
+
+        var tx = x + c + 14 * ts, largeur = droite - scoreW - 14 * ts - tx;
+        var deuxLignes = h >= 62 * ts, nom = String(e.equipe).toUpperCase();
+        ctx.textAlign = 'left';
+        ctx.fillStyle = P.texte;
+        ajuster(nom, 900, 24 * ts, largeur);
+        ctx.fillText(nom, tx, deuxLignes ? cy - h * 0.17 : cy + 1);
+        if (deuxLignes) {
+            var ly = cy + h * 0.2, ax = tx;
+            if (e.rang === 1) {
+                var tp = 13 * ts;
+                ax += pastille('LEADER', tx, ly - tp * 1.75 / 2, tp, P.secondaire, P.surSec, 'left') + 8 * ts;
+                ctx.textAlign = 'left';
+                ctx.textBaseline = 'middle';
+            }
+            var adv = (e.domicile ? 'REÇOIT ' : 'CHEZ ') + String(e.adversaire || 'EXEMPT').toUpperCase();
+            ctx.fillStyle = P.discret;
+            ajuster(adv, 800, 17 * ts, droite - scoreW - 14 * ts - ax);
+            ctx.fillText(adv, ax, ly + 1);
+        }
+        ctx.textBaseline = 'alphabetic';
+    }
+
+    /* Une ligne par équipe : résultat, nom, score, adversaire. */
+    function ligneResultats(L, equipes, top) {
         var ts = L.ts, x = M, w = W - 2 * M;
         var g = grille(L, top, equipes.length, L.perfs.rowH, 8 * ts);
         var n = g.n, h = g.h, gap = g.gap;
