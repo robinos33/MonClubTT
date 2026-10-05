@@ -5,11 +5,15 @@ Format : [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/)
 
 ---
 
-## [1.14.1] — 2026-10-05
+## [1.15.0] — 2026-10-05
+
+### Modifié
+
+- Visuels réseaux sociaux : un seul format, portrait 4:5 (1080 × 1350), affiché en entier dans le fil Instagram comme dans celui de Facebook. Les formats carré et story disparaissent ; mises en page (podium, listes) adaptées à la nouvelle hauteur.
 
 ### Corrigé
 
-- Visuel réseaux sociaux « Résultats des équipes » : en carré, seules 7 équipes s'affichaient. Au-delà de ce qui tient sur une colonne, la liste passe sur deux colonnes de cartes (adversaire sur une seconde ligne quand la place le permet) : 16 équipes tiennent en carré, 20 en story ; au-delà, la dernière case annonce « + N autres équipes ».
+- Visuel « Résultats des équipes » : seules 7 équipes s'affichaient. 10 équipes tiennent désormais sur une colonne ; au-delà, la liste passe sur deux colonnes de cartes (adversaire sur une seconde ligne quand la place le permet), 16 équipes en tout, la dernière case annonçant « + N autres équipes » s'il en reste.
 
 ## [1.14.0] — 2026-10-05
 

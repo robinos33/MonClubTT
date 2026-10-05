@@ -18,18 +18,12 @@
     var FONT = 'system-ui, -apple-system, "Segoe UI", Roboto, sans-serif';
     var MOIS = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'];
 
-    /* Mise en page par format. Story : zones sûres Instagram (≈250 px) en haut et en bas. */
-    var LAYOUTS = {
-        carre: {
-            h: 1080, headY: 56, ts: 1, footY: 988,
-            podium: { baseY: 950, colW: 270, gap: 18, fig: 1.4, heights: { 1: 300, 2: 252, 3: 230 }, tk: 1 },
-            perfs:  { rowH: 82, gap: 10, max: 5 }
-        },
-        story: {
-            h: 1920, headY: 250, ts: 1.2, footY: 1660,
-            podium: { baseY: 1610, colW: 300, gap: 20, fig: 2, heights: { 1: 520, 2: 440, 3: 390 }, tk: 1.2 },
-            perfs:  { rowH: 100, gap: 12, max: 7 }
-        }
+    /* Un seul format, portrait 4:5 (1080 × 1350) : affiché en entier dans le
+       fil Instagram comme dans celui de Facebook. */
+    var LAYOUT = {
+        h: 1350, headY: 56, ts: 1, footY: 1258,
+        podium: { baseY: 1220, colW: 270, gap: 18, fig: 1.6, heights: { 1: 380, 2: 320, 3: 290 }, tk: 1 },
+        perfs:  { rowH: 88, gap: 10, max: 7 }
     };
 
     var canvas    = document.getElementById('monclubtt-social-canvas');
@@ -53,7 +47,6 @@
         var fd = new FormData(form);
         return {
             visuel: fd.get('visuel') || 'prog-mens',
-            format: fd.get('format') || 'carre',
             sexe:   fd.get('sexe') || 'MF',
             club:   String(fd.get('club') || '').trim(),
             couleurs: DATA.couleurs // réglage du plugin (couleurs du club)
@@ -741,8 +734,8 @@
     var COULEUR_RESULTAT = { V: 'primaire', N: 'primClair', D: 'discret' };
 
     /* Une colonne tant que les lignes gardent au moins 70 % de leur hauteur ;
-       au-delà, deux colonnes de cartes. En carré, 16 équipes tiennent en
-       entier ; au-delà, la dernière case annonce « + N autres ». */
+       au-delà, deux colonnes de cartes ; s'il en reste encore, la dernière
+       case annonce « + N autres ». */
     function dessinerResultats(L, equipes, top) {
         var ts = L.ts, gap = 8 * ts;
         var dispo = L.footY - 24 * ts - top;
@@ -982,12 +975,11 @@
     function render() {
         var token = ++renderToken;
         var st = etat();
-        var L = LAYOUTS[st.format] || LAYOUTS.carre;
+        var L = LAYOUT;
         var weekend = CLE_WEEKEND.hasOwnProperty(st.visuel);
         var podium = st.visuel === 'prog-mens' || st.visuel === 'prog-ann';
 
         form.querySelectorAll('[data-visuel="prog"]').forEach(function (el) { el.hidden = !(podium || st.visuel === 'paliers'); });
-        canvas.classList.toggle('is-story', st.format === 'story');
         btn.disabled = true;
 
         var contenu = weekend ? preparerWeekend(L, st.visuel) : (podium ? preparerPodium(st) : preparerPaliers(L, st));
@@ -1058,7 +1050,7 @@
             'cartons':   'carton-plein-' + (perfsData ? perfsData.date_fin : ''),
             'belles':    'victoires-a-la-belle-' + (perfsData ? perfsData.date_fin : ''),
             'paliers':   'nouveaux-paliers-' + DATA.moisLabel
-        }[st.visuel] + '-' + st.format;
+        }[st.visuel];
         return nom.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') + '.png';
     }
 
