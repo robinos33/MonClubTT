@@ -3,7 +3,7 @@ Contributors: robinos33
 Tags: table tennis, fftt, club, rankings, results
 Requires at least: 5.0
 Tested up to: 7.0
-Stable tag: 1.12.0
+Stable tag: 1.13.0
 Requires PHP: 7.4
 License: GPLv2
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -60,6 +60,10 @@ Player data is refreshed on manual sync only. League standings and results are c
 Yes. The plugin exposes five filters: `monclubtt_get_joueurs`, `monclubtt_get_equipes`, `monclubtt_get_classement_poule`, `monclubtt_get_rencontres_poule`, `monclubtt_get_feuille_rencontre`. See the documentation for usage.
 
 == Changelog ==
+
+= 1.13.0 =
+* Changed: new pong players, drawn in a match stance with the racket held in the hand (red forehand, black backhand); forehand or backhand pose on each hit, bigger head, ground shadow, opponent behind the table; same hit zone
+* Added: "Country" field for each world top 10 opponent (16 national teams, preset for the current ranking): the player wears a kit in the team colors (inspired by the flag); `adversaire_pays` attribute for the imposed opponent
 
 = 1.12.0 =
 * Added: full screen button in the pong game (Fullscreen API when available, otherwise the game covers the browser window, iPhone included)
@@ -171,6 +175,9 @@ Yes. The plugin exposes five filters: `monclubtt_get_joueurs`, `monclubtt_get_eq
 * Automatic team page generation and deletion
 
 == Upgrade Notice ==
+
+= 1.13.0 =
+New pong players in a match stance, with national team kits for the world top 10.
 
 = 1.12.0 =
 Full screen mode and background music for the pong game, which now always fits the screen height.
