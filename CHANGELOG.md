@@ -5,6 +5,16 @@ Format : [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/)
 
 ---
 
+## [Non publié]
+
+### Ajouté
+
+- Jeu de pong : bouton « Plein écran » (API Fullscreen quand le navigateur la permet, sinon le jeu couvre la fenêtre, iPhone compris ; sortie par « Réduire » ou Échap).
+
+### Modifié
+
+- Jeu de pong : l'écran de jeu (marqueur, table, boutons) tient toujours dans la hauteur visible de la fenêtre (100vh, barres du navigateur mobile déduites) ; marqueur compact quand la fenêtre est basse (téléphone en paysage).
+
 ## [1.11.0] — 2026-10-04
 
 ### Ajouté

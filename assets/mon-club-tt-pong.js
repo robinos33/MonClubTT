@@ -692,12 +692,17 @@
         ecranJeu.appendChild(scene);
 
         var actions = el('div', 'pong-actions');
-        var btnChanger = el('button', 'pong-lien', '← Changer d\'adversaire');
+        var btnChanger = el('button', 'pong-lien', '← Adversaire');
+        btnChanger.title = 'Changer d\'adversaire';
         btnChanger.type = 'button';
         var btnSon = el('button', 'pong-lien', 'Son : oui');
         btnSon.type = 'button';
         btnSon.setAttribute('aria-pressed', 'true');
+        var btnPlein = el('button', 'pong-lien pong-bouton-plein');
+        btnPlein.type = 'button';
+        btnPlein.setAttribute('aria-pressed', 'false');
         actions.appendChild(btnChanger);
+        actions.appendChild(btnPlein);
         actions.appendChild(btnSon);
         ecranJeu.appendChild(actions);
 
@@ -715,6 +720,53 @@
             btnSon.setAttribute('aria-pressed', String(etat.son));
         });
         btnChanger.addEventListener('click', retourSelection);
+
+        /* ---- Plein écran ----
+         * API Fullscreen quand le navigateur la permet ; sinon (iPhone, cadre
+         * qui l'interdit) le jeu couvre la fenêtre en position fixe. */
+        var pleinEcran = false, vraiPleinEcran = false;
+        var PICTO_PLEIN = '<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><path d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+        var PICTO_REDUIRE = '<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><path d="M9 4v5H4M20 9h-5V4M15 20v-5h5M4 15h5v5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+        function majBoutonPlein() {
+            btnPlein.innerHTML = (pleinEcran ? PICTO_REDUIRE : PICTO_PLEIN) + '<span>' + (pleinEcran ? 'Réduire' : 'Plein écran') + '</span>';
+            btnPlein.setAttribute('aria-pressed', String(pleinEcran));
+        }
+        majBoutonPlein();
+        function elementPleinEcran() { return document.fullscreenElement || document.webkitFullscreenElement || null; }
+        function basculerPleinEcran(actif) {
+            if (actif === pleinEcran) return;
+            pleinEcran = actif;
+            root.classList.toggle('pong-plein-ecran', actif);
+            document.documentElement.classList.toggle('monclubtt-pong-verrou', actif);
+            majBoutonPlein();
+            if (actif) {
+                var demande = root.requestFullscreen || root.webkitRequestFullscreen;
+                if (demande) {
+                    vraiPleinEcran = true;
+                    try {
+                        var promesse = demande.call(root);
+                        if (promesse && promesse.catch) promesse.catch(function () { vraiPleinEcran = false; });
+                    } catch (e) { vraiPleinEcran = false; }
+                }
+            } else if (vraiPleinEcran) {
+                vraiPleinEcran = false;
+                var sortir = document.exitFullscreen || document.webkitExitFullscreen;
+                if (elementPleinEcran() === root && sortir) sortir.call(document);
+            }
+            requestAnimationFrame(dimensionner);
+            root.focus({ preventScroll: true });
+        }
+        btnPlein.addEventListener('click', function () { basculerPleinEcran(!pleinEcran); });
+        // Sortie par la touche Échap ou le geste du navigateur.
+        ['fullscreenchange', 'webkitfullscreenchange'].forEach(function (evt) {
+            document.addEventListener(evt, function () {
+                if (vraiPleinEcran && elementPleinEcran() !== root) {
+                    vraiPleinEcran = false;
+                    basculerPleinEcran(false);
+                }
+                requestAnimationFrame(dimensionner);
+            });
+        });
 
         var ctx = canvas.getContext('2d');
         var echelle = 1;
@@ -749,18 +801,28 @@
             });
         }
 
-        function dimensionner() {
+        /* L'écran de jeu entier (marqueur, table, boutons) tient dans la hauteur
+         * visible de la fenêtre (100vh, barres du navigateur mobile déduites). */
+        function dimensionner(passe) {
             if (ecranJeu.hidden) return;
-            var largeurDispo = root.clientWidth;
-            var hauteurDispo = window.innerHeight - marqueur.el.offsetHeight - actions.offsetHeight - 32;
-            var largeur = Math.max(220, Math.min(largeurDispo, 520, hauteurDispo * W / H));
+            var avant = canvas.style.width;
+            var hauteurFenetre = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+            var style = getComputedStyle(root);
+            var marges = pleinEcran ? parseFloat(style.paddingTop) + parseFloat(style.paddingBottom) : 0;
+            var ecarts = 2 * (parseFloat(getComputedStyle(ecranJeu).rowGap) || 0);
+            var largeurDispo = ecranJeu.clientWidth;
+            var hauteurDispo = hauteurFenetre - marges - marqueur.el.offsetHeight - actions.offsetHeight - ecarts - 4;
+            var largeur = Math.max(120, Math.min(largeurDispo, pleinEcran ? Infinity : 520, hauteurDispo * W / H));
             canvas.style.width = largeur + 'px';
             canvas.style.height = (largeur * H / W) + 'px';
             scene.style.width = largeur + 'px';
+            actions.style.maxWidth = Math.max(largeur, 300) + 'px';
             canvas.width = Math.round(largeur * dpr);
             canvas.height = Math.round(largeur * H / W * dpr);
             echelle = largeur / W;
             construireTetes();
+            // Une passe de plus si la mise en page autour a changé (retour à la ligne…).
+            if (!passe && canvas.style.width !== avant) dimensionner(true);
         }
 
         function demarrer(p) {
@@ -946,6 +1008,7 @@
         scene.addEventListener('pointerleave', function (e) { if (e.pointerType === 'mouse') cible = null; });
 
         root.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape' && pleinEcran) { basculerPleinEcran(false); return; }
             if (ecranJeu.hidden || e.target.closest('.pong-message') || e.target.tagName === 'BUTTON') return;
             var k = e.key;
             if (k === 'ArrowLeft' || k === 'a' || k === 'q') { touches.g = true; cible = null; e.preventDefault(); }
@@ -961,10 +1024,12 @@
         });
 
         var redim = 0;
-        window.addEventListener('resize', function () {
+        function surRedim() {
             clearTimeout(redim);
             redim = setTimeout(dimensionner, 120);
-        });
+        }
+        window.addEventListener('resize', surRedim);
+        if (window.visualViewport) window.visualViewport.addEventListener('resize', surRedim);
 
         /* ---- Simulation ---- */
         function deplacerJoueur(dt) {
