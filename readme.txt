@@ -3,7 +3,7 @@ Contributors: robinos33
 Tags: table tennis, fftt, club, rankings, results
 Requires at least: 5.0
 Tested up to: 7.0
-Stable tag: 1.11.0
+Stable tag: 1.12.0
 Requires PHP: 7.4
 License: GPLv2
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -60,6 +60,11 @@ Player data is refreshed on manual sync only. League standings and results are c
 Yes. The plugin exposes five filters: `monclubtt_get_joueurs`, `monclubtt_get_equipes`, `monclubtt_get_classement_poule`, `monclubtt_get_rencontres_poule`, `monclubtt_get_feuille_rencontre`. See the documentation for usage.
 
 == Changelog ==
+
+= 1.12.0 =
+* Added: full screen button in the pong game (Fullscreen API when available, otherwise the game covers the browser window, iPhone included)
+* Added: looping background music for the pong game ("Pong game music" setting: audio file from the media library or direct link to an audio file), can be muted by the player
+* Changed: the pong game screen (scoreboard, table, buttons) always fits the visible window height; compact scoreboard on short screens (phone in landscape)
 
 = 1.11.0 =
 * Added: `[monclubtt_pong]` shortcode, a table tennis pong game in the club colors (touch, mouse or keyboard): pick a club player, then an opponent from the world top 10 (men and women) or from the club, Normal or Expert level
@@ -166,6 +171,9 @@ Yes. The plugin exposes five filters: `monclubtt_get_joueurs`, `monclubtt_get_eq
 * Automatic team page generation and deletion
 
 == Upgrade Notice ==
+
+= 1.12.0 =
+Full screen mode and background music for the pong game, which now always fits the screen height.
 
 = 1.11.0 =
 New table tennis pong game shortcode with high scores and match sharing.

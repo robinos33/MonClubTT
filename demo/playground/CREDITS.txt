@@ -6,3 +6,5 @@ Images de la démo WordPress Playground (dossier exclu du ZIP du plugin)
 - Autres top-*.png : photos de Wikimedia Commons, recadrées et détourées. Auteur, licence et lien
   vers la page de chaque photo : voir le tableau $top de seed.php (légendes importées dans la
   médiathèque). Les détourages de photos CC BY-SA sont diffusés sous la même licence.
+
+- musique-demo.wav : boucle musicale originale générée pour la démo (synthèse, aucune œuvre tierce).

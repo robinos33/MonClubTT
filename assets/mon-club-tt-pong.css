@@ -537,9 +537,46 @@
 .monclubtt-pong .pong-actions {
     display: flex;
     justify-content: space-between;
+    gap: 8px;
     width: 100%;
     max-width: 520px;
+    white-space: nowrap;
 }
+
+.monclubtt-pong .pong-reglages-son { display: inline-flex; gap: 4px; }
+
+.monclubtt-pong .pong-bouton-icone {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 32px;
+    padding: 0;
+    border-radius: 8px;
+    text-decoration: none;
+}
+
+.monclubtt-pong .pong-bouton-icone.pong-coupe { opacity: 0.55; }
+.monclubtt-pong .pong-bouton-icone:focus-visible { outline: 2px solid var(--pong-encre); outline-offset: 1px; }
+
+/* Plein écran : vrai (API Fullscreen) ou simulé (position fixe sur la fenêtre). */
+.monclubtt-pong.pong-plein-ecran {
+    position: fixed;
+    inset: 0;
+    z-index: 100000;
+    max-width: none;
+    margin: 0;
+    padding: max(4px, env(safe-area-inset-top)) max(4px, env(safe-area-inset-right)) max(4px, env(safe-area-inset-bottom)) max(4px, env(safe-area-inset-left));
+    box-sizing: border-box;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    background: var(--pong-fond);
+}
+
+.monclubtt-pong.pong-plein-ecran .pong-jeu { min-height: 100%; justify-content: center; }
+
+html.monclubtt-pong-verrou,
+html.monclubtt-pong-verrou body { overflow: hidden; }
 
 .monclubtt-pong .pong-lien {
     border: 0;
@@ -559,6 +596,20 @@
     .monclubtt-pong .pong-fiche--manches .pong-page { font-size: 24px; }
     .monclubtt-pong .pong-nom { max-width: 120px; }
     .monclubtt-pong .pong-grille { grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); }
+}
+
+/* Fenêtre basse (téléphone en paysage) : marqueur compact pour laisser la
+   hauteur à la table, l'écran de jeu devant tenir dans 100vh. */
+@media (max-height: 520px) {
+    .monclubtt-pong .pong-marqueur { padding: 4px 10px 6px; gap: 8px; }
+    .monclubtt-pong .pong-camp { flex-direction: row; gap: 8px; }
+    .monclubtt-pong .pong-fiche { width: 40px; height: 44px; }
+    .monclubtt-pong .pong-page { font-size: 28px; }
+    .monclubtt-pong .pong-fiche--manches { width: 26px; height: 30px; }
+    .monclubtt-pong .pong-fiche--manches .pong-page { font-size: 18px; }
+    .monclubtt-pong .pong-camp--adversaire { flex-direction: row-reverse; }
+    .monclubtt-pong .pong-jeu { gap: 6px; }
+    .monclubtt-pong .pong-lien { padding: 2px 4px; }
 }
 
 @media (prefers-reduced-motion: reduce) {

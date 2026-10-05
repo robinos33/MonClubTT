@@ -14,6 +14,8 @@ if ( ! class_exists( 'MonClubTT_Constantes' ) ) {
         const MONCLUBTT_LOGO = 'monclubtt_logo';
         const MONCLUBTT_PONG_ADVERSAIRES = 'monclubtt_pong_adversaires';
         const MONCLUBTT_PONG_SCORES = 'monclubtt_pong_scores';
+        /** Musique de fond du jeu de pong : ID de média audio ou URL d'un fichier audio. */
+        const MONCLUBTT_PONG_MUSIQUE = 'monclubtt_pong_musique';
         /** Matchs récents partageables (id => données), pour les pages et images de partage. */
         const MONCLUBTT_PONG_MATCHS = 'monclubtt_pong_matchs';
         /** Ancienne option (1.6.2), relue tant que les réglages n'ont pas été enregistrés. */
@@ -251,6 +253,27 @@ if ( ! function_exists( 'monclubtt_get_pong_adversaires' ) ) {
      */
     function monclubtt_get_pong_adversaires() {
         return monclubtt_normaliser_adversaires(get_option(MonClubTT_Constantes::MONCLUBTT_PONG_ADVERSAIRES, null));
+    }
+
+}
+
+if ( ! function_exists( 'monclubtt_get_pong_musique_url' ) ) {
+
+    /**
+     * URL de la musique de fond du jeu de pong (réglages), '' sans musique.
+     *
+     * @return string
+     */
+    function monclubtt_get_pong_musique_url() {
+        $valeur = trim((string) get_option(MonClubTT_Constantes::MONCLUBTT_PONG_MUSIQUE, ''));
+        if ($valeur === '') {
+            return '';
+        }
+        if (ctype_digit($valeur)) {
+            $url = wp_get_attachment_url((int) $valeur);
+            return $url ? $url : '';
+        }
+        return esc_url_raw($valeur, array('http', 'https'));
     }
 
 }

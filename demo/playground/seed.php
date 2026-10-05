@@ -22,8 +22,10 @@ update_option(MonClubTT_Constantes::MONCLUBTT_NUM_CLUB, $numClub);
 
 /** Importe une image du dossier de démo dans la médiathèque. */
 $importer = function ($fichier, $legende = '') use ($dossier) {
+    // Le dossier img/ contient les images, la musique est à la racine de la démo.
+    $source = file_exists($dossier . $fichier) ? $dossier . $fichier : dirname($dossier) . '/' . $fichier;
     $tmp = wp_tempnam($fichier);
-    copy($dossier . $fichier, $tmp);
+    copy($source, $tmp);
     $id = media_handle_sideload(array('name' => $fichier, 'tmp_name' => $tmp), 0, null, array('post_excerpt' => $legende));
     return is_wp_error($id) ? 0 : (int) $id;
 };
@@ -94,6 +96,9 @@ foreach ($adversaires as $sexe => $liste) {
     }
 }
 update_option(MonClubTT_Constantes::MONCLUBTT_PONG_ADVERSAIRES, $adversaires);
+
+// Musique de fond : boucle originale composée pour la démo.
+update_option(MonClubTT_Constantes::MONCLUBTT_PONG_MUSIQUE, (string) $importer('musique-demo.wav'));
 
 // Quelques victoires pour ne pas ouvrir sur un tableau vide.
 $scores = array();
