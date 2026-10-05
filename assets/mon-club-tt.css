@@ -729,29 +729,43 @@ th.headerSortUp {
     pointer-events: none;
 }
 
-/* --- Avatars (injectés par JS) --- */
+/* --- Joueurs (injectés par JS) : corps, puis calque de tête qui suit le
+   curseur (pivot au cou, à 37 % de la hauteur du dessin) --- */
 .monclubtt-top-prog .tp-figure {
     position: absolute;
-    width: 128px;
+    width: 230px;
+    height: 180px;
     transform: translateX(-50%);
     opacity: 1;
+    pointer-events: none;
 }
 
-.monclubtt-top-prog .tp-figure svg {
+.monclubtt-top-prog .tp-figure > svg {
     display: block;
-    width: 128px;
-    height: auto;
+    width: 100%;
+    height: 100%;
     filter: drop-shadow(0 8px 10px rgba(43, 58, 79, 0.18));
 }
 
-/* Photo détourée « sticker » posée sur la tête (repli : avatar dessiné) */
+.monclubtt-top-prog .tp-tete {
+    position: absolute;
+    inset: 0;
+    transform-origin: 50% 37%;
+}
+
+.monclubtt-top-prog .tp-tete svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+}
+
+/* Photo détourée « sticker » posée sur la tête (repli : tête dessinée) */
 .monclubtt-top-prog .tp-figure .tp-photo {
     position: absolute;
-    left: 64px;
-    top: 40px;
-    height: 68px;
+    left: 50%;
+    top: 23%;
+    height: 47%;
     transform: translate(-50%, -50%) rotate(var(--rot, 0deg));
-    pointer-events: none;
 }
 
 .monclubtt-top-prog .tp-figure .tp-photo img {

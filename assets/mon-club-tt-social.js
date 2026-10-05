@@ -135,9 +135,11 @@
         return imageCache[url];
     }
 
+    /* Joueur du podium en pose de victoire (viewBox 256×200, image ×2) ;
+       avecTete = false : corps seul, pour poser la photo détourée. */
     function avatarUrl(sexe, avecTete) {
-        var svg = (sexe === 'F' ? MonClubTTAvatars.female : MonClubTTAvatars.male)(avecTete, { maillot: DATA.couleurs.maillot });
-        svg = svg.replace('<svg ', '<svg width="128" height="168" ');
+        var svg = MonClubTTAvatars.joueur(sexe, { pose: 'podium', tenue: DATA.couleurs.maillot, tete: avecTete ? true : 'corps' });
+        svg = svg.replace('<svg ', '<svg width="512" height="400" ');
         return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
     }
 
@@ -429,9 +431,11 @@
         pastille(signe(gagnant.val) + ' PTS', cx, top + 170 * tk, 26 * tk, P.secondaire, P.surSec, 'center');
     }
 
+    /* Joueur debout sur sa marche : dessin 256×200 haut de 180 unités du
+       podium (l'ancien avatar en faisait 168), tête photo centrée à 46/200. */
     function figure(Pd, cx, top, g) {
-        var k = Pd.fig;
-        var fw = 128 * k, fh = 168 * k;
+        var k = Pd.fig * 180 / 200;
+        var fw = 256 * k, fh = 200 * k;
         var fx = cx + 9 * Pd.tk - fw / 2, fy = top - 4 - fh;
         ctx.save();
         ctx.shadowColor = alpha(P.texte, 0.2);
@@ -440,7 +444,7 @@
         if (g.corps) ctx.drawImage(g.corps, fx, fy, fw, fh);
         ctx.restore();
         if (g.photo) {
-            photoSticker(g.photo, fx + 64 * k, fy + 40 * k, 72 * k, inclinaison(g.photo));
+            photoSticker(g.photo, fx + fw / 2, fy + 46 * k, 94 * k, inclinaison(g.photo));
         }
     }
 
