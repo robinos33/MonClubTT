@@ -26,12 +26,6 @@
                 <label><input type="radio" name="visuel" value="belles"> Victoires à la belle et remontadas</label>
             </fieldset>
 
-            <fieldset>
-                <legend>Format</legend>
-                <label><input type="radio" name="format" value="carre" checked> Carré 1080 × 1080 (publication)</label>
-                <label><input type="radio" name="format" value="story"> Story 1080 × 1920</label>
-            </fieldset>
-
             <fieldset data-visuel="prog">
                 <legend>Joueurs</legend>
                 <label><input type="radio" name="sexe" value="MF" checked> Tous</label>
@@ -70,7 +64,7 @@
         </form>
 
         <div class="monclubtt-social-preview">
-            <canvas id="monclubtt-social-canvas" width="1080" height="1080" aria-label="Aperçu du visuel"></canvas>
+            <canvas id="monclubtt-social-canvas" width="1080" height="1350" aria-label="Aperçu du visuel"></canvas>
         </div>
     </div>
 </div>

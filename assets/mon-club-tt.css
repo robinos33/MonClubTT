@@ -975,15 +975,10 @@ th.headerSortUp {
 #monclubtt-social-canvas {
     display: block;
     width: 100%;
+    max-width: calc(80vh * 0.8); /* portrait 4:5 : tient dans la hauteur de l'écran */
     height: auto;
     border-radius: 8px;
     box-shadow: 0 10px 30px -12px rgba(0, 0, 0, 0.4);
-}
-
-#monclubtt-social-canvas.is-story {
-    width: auto;
-    max-width: 100%;
-    max-height: 80vh;
 }
 
 .monclubtt-social-couleurs {
