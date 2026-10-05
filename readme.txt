@@ -3,7 +3,7 @@ Contributors: robinos33
 Tags: table tennis, fftt, club, rankings, results
 Requires at least: 5.0
 Tested up to: 7.0
-Stable tag: 1.14.0
+Stable tag: 1.14.1
 Requires PHP: 7.4
 License: GPLv2
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -60,6 +60,9 @@ Player data is refreshed on manual sync only. League standings and results are c
 Yes. The plugin exposes five filters: `monclubtt_get_joueurs`, `monclubtt_get_equipes`, `monclubtt_get_classement_poule`, `monclubtt_get_rencontres_poule`, `monclubtt_get_feuille_rencontre`. See the documentation for usage.
 
 == Changelog ==
+
+= 1.14.1 =
+* Fixed: the "Team results" social media image only showed 7 teams in the square format; teams now switch to two columns, so 16 teams fit in the square format and 20 in the story format (beyond, the last cell shows "+ N other teams")
 
 = 1.14.0 =
 * Changed: the Top Progression podium (players list) and the social media podium image use the new detailed players, in a victory pose (standing, fist clenched, racket raised)
@@ -180,6 +183,9 @@ Yes. The plugin exposes five filters: `monclubtt_get_joueurs`, `monclubtt_get_eq
 * Automatic team page generation and deletion
 
 == Upgrade Notice ==
+
+= 1.14.1 =
+The team results image now shows up to 16 teams in the square format.
 
 = 1.14.0 =
 New detailed players on the Top Progression podium and social media image, with heads following the cursor on the site.

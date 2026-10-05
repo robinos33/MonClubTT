@@ -5,6 +5,12 @@ Format : [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/)
 
 ---
 
+## [1.14.1] — 2026-10-05
+
+### Corrigé
+
+- Visuel réseaux sociaux « Résultats des équipes » : en carré, seules 7 équipes s'affichaient. Au-delà de ce qui tient sur une colonne, la liste passe sur deux colonnes de cartes (adversaire sur une seconde ligne quand la place le permet) : 16 équipes tiennent en carré, 20 en story ; au-delà, la dernière case annonce « + N autres équipes ».
+
 ## [1.14.0] — 2026-10-05
 
 ### Modifié
