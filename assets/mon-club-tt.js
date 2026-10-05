@@ -319,7 +319,9 @@ var MonClubTTAvatars = (function () {
     var POSES = {
         attente: { libre: [-42, 104, -30, 121], coude: [45, 104], main: [36, 121], angle: 28 },
         cd:      { libre: [-44, 99, -57, 114], coude: [50, 95], main: [69, 99], angle: 58 },
-        rv:      { libre: [-47, 103, -55, 119], coude: [9, 107], main: [-18, 103], angle: -58 }
+        rv:      { libre: [-47, 103, -55, 119], coude: [9, 107], main: [-18, 103], angle: -58 },
+        // Podium : debout, poing serré, raquette levée à côté de la tête.
+        podium:  { libre: [-44, 104, -38, 82], coude: [44, 74], main: [56, 54], angle: 18, jambes: [13, 124, 17, 155, 20, 182] }
     };
 
     function raquette(x, y, angle, revers) {
@@ -364,8 +366,8 @@ var MonClubTTAvatars = (function () {
             // sourcils, yeux, nez, bouche, joues
             '<path d="M-13 41 q5 -3 9 -1 M4 40 q5 -2 9 1" stroke="' + cheveux + '" stroke-width="2.2" fill="none" stroke-linecap="round"/>' +
             '<ellipse cx="-8" cy="48" rx="3.6" ry="4.2" fill="#fff"/><ellipse cx="8" cy="48" rx="3.6" ry="4.2" fill="#fff"/>' +
-            '<circle cx="-7.2" cy="48.6" r="2.4" fill="#4a3426"/><circle cx="8.8" cy="48.6" r="2.4" fill="#4a3426"/>' +
-            '<circle cx="-6.5" cy="47.7" r="0.8" fill="#fff"/><circle cx="9.5" cy="47.7" r="0.8" fill="#fff"/>' +
+            '<g class="mctt-pupilles"><circle cx="-7.2" cy="48.6" r="2.4" fill="#4a3426"/><circle cx="8.8" cy="48.6" r="2.4" fill="#4a3426"/>' +
+            '<circle cx="-6.5" cy="47.7" r="0.8" fill="#fff"/><circle cx="9.5" cy="47.7" r="0.8" fill="#fff"/></g>' +
             '<path d="M1 52 q2.4 4.4 -1.4 5.4" stroke="' + assombrir(peau, 0.25) + '" stroke-width="1.4" fill="none" stroke-linecap="round"/>' +
             '<path d="M-5.5 61 q5.5 4 11 0" stroke="#9c5a44" stroke-width="1.8" fill="none" stroke-linecap="round"/>' +
             '<ellipse cx="-13" cy="57" rx="3.6" ry="2.2" fill="#e8846a" opacity="0.32"/><ellipse cx="13" cy="57" rx="3.6" ry="2.2" fill="#e8846a" opacity="0.32"/>' +
@@ -420,7 +422,8 @@ var MonClubTTAvatars = (function () {
 
         // ---- jambes : cuisse, mollet galbé, chaussette, chaussure
         [-1, 1].forEach(function (c) {
-            var hanche = [13 * c, 124], genou = [28 * c, 155], cheville = [36 * c, 181];
+            var j = p.jambes || [13, 124, 28, 155, 36, 181];
+            var hanche = [j[0] * c, j[1]], genou = [j[2] * c, j[3]], cheville = [j[4] * c, j[5]];
             s += membre(lerp(genou, cheville, 0.12), 6.2, lerp(genou, cheville, 0.45), 6.6, peau, ombrePeau);
             s += membre(genou, 6.4, cheville, 4.2, peau, ombrePeau);
             s += capsule(lerp(genou, cheville, 0.72), 5.2, cheville, 4.8, 'fill="#fff" stroke="' + TRAIT + '" stroke-width="' + EP + '"');
@@ -507,8 +510,12 @@ var MonClubTTAvatars = (function () {
             opts = opts || {};
             var pose = POSES[opts.pose] ? opts.pose : 'attente';
             var tenue = SELECTIONS[opts.tenue] || (valide(opts.tenue) ? opts.tenue : (sexe === 'F' ? '#d34328' : '#2b7cb5'));
-            return '<svg viewBox="-128 0 256 200" xmlns="http://www.w3.org/2000/svg">' +
-                corps(sexe === 'F' ? 'F' : 'M', pose, tenue, opts.tete !== false) + '</svg>';
+            var femme = sexe === 'F';
+            // opts.tete === 'seule' : la tête dessinée seule, même repère, pour l'animer à part.
+            var contenu = opts.tete === 'seule'
+                ? tete(femme, femme ? '#ecbb98' : '#e3ad86', tenueDe(tenue).maillot)
+                : corps(femme ? 'F' : 'M', pose, tenue, opts.tete !== false && opts.tete !== 'corps');
+            return '<svg viewBox="-128 0 256 200" xmlns="http://www.w3.org/2000/svg">' + contenu + '</svg>';
         };
     }());
     return { male: avatarMale, female: avatarFemale, joueur: joueurPong, SELECTIONS: SELECTIONS };
