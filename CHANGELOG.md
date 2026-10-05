@@ -5,6 +5,12 @@ Format : [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/)
 
 ---
 
+## [1.15.1] — 2026-10-05
+
+### Corrigé
+
+- Visuel « Résultats des équipes » : une équipe exempte apparaissait comme un nul 0-0. Elle n'a plus ni résultat ni score, « EXEMPT » remplace l'adversaire, et elle n'entre plus dans le bilan V / N / D ni dans celui du texte de publication.
+
 ## [1.15.0] — 2026-10-05
 
 ### Modifié
