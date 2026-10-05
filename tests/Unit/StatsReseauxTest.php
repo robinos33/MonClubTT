@@ -49,6 +49,22 @@ final class StatsReseauxTest extends TestCase
         $this->assertSame('TALENCE US 4', $recap[1]['adversaire']);
     }
 
+    public function test_should_mark_team_exempt_without_score_nor_result(): void
+    {
+        $journee = MonClubTT_TopPerfs::rencontresDerniereJournee(array(
+            $this->rencontre('6000020', 'TALENCE US 4', self::NUM_CLUB, '', '', '0', '0'),
+            $this->rencontre('6000021', 'Exempt', '', 'TALENCE US 6', self::NUM_CLUB, '0', '0'),
+        ), self::NUM_CLUB);
+
+        $recap = MonClubTT_StatsReseaux::recapEquipes($journee);
+
+        $this->assertSame(array('E', 'E'), array_column($recap, 'resultat'));
+        $this->assertSame(array(true, true), array_column($recap, 'exempt'));
+        $this->assertNull($recap[0]['score']);
+        $this->assertNull($recap[0]['score_adversaire']);
+        $this->assertSame('', $recap[1]['adversaire']);
+    }
+
     public function test_should_find_rank_when_team_in_pool_standings(): void
     {
         $classement = array(
