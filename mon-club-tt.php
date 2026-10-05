@@ -3,7 +3,7 @@
   Plugin Name: Mon Club TT
   Plugin URI: https://github.com/robinos33/MonClubTT
   Description: Display your table tennis club's players, teams, and rankings from the official FFTT Smartping API. Not affiliated with or endorsed by the FFTT.
-  Version: 1.12.0
+  Version: 1.13.0
   Author: Robin Aldasoro
   Author URI: https://github.com/robinos33
   License: GPLv2
@@ -296,7 +296,7 @@ class MonClubTT_Plugin
         <div class="monclubtt-pong-adversaires" style="display:flex;flex-wrap:wrap;gap:24px">
             <?php foreach ($titres as $sexe => $titre): ?>
                 <table class="widefat striped" style="width:auto">
-                    <thead><tr><th colspan="3"><?php echo esc_html($titre); ?></th></tr></thead>
+                    <thead><tr><th colspan="4"><?php echo esc_html($titre); ?></th></tr></thead>
                     <tbody>
                     <?php foreach ($adversaires[$sexe] as $i => $adv):
                         $base   = $option . '[' . $sexe . '][' . $i . ']';
@@ -304,6 +304,14 @@ class MonClubTT_Plugin
                         <tr class="monclubtt-pong-adversaire">
                             <td><?php echo (int) $i + 1; ?></td>
                             <td><input type="text" class="regular-text" style="width:13em" name="<?php echo esc_attr($base . '[nom]'); ?>" value="<?php echo esc_attr($adv['nom']); ?>" placeholder="Felix LEBRUN"></td>
+                            <td>
+                                <select name="<?php echo esc_attr($base . '[pays]'); ?>" aria-label="<?php echo esc_attr('Pays du N°' . ((int) $i + 1)); ?>">
+                                    <option value=""<?php selected($adv['pays'], ''); ?>>Couleurs du club</option>
+                                    <?php foreach (MonClubTT_Constantes::PONG_PAYS as $code => $pays): ?>
+                                        <option value="<?php echo esc_attr($code); ?>"<?php selected($adv['pays'], $code); ?>><?php echo esc_html($pays); ?></option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </td>
                             <td style="white-space:nowrap">
                                 <input type="hidden" name="<?php echo esc_attr($base . '[photo]'); ?>" value="<?php echo esc_attr($adv['photo'] ? $adv['photo'] : ''); ?>">
                                 <span class="monclubtt-pong-apercu" style="display:inline-block;width:32px;height:32px;vertical-align:middle"><?php if ($apercu): ?><img src="<?php echo esc_url($apercu); ?>" alt="" style="width:32px;height:32px;object-fit:contain"><?php endif; ?></span>
@@ -318,6 +326,7 @@ class MonClubTT_Plugin
         </div>
         <p class="description">
             Shortcode <code>[monclubtt_pong]</code> : l'adversaire est tiré au hasard dans ces 20 joueurs. Noms écrits comme sur le site de la WTT (affichés tels quels), dans l'ordre du classement mondial (à mettre à jour, il change chaque semaine).
+            Pays : le joueur porte une tenue aux couleurs de sa sélection (inspirée du drapeau) ; « Couleurs du club » sinon.
             Photo : PNG détouré à fond transparent, dont le club a les droits d'utilisation ; sans photo, avatar dessiné. Ligne vide = joueur ignoré.<br>
             Crédit : renseignez la <strong>légende</strong> de l'image dans la médiathèque, affichée sous le jeu. Pour une photo de Wikimedia Commons, auteur et licence sont obligatoires,
             ex. « Jean Dupont, CC BY-SA 4.0, via Wikimedia Commons, détourée », liens vers la page de la photo et la licence acceptés.
@@ -553,7 +562,8 @@ class MonClubTT_Plugin
      * @param array $atts adversaire : nom d'un adversaire imposé (sinon tirage au sort
      *                    dans le top 10 mondial des réglages) ; adversaire_titre : sous-titre ;
      *                    adversaire_photo : ID de média ou URL d'une photo détourée ;
-     *                    adversaire_sexe : M | F ; manches : 1 | 3 | 5
+     *                    adversaire_sexe : M | F ; adversaire_pays : code de
+     *                    MonClubTT_Constantes::PONG_PAYS ; manches : 1 | 3 | 5
      * @return string
      */
     public function pong_front($atts)
@@ -563,6 +573,7 @@ class MonClubTT_Plugin
             'adversaire_titre' => '',
             'adversaire_photo' => '',
             'adversaire_sexe'  => 'M',
+            'adversaire_pays'  => '',
             'manches'          => '1',
         ), (array) $atts, 'monclubtt_pong');
 
@@ -573,6 +584,7 @@ class MonClubTT_Plugin
         $credits     = array();
         if (trim((string) $atts['adversaire']) !== '') {
             $photo  = trim((string) $atts['adversaire_photo']);
+            $pays   = strtoupper(trim((string) $atts['adversaire_pays']));
             $credit = '';
             if (ctype_digit($photo)) {
                 $credit = $this->creditPhoto((int) $photo);
@@ -587,6 +599,7 @@ class MonClubTT_Plugin
                 'titre'  => sanitize_text_field($atts['adversaire_titre']),
                 'sex'    => $atts['adversaire_sexe'] === 'F' ? 'F' : 'M',
                 'photo'  => $photo !== '' ? esc_url_raw($photo) : '',
+                'pays'   => isset(MonClubTT_Constantes::PONG_PAYS[$pays]) ? $pays : '',
             );
         }
         foreach (monclubtt_get_pong_adversaires() as $sexe => $liste) {
@@ -606,6 +619,7 @@ class MonClubTT_Plugin
                     'titre'    => 'N°' . ($i + 1) . ($sexe === 'F' ? ' mondiale' : ' mondial'),
                     'sex'      => $sexe,
                     'photo'    => $photo ? $photo : '',
+                    'pays'     => $adv['pays'],
                 );
             }
         }

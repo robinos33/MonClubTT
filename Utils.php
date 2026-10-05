@@ -43,6 +43,36 @@ if ( ! class_exists( 'MonClubTT_Constantes' ) ) {
                          'Hina HAYATA', 'CHEN Xingtong', 'ZHU Yuling', 'Sabine WINTER', 'CHEN Yi'),
         );
 
+        /** Pays des adversaires par défaut, dans le même ordre (codes de PONG_PAYS). */
+        const PONG_PAYS_DEFAUT = array(
+            'M' => array('CHN', 'FRA', 'JPN', 'JPN', 'SWE', 'TPE', 'BRA', 'CHN', 'FRA', 'GER'),
+            'F' => array('CHN', 'CHN', 'JPN', 'CHN', 'CHN', 'JPN', 'CHN', 'MAC', 'GER', 'CHN'),
+        );
+
+        /**
+         * Sélections proposées pour les adversaires du pong (codes du CIO, comme
+         * sur le site de la WTT) : le joueur porte une tenue à ses couleurs,
+         * dessinée dans assets/mon-club-tt.js (MonClubTTAvatars SELECTIONS).
+         */
+        const PONG_PAYS = array(
+            'CHN' => 'Chine',
+            'JPN' => 'Japon',
+            'KOR' => 'Corée du Sud',
+            'TPE' => 'Taipei chinois',
+            'HKG' => 'Hong Kong',
+            'MAC' => 'Macao',
+            'IND' => 'Inde',
+            'FRA' => 'France',
+            'GER' => 'Allemagne',
+            'SWE' => 'Suède',
+            'POR' => 'Portugal',
+            'ROU' => 'Roumanie',
+            'SLO' => 'Slovénie',
+            'EGY' => 'Égypte',
+            'BRA' => 'Brésil',
+            'USA' => 'États-Unis',
+        );
+
     }
 
 }
@@ -196,26 +226,44 @@ if ( ! function_exists( 'monclubtt_normaliser_adversaires' ) ) {
 
     /**
      * Adversaires du jeu de pong : 10 hommes et 10 femmes, dans l'ordre du
-     * classement, chacun avec un nom et l'ID d'une photo de la médiathèque
-     * (0 = avatar dessiné). Sans valeur enregistrée, la liste par défaut.
+     * classement, chacun avec un nom, l'ID d'une photo de la médiathèque
+     * (0 = avatar dessiné) et le code de sa sélection ('' = couleurs du club).
+     * Sans valeur enregistrée, la liste par défaut. Une ligne enregistrée avant
+     * l'arrivée du champ pays reprend celui du joueur par défaut de même nom.
      *
      * @param mixed $valeur Tableau brut (option ou saisie).
-     * @return array{M: array<int, array{nom: string, photo: int}>, F: array<int, array{nom: string, photo: int}>}
+     * @return array{M: array<int, array{nom: string, photo: int, pays: string}>, F: array<int, array{nom: string, photo: int, pays: string}>}
      */
     function monclubtt_normaliser_adversaires($valeur) {
+        $paysParNom = array();
+        foreach (MonClubTT_Constantes::PONG_ADVERSAIRES_DEFAUT as $sexe => $noms) {
+            foreach ($noms as $i => $nom) {
+                $paysParNom[strtolower($nom)] = MonClubTT_Constantes::PONG_PAYS_DEFAUT[$sexe][$i];
+            }
+        }
         $adversaires = array();
         foreach (MonClubTT_Constantes::PONG_ADVERSAIRES_DEFAUT as $sexe => $noms) {
             $saisies = is_array($valeur) && isset($valeur[$sexe]) && is_array($valeur[$sexe]) ? array_values($valeur[$sexe]) : null;
             foreach ($noms as $i => $defaut) {
                 $ligne = $saisies !== null && isset($saisies[$i]) && is_array($saisies[$i]) ? $saisies[$i] : null;
                 if ($ligne === null) {
-                    $adversaires[$sexe][] = array('nom' => $saisies === null ? $defaut : '', 'photo' => 0);
+                    $adversaires[$sexe][] = $saisies === null
+                        ? array('nom' => $defaut, 'photo' => 0, 'pays' => MonClubTT_Constantes::PONG_PAYS_DEFAUT[$sexe][$i])
+                        : array('nom' => '', 'photo' => 0, 'pays' => '');
                     continue;
                 }
                 $nom = isset($ligne['nom']) && is_string($ligne['nom']) ? trim(preg_replace('/\s+/u', ' ', strip_tags($ligne['nom']))) : '';
+                $nom = function_exists('mb_substr') ? mb_substr($nom, 0, 60) : substr($nom, 0, 60);
+                if (array_key_exists('pays', $ligne)) {
+                    $pays = is_string($ligne['pays']) ? strtoupper(trim($ligne['pays'])) : '';
+                    $pays = isset(MonClubTT_Constantes::PONG_PAYS[$pays]) ? $pays : '';
+                } else {
+                    $pays = $paysParNom[strtolower($nom)] ?? '';
+                }
                 $adversaires[$sexe][] = array(
-                    'nom'   => function_exists('mb_substr') ? mb_substr($nom, 0, 60) : substr($nom, 0, 60),
+                    'nom'   => $nom,
                     'photo' => isset($ligne['photo']) && is_numeric($ligne['photo']) ? max(0, (int) $ligne['photo']) : 0,
+                    'pays'  => $pays,
                 );
             }
         }
@@ -249,7 +297,7 @@ if ( ! function_exists( 'monclubtt_get_pong_adversaires' ) ) {
      * Adversaires du jeu de pong enregistrés dans les réglages (top 10
      * mondial messieurs et dames), liste par défaut sinon.
      *
-     * @return array{M: array<int, array{nom: string, photo: int}>, F: array<int, array{nom: string, photo: int}>}
+     * @return array{M: array<int, array{nom: string, photo: int, pays: string}>, F: array<int, array{nom: string, photo: int, pays: string}>}
      */
     function monclubtt_get_pong_adversaires() {
         return monclubtt_normaliser_adversaires(get_option(MonClubTT_Constantes::MONCLUBTT_PONG_ADVERSAIRES, null));
