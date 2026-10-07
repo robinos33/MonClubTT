@@ -5,6 +5,13 @@ Format : [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/)
 
 ---
 
+## [1.16.0] — 2026-10-07
+
+### Ajouté
+
+- Réglage « Photos des joueurs » : décoché, plus aucun visage sur le site (podium, jeu de pong et ses images de partage, visuels réseaux sociaux), avatars dessinés pour tous, adversaires du top 10 compris. La page Joueurs de l'administration montre toujours les photos, pour suivre celles qui manquent.
+- Réglage « Top 10 mondial dans le jeu de pong » : décoché, on ne joue que contre les joueurs du club (et l'invité d'un shortcode).
+
 ## [1.15.1] — 2026-10-05
 
 ### Corrigé

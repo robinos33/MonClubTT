@@ -3,7 +3,7 @@ Contributors: robinos33
 Tags: table tennis, fftt, club, rankings, results
 Requires at least: 5.0
 Tested up to: 7.0
-Stable tag: 1.15.1
+Stable tag: 1.16.0
 Requires PHP: 7.4
 License: GPLv2
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -60,6 +60,10 @@ Player data is refreshed on manual sync only. League standings and results are c
 Yes. The plugin exposes five filters: `monclubtt_get_joueurs`, `monclubtt_get_equipes`, `monclubtt_get_classement_poule`, `monclubtt_get_rencontres_poule`, `monclubtt_get_feuille_rencontre`. See the documentation for usage.
 
 == Changelog ==
+
+= 1.16.0 =
+* Added: "Player photos" setting; when unchecked, no faces are shown anywhere on the site (podium, pong game and its share images, social media images) and every player gets a drawn avatar, world top 10 opponents included. The admin Players page still shows the photos, to track missing ones
+* Added: "World top 10 in the pong game" setting; when unchecked, the game only offers club players as opponents (plus a shortcode guest)
 
 = 1.15.1 =
 * Fixed: an exempt team was shown as a draw (0-0) in the "Team results" image; it now has no result nor score, "EXEMPT" is shown instead of the opponent, and it is left out of the wins / draws / losses count and the post caption tally
@@ -187,6 +191,9 @@ Yes. The plugin exposes five filters: `monclubtt_get_joueurs`, `monclubtt_get_eq
 * Automatic team page generation and deletion
 
 == Upgrade Notice ==
+
+= 1.16.0 =
+New settings to hide player photos everywhere and to remove the world top 10 from the pong game.
 
 = 1.15.1 =
 Exempt teams are no longer counted as a draw in the team results image.
