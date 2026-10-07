@@ -3,7 +3,7 @@ Contributors: robinos33
 Tags: table tennis, fftt, club, rankings, results
 Requires at least: 5.0
 Tested up to: 7.0
-Stable tag: 1.16.0
+Stable tag: 1.17.0
 Requires PHP: 7.4
 License: GPLv2
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -60,6 +60,9 @@ Player data is refreshed on manual sync only. League standings and results are c
 Yes. The plugin exposes five filters: `monclubtt_get_joueurs`, `monclubtt_get_equipes`, `monclubtt_get_classement_poule`, `monclubtt_get_rencontres_poule`, `monclubtt_get_feuille_rencontre`. See the documentation for usage.
 
 == Changelog ==
+
+= 1.17.0 =
+* Added: in the pong game, a visitor who is not a club member can play under their first name (20 characters max) with a drawn player avatar (male or female), remembered on their device; their matches can be shared, but their wins do not enter the high score table, which is kept for club players
 
 = 1.16.0 =
 * Added: "Player photos" setting; when unchecked, no faces are shown anywhere on the site (podium, pong game and its share images, social media images) and every player gets a drawn avatar, world top 10 opponents included. The admin Players page still shows the photos, to track missing ones
@@ -191,6 +194,9 @@ Yes. The plugin exposes five filters: `monclubtt_get_joueurs`, `monclubtt_get_eq
 * Automatic team page generation and deletion
 
 == Upgrade Notice ==
+
+= 1.17.0 =
+Visitors who are not club members can now play the pong game under their own first name.
 
 = 1.16.0 =
 New settings to hide player photos everywhere and to remove the world top 10 from the pong game.

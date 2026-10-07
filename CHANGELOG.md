@@ -5,6 +5,12 @@ Format : [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/)
 
 ---
 
+## [1.17.0] — 2026-10-07
+
+### Ajouté
+
+- Jeu de pong : un visiteur qui n'est pas du club peut jouer sous son prénom (20 caractères au plus), avec un avatar dessiné de joueur ou de joueuse. Son prénom est retenu sur son appareil. Il peut partager ses matchs, mais ses victoires n'entrent pas au tableau des meilleurs scores, réservé aux joueurs du club.
+
 ## [1.16.0] — 2026-10-07
 
 ### Ajouté
