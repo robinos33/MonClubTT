@@ -840,7 +840,8 @@ class MonClubTT_Plugin
         }
 
         $victoire   = $pj > $pa;
-        $joueur     = $this->joueurPong($champ('joueur_nom'), $champ('joueur_prenom'));
+        $visiteur   = $champ('joueur_type') === 'visiteur';
+        $joueur     = $visiteur ? $this->visiteurPong($champ('joueur_nom')) : $this->joueurPong($champ('joueur_nom'), $champ('joueur_prenom'));
         $adversaire = null;
         if ($advType === 'club') {
             $adversaire = $this->joueurPong($champ('adv_nom'), $champ('adv_prenom'));
@@ -864,7 +865,8 @@ class MonClubTT_Plugin
 
         $reponse = array('classement' => null, 'rang' => null, 'partage' => null);
 
-        if ($victoire && $advType !== 'invite') {
+        // Tableau réservé aux joueurs du club (un visiteur choisit librement son nom).
+        if ($victoire && $advType !== 'invite' && !$visiteur) {
             $resultat = MonClubTT_PongScores::ajouter(
                 (array) get_option(MonClubTT_Constantes::MONCLUBTT_PONG_SCORES, array()),
                 array(
@@ -929,6 +931,18 @@ class MonClubTT_Plugin
             }
         }
         return null;
+    }
+
+    /**
+     * Visiteur hors club : prénom libre, nettoyé et limité à 20 caractères,
+     * sans photo.
+     * @return array{affiche: string, photo: int}|null
+     */
+    private function visiteurPong($nom)
+    {
+        $nom = trim((string) preg_replace('/\s+/u', ' ', sanitize_text_field($nom)));
+        $nom = function_exists('mb_substr') ? mb_substr($nom, 0, 20) : substr($nom, 0, 20);
+        return $nom !== '' ? array('affiche' => $nom, 'photo' => 0) : null;
     }
 
     /**

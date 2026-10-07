@@ -472,15 +472,67 @@
             ecranSel.appendChild(bandeau);
         }
 
-        ecranSel.appendChild(el('h3', 'pong-titre', 'Choisis ton joueur'));
-        ecranSel.appendChild(grilleCartes(joueurs, couleurs.maillot, function (p) {
+        function choisirJoueur(p) {
             etat.joueur = p;
             clubAdv.masquer(p);
             sousTitreAdv.textContent = 'Tu joues avec ' + nomAffiche(p);
             if (etat.defiActif && defi.adv && defi.adv !== p) jouerContre(defi.adv);
             else if (impose) jouerContre(impose);
             else montrer(ecranAdv);
-        }));
+        }
+
+        ecranSel.appendChild(el('h3', 'pong-titre', 'Choisis ton joueur'));
+        ecranSel.appendChild(grilleCartes(joueurs, couleurs.maillot, choisirJoueur));
+        ecranSel.appendChild(formulaireVisiteur());
+
+        /* Visiteur hors club : joue sous son prénom, avec un avatar dessiné
+         * (joueur ou joueuse). Prénom et choix gardés sur son appareil. */
+        function formulaireVisiteur() {
+            var form = el('form', 'pong-visiteur');
+            form.appendChild(el('p', 'pong-visiteur-titre', joueurs.length ? 'Pas du club ? Joue sous ton prénom' : 'Joue sous ton prénom'));
+            var ligne = el('div', 'pong-visiteur-ligne');
+            var champ = el('input', 'pong-recherche pong-visiteur-nom');
+            champ.type = 'text';
+            champ.maxLength = 20;
+            champ.required = true;
+            champ.autocomplete = 'given-name';
+            champ.placeholder = 'Ton prénom';
+            champ.setAttribute('aria-label', 'Ton prénom');
+            try { champ.value = localStorage.getItem('monclubtt-pong-visiteur') || ''; } catch (e) { /* stockage indisponible */ }
+            ligne.appendChild(champ);
+            var sexe = 'M';
+            try { sexe = localStorage.getItem('monclubtt-pong-visiteur-sexe') === 'F' ? 'F' : 'M'; } catch (e) { /* stockage indisponible */ }
+            var genre = el('div', 'pong-niveaux pong-visiteur-genre');
+            genre.setAttribute('role', 'group');
+            genre.setAttribute('aria-label', 'Avatar');
+            [['M', 'Joueur'], ['F', 'Joueuse']].forEach(function (g) {
+                var b = el('button', 'pong-niveau', g[1]);
+                b.type = 'button';
+                b.dataset.sexe = g[0];
+                b.setAttribute('aria-pressed', String(g[0] === sexe));
+                b.addEventListener('click', function () {
+                    sexe = g[0];
+                    genre.querySelectorAll('.pong-niveau').forEach(function (x) { x.setAttribute('aria-pressed', String(x === b)); });
+                });
+                genre.appendChild(b);
+            });
+            ligne.appendChild(genre);
+            var jouer = el('button', 'pong-bouton', 'Jouer');
+            jouer.type = 'submit';
+            ligne.appendChild(jouer);
+            form.appendChild(ligne);
+            form.addEventListener('submit', function (e) {
+                e.preventDefault();
+                var nom = champ.value.replace(/\s+/g, ' ').trim().slice(0, 20);
+                if (!nom) { champ.focus(); return; }
+                try {
+                    localStorage.setItem('monclubtt-pong-visiteur', nom);
+                    localStorage.setItem('monclubtt-pong-visiteur-sexe', sexe);
+                } catch (err) { /* stockage indisponible */ }
+                choisirJoueur({ nom: nom, prenom: '', tel_quel: true, sex: sexe, photo: '', visiteur: true });
+            });
+            return form;
+        }
 
         /* Verdict du défi en fin de match, comparé au match partagé. */
         function verdictDefi() {
@@ -547,9 +599,13 @@
         function envoyerFin(ligne, zonePartage) {
             var victoire = match.points.joueur > match.points.adversaire;
             var type = typeAdversaire(adv);
-            if (victoire && type !== 'invite') ligne.textContent = 'Enregistrement au tableau…';
+            // Le tableau est réservé aux joueurs du club.
+            var classe = type !== 'invite' && !etat.joueur.visiteur;
+            if (victoire && classe) ligne.textContent = 'Enregistrement au tableau…';
+            else if (victoire && etat.joueur.visiteur) ligne.textContent = 'Le tableau des meilleurs scores est réservé aux joueurs du club.';
             appelAjax('monclubtt_pong_fin', {
                 nonce: cfg.nonce || '', page: cfg.page || 0,
+                joueur_type: etat.joueur.visiteur ? 'visiteur' : 'club',
                 joueur_nom: etat.joueur.nom, joueur_prenom: etat.joueur.prenom || '',
                 adv_type: type, adv_nom: adv.nom, adv_prenom: adv.prenom || '',
                 niveau: etat.niveau, pj: match.points.joueur, pa: match.points.adversaire
@@ -562,7 +618,7 @@
                 }
                 if (d.partage) afficherPartage(zonePartage, d.partage);
             }, function (err) {
-                if (victoire && type !== 'invite') ligne.textContent = 'Score non enregistré : ' + err.message;
+                if (victoire && classe) ligne.textContent = 'Score non enregistré : ' + err.message;
             });
         }
 
