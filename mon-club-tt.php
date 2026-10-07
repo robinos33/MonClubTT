@@ -149,6 +149,8 @@ class MonClubTT_Plugin
         register_setting('monclubtt_settings', MonClubTT_Constantes::MONCLUBTT_LICENCES_EXCLUES, array('sanitize_callback' => 'monclubtt_sanitize_licences_exclues'));
         register_setting('monclubtt_settings', MonClubTT_Constantes::MONCLUBTT_COULEURS, array('sanitize_callback' => array($this, 'sanitize_couleurs')));
         register_setting('monclubtt_settings', MonClubTT_Constantes::MONCLUBTT_LOGO, array('sanitize_callback' => array($this, 'sanitize_logo')));
+        register_setting('monclubtt_settings', MonClubTT_Constantes::MONCLUBTT_AFFICHER_PHOTOS, array('sanitize_callback' => array($this, 'sanitize_case')));
+        register_setting('monclubtt_settings', MonClubTT_Constantes::MONCLUBTT_PONG_PROS, array('sanitize_callback' => array($this, 'sanitize_case')));
         register_setting('monclubtt_settings', MonClubTT_Constantes::MONCLUBTT_PONG_ADVERSAIRES, array('sanitize_callback' => array($this, 'sanitize_pong_adversaires')));
         register_setting('monclubtt_settings', MonClubTT_Constantes::MONCLUBTT_PONG_MUSIQUE, array('sanitize_callback' => array($this, 'sanitize_pong_musique')));
         register_setting('monclubtt_settings', 'monclubtt_pong_vider_scores', array('sanitize_callback' => array($this, 'sanitize_pong_vider_scores')));
@@ -160,6 +162,8 @@ class MonClubTT_Plugin
         add_settings_field(MonClubTT_Constantes::MONCLUBTT_LICENCES_EXCLUES, 'Licences exclues de la liste des joueurs', array($this, 'licences_exclues_html'), 'monclubtt_settings', 'monclubtt_section');
         add_settings_field(MonClubTT_Constantes::MONCLUBTT_LOGO, 'Logo du club', array($this, 'logo_html'), 'monclubtt_settings', 'monclubtt_section');
         add_settings_field(MonClubTT_Constantes::MONCLUBTT_COULEURS, 'Couleurs du club', array($this, 'couleurs_html'), 'monclubtt_settings', 'monclubtt_section');
+        add_settings_field(MonClubTT_Constantes::MONCLUBTT_AFFICHER_PHOTOS, 'Photos des joueurs', array($this, 'afficher_photos_html'), 'monclubtt_settings', 'monclubtt_section');
+        add_settings_field(MonClubTT_Constantes::MONCLUBTT_PONG_PROS, 'Top 10 mondial dans le jeu de pong', array($this, 'pong_pros_html'), 'monclubtt_settings', 'monclubtt_section');
         add_settings_field(MonClubTT_Constantes::MONCLUBTT_PONG_ADVERSAIRES, 'Adversaires du jeu de pong', array($this, 'pong_adversaires_html'), 'monclubtt_settings', 'monclubtt_section');
         add_settings_field(MonClubTT_Constantes::MONCLUBTT_PONG_MUSIQUE, 'Musique du jeu de pong', array($this, 'pong_musique_html'), 'monclubtt_settings', 'monclubtt_section');
         add_settings_field('monclubtt_pong_vider_scores', 'Meilleurs scores du jeu de pong', array($this, 'pong_vider_scores_html'), 'monclubtt_settings', 'monclubtt_section');
@@ -353,6 +357,39 @@ class MonClubTT_Plugin
                 $(this).hide();
             });
         });');
+    }
+
+    public function afficher_photos_html()
+    {
+        ?>
+        <input type="hidden" name="<?php echo esc_attr(MonClubTT_Constantes::MONCLUBTT_AFFICHER_PHOTOS); ?>" value="0">
+        <label>
+            <input type="checkbox" name="<?php echo esc_attr(MonClubTT_Constantes::MONCLUBTT_AFFICHER_PHOTOS); ?>" value="1"<?php checked(monclubtt_photos_affichees()); ?>>
+            Afficher les photos des joueurs
+        </label>
+        <p class="description">
+            Décoché : aucun visage sur le site (podium, jeu de pong et ses images de partage, visuels réseaux sociaux), tous les joueurs ont leur avatar dessiné,
+            adversaires du top 10 compris. Les photos restent enregistrées et visibles dans la page <a href="<?php echo esc_url(admin_url('admin.php?page=monclubtt_joueurs')); ?>">Joueurs</a>.
+        </p>
+        <?php
+    }
+
+    public function pong_pros_html()
+    {
+        ?>
+        <input type="hidden" name="<?php echo esc_attr(MonClubTT_Constantes::MONCLUBTT_PONG_PROS); ?>" value="0">
+        <label>
+            <input type="checkbox" name="<?php echo esc_attr(MonClubTT_Constantes::MONCLUBTT_PONG_PROS); ?>" value="1"<?php checked(monclubtt_pong_pros()); ?>>
+            Proposer le top 10 mondial comme adversaires
+        </label>
+        <p class="description">Décoché : on ne joue que contre les joueurs du club (et l'invité d'un shortcode).</p>
+        <?php
+    }
+
+    /** Case à cocher : '1' ou '0'. */
+    public function sanitize_case($valeur)
+    {
+        return (string) $valeur === '1' ? '1' : '0';
     }
 
     public function pong_musique_html()
@@ -586,7 +623,9 @@ class MonClubTT_Plugin
             $photo  = trim((string) $atts['adversaire_photo']);
             $pays   = strtoupper(trim((string) $atts['adversaire_pays']));
             $credit = '';
-            if (ctype_digit($photo)) {
+            if (!monclubtt_photos_affichees()) {
+                $photo = '';
+            } elseif (ctype_digit($photo)) {
                 $credit = $this->creditPhoto((int) $photo);
                 $photo  = (string) wp_get_attachment_image_url((int) $photo, 'medium');
             }
@@ -602,12 +641,12 @@ class MonClubTT_Plugin
                 'pays'   => isset(MonClubTT_Constantes::PONG_PAYS[$pays]) ? $pays : '',
             );
         }
-        foreach (monclubtt_get_pong_adversaires() as $sexe => $liste) {
+        foreach (monclubtt_pong_pros() ? monclubtt_get_pong_adversaires() : array() as $sexe => $liste) {
             foreach ($liste as $i => $adv) {
                 if ($adv['nom'] === '') {
                     continue;
                 }
-                $photo = $adv['photo'] ? wp_get_attachment_image_url($adv['photo'], 'medium') : '';
+                $photo = $adv['photo'] && monclubtt_photos_affichees() ? wp_get_attachment_image_url($adv['photo'], 'medium') : '';
                 $credit = $photo ? $this->creditPhoto($adv['photo']) : '';
                 if ($credit !== '') {
                     $credits[] = array('nom' => $adv['nom'], 'html' => $credit);
@@ -805,11 +844,11 @@ class MonClubTT_Plugin
         $adversaire = null;
         if ($advType === 'club') {
             $adversaire = $this->joueurPong($champ('adv_nom'), $champ('adv_prenom'));
-        } elseif ($advType === 'monde') {
+        } elseif ($advType === 'monde' && monclubtt_pong_pros()) {
             foreach (monclubtt_get_pong_adversaires() as $liste) {
                 foreach ($liste as $adv) {
                     if ($adv['nom'] !== '' && $adv['nom'] === $champ('adv_nom')) {
-                        $adversaire = array('affiche' => $adv['nom'], 'photo' => (int) $adv['photo']);
+                        $adversaire = array('affiche' => $adv['nom'], 'photo' => monclubtt_photos_affichees() ? (int) $adv['photo'] : 0);
                     }
                 }
             }
@@ -885,7 +924,7 @@ class MonClubTT_Plugin
             if ($joueur->getNom() === $nom && $joueur->getPrenom() === $prenom) {
                 return array(
                     'affiche' => trim($joueur->getPrenom() . ' ' . strtoupper($joueur->getNom())),
-                    'photo'   => (int) ($photos[$joueur->getLicence()] ?? 0),
+                    'photo'   => monclubtt_photos_affichees() ? (int) ($photos[$joueur->getLicence()] ?? 0) : 0,
                 );
             }
         }
@@ -919,7 +958,7 @@ class MonClubTT_Plugin
     {
         foreach ((array) $this->pagePong($postId) as $atts) {
             if (isset($atts['adversaire']) && $nom !== '' && sanitize_text_field($atts['adversaire']) === $nom) {
-                $photo = isset($atts['adversaire_photo']) && ctype_digit((string) $atts['adversaire_photo']) ? (int) $atts['adversaire_photo'] : 0;
+                $photo = monclubtt_photos_affichees() && isset($atts['adversaire_photo']) && ctype_digit((string) $atts['adversaire_photo']) ? (int) $atts['adversaire_photo'] : 0;
                 return array('affiche' => $nom, 'photo' => $photo);
             }
         }
@@ -939,9 +978,11 @@ class MonClubTT_Plugin
         while (count($matchs) > 300) {
             $ancien = array_key_first($matchs);
             unset($matchs[$ancien]);
-            $fichier = $this->cheminImagePong($ancien);
-            if ($fichier && file_exists($fichier)) {
-                wp_delete_file($fichier);
+            foreach (array(true, false) as $photos) {
+                $fichier = $this->cheminImagePong($ancien, $photos);
+                if ($fichier && file_exists($fichier)) {
+                    wp_delete_file($fichier);
+                }
             }
         }
         update_option(MonClubTT_Constantes::MONCLUBTT_PONG_MATCHS, $matchs, false);
@@ -958,20 +999,25 @@ class MonClubTT_Plugin
         return isset($matchs[$id]) && is_array($matchs[$id]) ? $matchs[$id] : null;
     }
 
-    /** Fichier de l'image de partage en cache (uploads/monclubtt-pong/ID.png). */
-    private function cheminImagePong($id)
+    /**
+     * Fichier de l'image de partage en cache (uploads/monclubtt-pong/ID.png),
+     * ID-sans-photo.png quand les photos sont désactivées : décocher le réglage
+     * ne ressert pas une image déjà générée avec les visages.
+     */
+    private function cheminImagePong($id, $photos = null)
     {
+        $photos = $photos === null ? monclubtt_photos_affichees() : $photos;
         if (!preg_match('/^[a-z0-9]{12}$/', (string) $id)) {
             return '';
         }
         $uploads = wp_upload_dir(null, false);
-        return trailingslashit($uploads['basedir']) . 'monclubtt-pong/' . $id . '.png';
+        return trailingslashit($uploads['basedir']) . 'monclubtt-pong/' . $id . ($photos ? '' : '-sans-photo') . '.png';
     }
 
     /** Fichier d'une photo pour l'image de partage : taille « medium » si elle existe. */
     private function fichierPhotoPong($attachmentId)
     {
-        if (!$attachmentId) {
+        if (!$attachmentId || !monclubtt_photos_affichees()) {
             return '';
         }
         $taille = image_get_intermediate_size($attachmentId, 'medium');

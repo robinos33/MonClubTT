@@ -10,12 +10,16 @@ if ( ! class_exists( 'MonClubTT_Constantes' ) ) {
         const MONCLUBTT_NUM_CLUB = 'monclubtt_num_club';
         const MONCLUBTT_LICENCES_EXCLUES = 'monclubtt_licences_exclues';
         const MONCLUBTT_JOUEUR_PHOTOS = 'monclubtt_joueur_photos';
+        /** '1' (défaut) : photos des joueurs affichées sur le site, le jeu et les visuels ; '0' : avatars dessinés. */
+        const MONCLUBTT_AFFICHER_PHOTOS = 'monclubtt_afficher_photos';
         const MONCLUBTT_COULEURS = 'monclubtt_couleurs';
         const MONCLUBTT_LOGO = 'monclubtt_logo';
         const MONCLUBTT_PONG_ADVERSAIRES = 'monclubtt_pong_adversaires';
         const MONCLUBTT_PONG_SCORES = 'monclubtt_pong_scores';
         /** Musique de fond du jeu de pong : ID de média audio ou URL d'un fichier audio. */
         const MONCLUBTT_PONG_MUSIQUE = 'monclubtt_pong_musique';
+        /** '1' (défaut) : top 10 mondial proposé comme adversaires du jeu de pong ; '0' : joueurs du club seulement. */
+        const MONCLUBTT_PONG_PROS = 'monclubtt_pong_pros';
         /** Matchs récents partageables (id => données), pour les pages et images de partage. */
         const MONCLUBTT_PONG_MATCHS = 'monclubtt_pong_matchs';
         /** Ancienne option (1.6.2), relue tant que les réglages n'ont pas été enregistrés. */
@@ -149,6 +153,24 @@ if ( ! function_exists( 'monclubtt_mois_sans_competition' ) ) {
 
 }
 
+if ( ! function_exists( 'monclubtt_photos_affichees' ) ) {
+
+    /** Photos des joueurs (club et adversaires du pong) affichées ? Oui par défaut. */
+    function monclubtt_photos_affichees() {
+        return get_option(MonClubTT_Constantes::MONCLUBTT_AFFICHER_PHOTOS, '1') !== '0';
+    }
+
+}
+
+if ( ! function_exists( 'monclubtt_pong_pros' ) ) {
+
+    /** Top 10 mondial proposé dans le jeu de pong ? Oui par défaut. */
+    function monclubtt_pong_pros() {
+        return get_option(MonClubTT_Constantes::MONCLUBTT_PONG_PROS, '1') !== '0';
+    }
+
+}
+
 if ( ! function_exists( 'monclubtt_get_joueur_photo_url' ) ) {
 
     /**
@@ -157,12 +179,19 @@ if ( ! function_exists( 'monclubtt_get_joueur_photo_url' ) ) {
      * la médiathèque WordPress, indexées par numéro de licence (identifiant
      * stable, contrairement au nom du joueur).
      *
-     * @param string $licence Numéro de licence du joueur.
-     * @param string $size    Taille WordPress souhaitée (thumbnail, medium, full…).
+     * Photos désactivées dans les réglages : '' partout, sauf avec $toujours
+     * (liste des joueurs de l'administration, pour suivre les photos fournies).
+     *
+     * @param string $licence  Numéro de licence du joueur.
+     * @param string $size     Taille WordPress souhaitée (thumbnail, medium, full…).
+     * @param bool   $toujours Ignore le réglage « Afficher les photos ».
      * @return string URL de la photo ou '' si absente.
      */
-    function monclubtt_get_joueur_photo_url($licence, $size = 'medium') {
+    function monclubtt_get_joueur_photo_url($licence, $size = 'medium', $toujours = false) {
         if (empty($licence) || !function_exists('get_option')) {
+            return '';
+        }
+        if (!$toujours && !monclubtt_photos_affichees()) {
             return '';
         }
 

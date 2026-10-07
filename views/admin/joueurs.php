@@ -59,7 +59,7 @@
         foreach($monclubtt_joueurs->getJoueurs('MF') as $monclubtt_joueur):?>
             <?php
                 /** @var MonClubTT_Joueur $monclubtt_joueur */
-                $monclubtt_photo = monclubtt_get_joueur_photo_url($monclubtt_joueur->getLicence(), 'thumbnail');
+                $monclubtt_photo = monclubtt_get_joueur_photo_url($monclubtt_joueur->getLicence(), 'thumbnail', true);
             ?>
         <tr class="<?php echo esc_attr($monclubtt_joueur->getSexe()); ?>" data-licence="<?php echo esc_attr($monclubtt_joueur->getLicence()); ?>">
             <td class="monclubtt-photo-cell" data-licence="<?php echo esc_attr($monclubtt_joueur->getLicence()); ?>">

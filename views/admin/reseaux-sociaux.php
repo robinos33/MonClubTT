@@ -58,7 +58,11 @@
             </p>
             <p class="monclubtt-social-status" id="monclubtt-social-status" role="status" aria-live="polite"></p>
             <p class="description">
-                Les photos affichées sont celles associées aux joueurs dans la page <a href="<?php echo esc_url(admin_url('admin.php?page=monclubtt_joueurs')); ?>">Joueurs</a>.
+                <?php if (monclubtt_photos_affichees()): ?>
+                    Les photos affichées sont celles associées aux joueurs dans la page <a href="<?php echo esc_url(admin_url('admin.php?page=monclubtt_joueurs')); ?>">Joueurs</a>.
+                <?php else: ?>
+                    Photos des joueurs désactivées dans les <a href="<?php echo esc_url(admin_url('admin.php?page=monclubtt_parametres')); ?>">réglages</a> : avatars dessinés.
+                <?php endif; ?>
                 Le logo est l'icône du site (Réglages › Général).
             </p>
         </form>

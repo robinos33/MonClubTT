@@ -652,6 +652,8 @@
             onglets.appendChild(b);
             v.bloc.hidden = i !== 0;
         });
+        // Un seul onglet (top 10 désactivé, sans invité) : pas de barre d'onglets.
+        onglets.hidden = vues.length < 2;
         ecranAdv.appendChild(onglets);
 
         var niveaux = el('div', 'pong-niveaux');
