@@ -5,6 +5,13 @@ Format : [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/)
 
 ---
 
+## [1.17.1] — 2026-10-07
+
+### Modifié
+
+- Jeu de pong : l'option visiteur passe en haut de l'écran de choix, en un lien discret sous le titre (« Pas du club ? Joue sous ton prénom », ou « Rejoue en tant que … » quand un prénom est déjà retenu) qui déplie le formulaire.
+- Jeu de pong : niveau Normal plus abordable. L'adversaire se déplace moins vite, réagit plus tard, lit moins bien l'effet et vise moins juste ; balle un peu plus lente. Le niveau Expert ne change pas.
+
 ## [1.17.0] — 2026-10-07
 
 ### Ajouté

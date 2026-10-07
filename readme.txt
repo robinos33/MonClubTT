@@ -3,7 +3,7 @@ Contributors: robinos33
 Tags: table tennis, fftt, club, rankings, results
 Requires at least: 5.0
 Tested up to: 7.0
-Stable tag: 1.17.0
+Stable tag: 1.17.1
 Requires PHP: 7.4
 License: GPLv2
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -60,6 +60,10 @@ Player data is refreshed on manual sync only. League standings and results are c
 Yes. The plugin exposes five filters: `monclubtt_get_joueurs`, `monclubtt_get_equipes`, `monclubtt_get_classement_poule`, `monclubtt_get_rencontres_poule`, `monclubtt_get_feuille_rencontre`. See the documentation for usage.
 
 == Changelog ==
+
+= 1.17.1 =
+* Changed: in the pong game, the visitor option now sits at the top of the player choice screen, as a discreet link under the title that unfolds the form ("Play again as …" when a first name is remembered)
+* Changed: the Normal level of the pong game is easier: the opponent moves slower, reacts later, reads spin less well and aims less accurately, and the ball is a bit slower; the Expert level is unchanged
 
 = 1.17.0 =
 * Added: in the pong game, a visitor who is not a club member can play under their first name (20 characters max) with a drawn player avatar (male or female), remembered on their device; their matches can be shared, but their wins do not enter the high score table, which is kept for club players
@@ -194,6 +198,9 @@ Yes. The plugin exposes five filters: `monclubtt_get_joueurs`, `monclubtt_get_eq
 * Automatic team page generation and deletion
 
 == Upgrade Notice ==
+
+= 1.17.1 =
+Easier Normal level in the pong game, and the visitor option is now shown at the top.
 
 = 1.17.0 =
 Visitors who are not club members can now play the pong game under their own first name.
