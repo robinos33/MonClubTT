@@ -237,13 +237,10 @@
 }
 
 /* Visiteur hors club : prénom, avatar joueur / joueuse, bouton Jouer. */
-.monclubtt-pong .pong-visiteur {
-    margin: 22px 0 6px;
-    padding-top: 18px;
-    border-top: 1px solid rgba(35, 52, 74, 0.15);
-    text-align: center;
-}
-.monclubtt-pong .pong-visiteur-titre { margin: 0 0 10px; font-weight: 700; }
+.monclubtt-pong .pong-visiteur { margin: -6px 0 16px; text-align: center; }
+.monclubtt-pong .pong-visiteur-ouvrir { font-weight: 700; }
+.monclubtt-pong .pong-visiteur-form { margin-top: 10px; }
+.monclubtt-pong .pong-visiteur-form[hidden] { display: none; }
 .monclubtt-pong .pong-visiteur-ligne {
     display: flex;
     flex-wrap: wrap;

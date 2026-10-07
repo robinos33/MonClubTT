@@ -38,7 +38,7 @@
     var EFFET_MAX = 270, EFFET_VITESSE = 450, EFFET_AMORTI = 0.8;
 
     var NIVEAUX = {
-        normal:  { libelle: 'Normal',         vIa: 290, erreur: 32, reaction: 0.66, lecture: 0.6, v0: 310, vMax: 660 },
+        normal:  { libelle: 'Normal',         vIa: 250, erreur: 52, reaction: 0.6,  lecture: 0.45, v0: 290, vMax: 620 },
         mondial: { libelle: 'Expert',         vIa: 400, erreur: 14, reaction: 1,    lecture: 0.9, v0: 350, vMax: 760 }
     };
 
@@ -482,14 +482,15 @@
         }
 
         ecranSel.appendChild(el('h3', 'pong-titre', 'Choisis ton joueur'));
-        ecranSel.appendChild(grilleCartes(joueurs, couleurs.maillot, choisirJoueur));
         ecranSel.appendChild(formulaireVisiteur());
+        ecranSel.appendChild(grilleCartes(joueurs, couleurs.maillot, choisirJoueur));
 
         /* Visiteur hors club : joue sous son prénom, avec un avatar dessiné
-         * (joueur ou joueuse). Prénom et choix gardés sur son appareil. */
+         * (joueur ou joueuse). Prénom et choix gardés sur son appareil.
+         * Bouton discret sous le titre, qui déplie le formulaire. */
         function formulaireVisiteur() {
-            var form = el('form', 'pong-visiteur');
-            form.appendChild(el('p', 'pong-visiteur-titre', joueurs.length ? 'Pas du club ? Joue sous ton prénom' : 'Joue sous ton prénom'));
+            var bloc = el('div', 'pong-visiteur');
+            var form = el('form', 'pong-visiteur-form');
             var ligne = el('div', 'pong-visiteur-ligne');
             var champ = el('input', 'pong-recherche pong-visiteur-nom');
             champ.type = 'text';
@@ -521,6 +522,21 @@
             jouer.type = 'submit';
             ligne.appendChild(jouer);
             form.appendChild(ligne);
+            var connu = champ.value.trim();
+            var ouvrir = el('button', 'pong-lien pong-visiteur-ouvrir',
+                connu ? 'Pas du club ? Rejoue en tant que ' + connu : 'Pas du club ? Joue sous ton prénom');
+            ouvrir.type = 'button';
+            ouvrir.setAttribute('aria-expanded', 'false');
+            ouvrir.addEventListener('click', function () {
+                var ouvert = form.hidden;
+                form.hidden = !ouvert;
+                ouvrir.setAttribute('aria-expanded', String(ouvert));
+                if (ouvert) champ.focus();
+            });
+            // Sans joueur du club à choisir, le formulaire est ouvert d'office.
+            form.hidden = joueurs.length > 0;
+            if (joueurs.length) bloc.appendChild(ouvrir);
+            bloc.appendChild(form);
             form.addEventListener('submit', function (e) {
                 e.preventDefault();
                 var nom = champ.value.replace(/\s+/g, ' ').trim().slice(0, 20);
@@ -531,7 +547,7 @@
                 } catch (err) { /* stockage indisponible */ }
                 choisirJoueur({ nom: nom, prenom: '', tel_quel: true, sex: sexe, photo: '', visiteur: true });
             });
-            return form;
+            return bloc;
         }
 
         /* Verdict du défi en fin de match, comparé au match partagé. */
