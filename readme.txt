@@ -3,7 +3,7 @@ Contributors: robinos33
 Tags: table tennis, fftt, club, rankings, results
 Requires at least: 5.0
 Tested up to: 7.0
-Stable tag: 1.18.0
+Stable tag: 1.19.0
 Requires PHP: 7.4
 License: GPLv2
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -60,6 +60,10 @@ Player data is refreshed on manual sync only. League standings and results are c
 Yes. The plugin exposes five filters: `monclubtt_get_joueurs`, `monclubtt_get_equipes`, `monclubtt_get_classement_poule`, `monclubtt_get_rencontres_poule`, `monclubtt_get_feuille_rencontre`. See the documentation for usage.
 
 == Changelog ==
+
+= 1.19.0 =
+* Changed: in the pong game, the bar under the table is replaced by a gear button in the top right corner of the table, opening a "Pause" panel that freezes the match (resume, sound effects, music, full screen, change opponent); P or Escape key too
+* Changed: against a club player, the opponent's strength depends on the points gap with the chosen player (the club median for a visitor): 5% per 150 points, ±20% at most, on speed and accuracy; world top 10 and guest keep the base level
 
 = 1.18.0 =
 * Added: pong game counters, "games played" (every match started, "Play again" included) and "games finished" (match played to the end), shown in the settings with the share of finished games and the start date, with a reset option
@@ -201,6 +205,9 @@ Yes. The plugin exposes five filters: `monclubtt_get_joueurs`, `monclubtt_get_eq
 * Automatic team page generation and deletion
 
 == Upgrade Notice ==
+
+= 1.19.0 =
+Pong game: pause menu behind a gear button on the table, and club opponents' strength now follows their points.
 
 = 1.18.0 =
 New counters of pong games played and finished, in the plugin settings.

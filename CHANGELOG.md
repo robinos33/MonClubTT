@@ -5,6 +5,13 @@ Format : [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/)
 
 ---
 
+## [1.19.0] — 2026-10-08
+
+### Modifié
+
+- Jeu de pong : la barre sous la table (changer d'adversaire, plein écran, son, musique) est remplacée par une roue crantée dans le coin haut droit de la table. Elle ouvre un panneau « Pause » qui fige le match : Reprendre, effets sonores, musique, plein écran (avec leur état) et Changer d'adversaire. Touche P ou Échap pour ouvrir ou fermer. La table gagne la hauteur de l'ancienne barre.
+- Jeu de pong : contre un joueur du club, la force de l'adversaire dépend de l'écart de points avec le joueur choisi (la médiane du club pour un visiteur) : 5 % par tranche de 150 points, ±20 % au plus, sur sa vitesse et sa précision. Top 10 et invité gardent le niveau de base.
+
 ## [1.18.0] — 2026-10-08
 
 ### Ajouté
