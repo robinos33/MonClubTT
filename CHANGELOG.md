@@ -5,6 +5,13 @@ Format : [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/)
 
 ---
 
+## [1.20.1] — 2026-10-08
+
+### Modifié
+
+- Jeu de pong : équilibrage revu. Le niveau Normal est un peu plus exigeant (adversaire plus rapide et plus précis qu'en 1.17.1), le niveau Expert plus abordable (il rate désormais quelques balles, réagit et lit l'effet moins bien, balle un peu moins rapide).
+- Jeu de pong : l'effet donné par le joueur est environ un tiers plus fort (courbe plus marquée) ; celui de l'adversaire ne change pas.
+
 ## [1.20.0] — 2026-10-08
 
 ### Ajouté

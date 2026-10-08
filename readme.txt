@@ -3,7 +3,7 @@ Contributors: robinos33
 Tags: table tennis, fftt, club, rankings, results
 Requires at least: 5.0
 Tested up to: 7.0
-Stable tag: 1.20.0
+Stable tag: 1.20.1
 Requires PHP: 7.4
 License: GPLv2
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -60,6 +60,10 @@ Player data is refreshed on manual sync only. League standings and results are c
 Yes. The plugin exposes five filters: `monclubtt_get_joueurs`, `monclubtt_get_equipes`, `monclubtt_get_classement_poule`, `monclubtt_get_rencontres_poule`, `monclubtt_get_feuille_rencontre`. See the documentation for usage.
 
 == Changelog ==
+
+= 1.20.1 =
+* Changed: pong game balance reviewed; the Normal level is a bit more demanding and the Expert level more accessible (it now misses a few balls, reacts and reads spin less well, slightly slower ball)
+* Changed: the spin given by the player is about a third stronger (more pronounced curve); the opponent's is unchanged
 
 = 1.20.0 =
 * Added: on mobile (touch screen up to 820 px wide), the pong game switches to full screen when a match starts and leaves it when going back to the opponent choice; not on page load, as browsers only allow it after a visitor gesture. If the visitor leaves full screen, it is no longer forced during the visit
@@ -211,6 +215,9 @@ Yes. The plugin exposes five filters: `monclubtt_get_joueurs`, `monclubtt_get_eq
 * Automatic team page generation and deletion
 
 == Upgrade Notice ==
+
+= 1.20.1 =
+Rebalanced pong game levels and stronger player spin.
 
 = 1.20.0 =
 The pong game now switches to full screen automatically on mobile when a match starts.
