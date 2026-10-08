@@ -151,6 +151,7 @@
 }
 
 .monclubtt-pong .pong-score-joueur { grid-area: joueur; font-weight: 800; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.monclubtt-pong .pong-score-visiteur { margin-left: 6px; font-size: 0.68rem; font-weight: 700; color: rgba(35, 52, 74, 0.6); }
 .monclubtt-pong .pong-score-detail { grid-area: detail; color: rgba(35, 52, 74, 0.75); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .monclubtt-pong .pong-score-points { grid-area: points; font-weight: 900; font-variant-numeric: tabular-nums; text-align: right; }
 

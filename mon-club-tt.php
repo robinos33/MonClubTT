@@ -3,7 +3,7 @@
   Plugin Name: Mon Club TT
   Plugin URI: https://github.com/robinos33/MonClubTT
   Description: Display your table tennis club's players, teams, and rankings from the official FFTT Smartping API. Not affiliated with or endorsed by the FFTT.
-  Version: 1.20.2
+  Version: 1.20.3
   Author: Robin Aldasoro
   Author URI: https://github.com/robinos33
   License: GPLv2
@@ -509,7 +509,7 @@ class MonClubTT_Plugin
             Vider le tableau des meilleurs scores (<?php echo esc_html(sprintf(_n('%d victoire enregistrée', '%d victoires enregistrées', $nb, 'mon-club-tt'), $nb)); ?>)
         </label>
         <p class="description">
-            Les scores sont envoyés par les navigateurs des visiteurs : un petit malin peut en inventer un. Videz le tableau s'il contient une entrée douteuse.
+            Les scores sont envoyés par les navigateurs des visiteurs : un petit malin peut en inventer un, et les visiteurs hors club choisissent leur nom. Videz le tableau s'il contient une entrée douteuse.
         </p>
         <?php
     }
@@ -950,12 +950,13 @@ class MonClubTT_Plugin
 
         $reponse = array('classement' => null, 'rang' => null, 'partage' => null);
 
-        // Tableau réservé aux joueurs du club (un visiteur choisit librement son nom).
-        if ($victoire && $advType !== 'invite' && !$visiteur) {
+        // Visiteurs hors club compris, signalés comme tels au tableau.
+        if ($victoire && $advType !== 'invite') {
             $resultat = MonClubTT_PongScores::ajouter(
                 (array) get_option(MonClubTT_Constantes::MONCLUBTT_PONG_SCORES, array()),
                 array(
                     'joueur'     => $joueur['affiche'],
+                    'visiteur'   => $visiteur,
                     'adversaire' => $adversaire['affiche'],
                     'niveau'     => $niveau,
                     'pj'         => $pj,

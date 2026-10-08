@@ -84,11 +84,12 @@ class MonClubTT_PongScores {
      * Version publique d'une entrée (sans identifiant interne).
      *
      * @param array $entree
-     * @return array{joueur: string, adversaire: string, niveau: string, pj: int, pa: int}
+     * @return array{joueur: string, adversaire: string, niveau: string, pj: int, pa: int, visiteur: bool}
      */
     public static function publique(array $entree) {
         return array(
             'joueur'     => (string) $entree['joueur'],
+            'visiteur'   => !empty($entree['visiteur']),
             'adversaire' => (string) $entree['adversaire'],
             'niveau'     => (string) $entree['niveau'],
             'pj'         => (int) $entree['pj'],

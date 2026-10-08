@@ -581,7 +581,9 @@
             }
             liste.forEach(function (e) {
                 var li = el('li', 'pong-score');
-                li.appendChild(el('span', 'pong-score-joueur', e.joueur));
+                var nom = el('span', 'pong-score-joueur', e.joueur);
+                if (e.visiteur) nom.appendChild(el('span', 'pong-score-visiteur', 'hors club'));
+                li.appendChild(nom);
                 li.appendChild(el('span', 'pong-score-detail', 'bat ' + e.adversaire));
                 li.appendChild(el('span', 'pong-score-points', e.pj + '–' + e.pa));
                 if (e.niveau === 'mondial') li.appendChild(el('span', 'pong-score-niveau', NIVEAUX.mondial.libelle));
@@ -616,10 +618,8 @@
         function envoyerFin(ligne, zonePartage) {
             var victoire = match.points.joueur > match.points.adversaire;
             var type = typeAdversaire(adv);
-            // Le tableau est réservé aux joueurs du club.
-            var classe = type !== 'invite' && !etat.joueur.visiteur;
+            var classe = type !== 'invite';
             if (victoire && classe) ligne.textContent = 'Enregistrement au tableau…';
-            else if (victoire && etat.joueur.visiteur) ligne.textContent = 'Le tableau des meilleurs scores est réservé aux joueurs du club.';
             appelAjax('monclubtt_pong_fin', {
                 nonce: cfg.nonce || '', page: cfg.page || 0,
                 joueur_type: etat.joueur.visiteur ? 'visiteur' : 'club',

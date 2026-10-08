@@ -56,6 +56,16 @@ final class PongScoresTest extends TestCase
         $this->assertNull($resultat['rang']);
     }
 
+    public function test_should_flag_visitor_entries_in_public_version(): void
+    {
+        $visiteur = MonClubTT_PongScores::publique(array('id' => 'x', 'joueur' => 'Zoé', 'visiteur' => true, 'adversaire' => 'X', 'niveau' => 'normal', 'pj' => 11, 'pa' => 5, 'date' => 1));
+        $licencie = MonClubTT_PongScores::publique(array('id' => 'y', 'joueur' => 'Louis CARRÈRE', 'adversaire' => 'X', 'niveau' => 'normal', 'pj' => 11, 'pa' => 5, 'date' => 1));
+
+        $this->assertTrue($visiteur['visiteur']);
+        $this->assertFalse($licencie['visiteur']);
+        $this->assertArrayNotHasKey('id', $visiteur);
+    }
+
     public function test_should_drop_invalid_entries_when_ranking(): void
     {
         $tableau = MonClubTT_PongScores::classer(array(
