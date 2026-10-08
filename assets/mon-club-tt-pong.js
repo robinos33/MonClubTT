@@ -36,10 +36,11 @@
     /* Effet : la vitesse latérale de la raquette à l'impact donne à la balle
      * une courbe (accélération latérale, px/s²) qui s'atténue en vol. */
     var EFFET_MAX = 270, EFFET_VITESSE = 450, EFFET_AMORTI = 0.8;
+    var EFFET_MAX_JOUEUR = 360; // effet du visiteur plus marqué que celui de l'adversaire
 
     var NIVEAUX = {
-        normal:  { libelle: 'Normal',         vIa: 250, erreur: 52, reaction: 0.6,  lecture: 0.45, v0: 290, vMax: 620 },
-        mondial: { libelle: 'Expert',         vIa: 400, erreur: 14, reaction: 1,    lecture: 0.9, v0: 350, vMax: 760 }
+        normal:  { libelle: 'Normal',         vIa: 270, erreur: 42, reaction: 0.65, lecture: 0.5,  v0: 300, vMax: 640 },
+        mondial: { libelle: 'Expert',         vIa: 350, erreur: 34, reaction: 0.85, lecture: 0.7,  v0: 330, vMax: 720 }
     };
 
     /* ---------------------------------------------------------- utilitaires */
@@ -1133,7 +1134,7 @@
             var angle = rel * 0.85;
             balle.vx = Math.sin(angle) * balle.v;
             balle.vy = sens * Math.cos(angle) * balle.v;
-            balle.ax = clamp((fig.vx || 0) / EFFET_VITESSE, -1, 1) * EFFET_MAX;
+            balle.ax = clamp((fig.vx || 0) / EFFET_VITESSE, -1, 1) * (fig === figJ ? EFFET_MAX_JOUEUR : EFFET_MAX);
             balle.y0 = balle.y;
             balle.rebond = false;
             tock(sens < 0 ? 560 : 700, etat.son);
