@@ -37,10 +37,20 @@
      * une courbe (accélération latérale, px/s²) qui s'atténue en vol. */
     var EFFET_MAX = 270, EFFET_VITESSE = 450, EFFET_AMORTI = 0.8;
     var EFFET_MAX_JOUEUR = 360; // effet du visiteur plus marqué que celui de l'adversaire
+    /* Lifté / coupé : un geste vers l'avant à l'impact (ou flèche haut) lifte,
+     * vers l'arrière (ou flèche bas) coupe. La balle accélère ou freine
+     * après son rebond sur la table. */
+    var ROT_VITESSE = 700;  // vitesse du geste (px/s) pour un effet maximal
+    var ROT_GAIN = 0.3;     // ±30 % de vitesse après le rebond
+    /* Service : la 1re touche lance la balle, qui part seule en fin de lancer.
+     * Une 2e touche dans la toute fin du lancer donne un service rapide ;
+     * trop tôt, le service est mou. */
+    var LANCER = 0.6, FENETRE = 0.1, HAUTEUR_LANCER = 34;
+    var SERVICE_RAPIDE = 1.7, SERVICE_MOU = 0.85;
 
     var NIVEAUX = {
-        normal:  { libelle: 'Normal',         vIa: 270, erreur: 42, reaction: 0.65, lecture: 0.5,  v0: 300, vMax: 640 },
-        mondial: { libelle: 'Expert',         vIa: 350, erreur: 34, reaction: 0.85, lecture: 0.7,  v0: 330, vMax: 720 }
+        normal:  { libelle: 'Normal',         vIa: 270, erreur: 42, reaction: 0.65, lecture: 0.5,  v0: 300, vMax: 640, rot: 0.3, rapide: 0.12 },
+        mondial: { libelle: 'Expert',         vIa: 350, erreur: 34, reaction: 0.85, lecture: 0.7,  v0: 330, vMax: 720, rot: 0.5, rapide: 0.2 }
     };
 
     /* ---------------------------------------------------------- utilitaires */
@@ -856,8 +866,9 @@
         function ouvrirMenu() {
             if (ecranJeu.hidden || enPause) return;
             enPause = true;
-            touches.g = touches.d = false;
+            touches.g = touches.d = touches.h = touches.b = false;
             cible = null;
+            oublierGeste();
             menu.hidden = false;
             btnMenu.setAttribute('aria-expanded', 'true');
             setTimeout(function () { btnReprendre.focus({ preventScroll: true }); }, 30);
@@ -1012,11 +1023,13 @@
         var sprites = { joueur: null, adversaire: null };
         var figJ = { x: W / 2, vx: 0, coup: '', tCoup: 0, demi: SVG.demi * FIG_J.h / SVG.h + MARGE_FRAPPE };
         var figA = { x: W / 2, vx: 0, coup: '', tCoup: 0, demi: SVG.demi * FIG_A.h / SVG.h + MARGE_FRAPPE };
-        var balle = { x: W / 2, y: H / 2, vx: 0, vy: 0, v: 0, ax: 0, y0: 0, rebond: false, visible: false, trace: [] };
+        var balle = { x: W / 2, y: H / 2, vx: 0, vy: 0, v: 0, ax: 0, rot: 0, y0: 0, rebond: false, visible: false, trace: [] };
         var match = null;
         var phase = 'arret'; // arret | service | jeu | pause | message
         var minuterie = 0;
-        var cible = null, touches = { g: false, d: false };
+        var cible = null, touches = { g: false, d: false, h: false, b: false };
+        var lancer = null; // durée écoulée du lancer de balle au service, null hors lancer
+        var geste = { y: null, yAvant: null, vy: 0 }; // mouvement vertical du pointeur
         var ia = { cible: W / 2, erreur: 0, vise: 0 };
         var raf = 0, dernier = 0;
         var toast = { texte: '', t: 0 };
@@ -1126,25 +1139,37 @@
             phase = 'service';
             balle.visible = true;
             balle.vx = balle.vy = 0;
+            lancer = null;
             minuterie = match.serveur() === 'adversaire' ? 0.9 : 0;
             if (match.serveur() === 'joueur') {
-                montrerToast(tactile ? 'Touchez pour servir' : 'Espace ou clic pour servir', 2.2);
+                montrerToast(tactile ? 'Touchez pour servir, 2 fois à temps : rapide' : 'Espace pour servir, 2 fois à temps : rapide', 2.6);
             }
         }
 
-        function servir(cote) {
+        /* Touche de service du joueur : lance la balle, puis frappe pendant le lancer. */
+        function appuiService() {
+            if (phase !== 'service' || match.serveur() !== 'joueur') return;
+            if (lancer === null) { lancer = 0; tock(420, etat.son); return; }
+            var aTemps = LANCER - lancer <= FENETRE;
+            servir('joueur', aTemps ? SERVICE_RAPIDE : SERVICE_MOU);
+            montrerToast(aTemps ? 'Service rapide !' : 'Trop tôt…', 0.7);
+        }
+
+        function servir(cote, force) {
             var n = NIVEAUX[etat.niveau];
             var angle = (Math.random() * 0.7 - 0.35);
-            balle.v = n.v0;
+            lancer = null;
+            balle.v = Math.min(n.vMax, n.v0 * (force || 1));
             balle.vx = Math.sin(angle) * balle.v;
             balle.vy = (cote === 'joueur' ? -1 : 1) * Math.cos(angle) * balle.v;
             balle.ax = 0;
+            balle.rot = 0;
             balle.trace = [];
             balle.y0 = balle.y;
             balle.rebond = false;
             phase = 'jeu';
             toast.t = 0;
-            tock(620, etat.son);
+            tock(force > 1 ? 760 : 620, etat.son);
             if (cote === 'joueur') viserIa();
         }
 
@@ -1159,9 +1184,23 @@
             balle.vx = Math.sin(angle) * balle.v;
             balle.vy = sens * Math.cos(angle) * balle.v;
             balle.ax = clamp((fig.vx || 0) / EFFET_VITESSE, -1, 1) * (fig === figJ ? EFFET_MAX_JOUEUR : EFFET_MAX);
+            balle.rot = fig === figJ ? rotJoueur() : rotIa(n);
+            if (fig === figJ && Math.abs(balle.rot) >= 0.5) montrerToast(balle.rot > 0 ? 'Lifté !' : 'Coupé !', 0.6);
             balle.y0 = balle.y;
             balle.rebond = false;
             tock(sens < 0 ? 560 : 700, etat.son);
+        }
+
+        /* Lifté (+1) à coupé (-1) : touches haut / bas, sinon geste vertical. */
+        function rotJoueur() {
+            if (touches.h !== touches.b) return touches.h ? 1 : -1;
+            var r = clamp(-geste.vy / ROT_VITESSE, -1, 1);
+            return Math.abs(r) < 0.2 ? 0 : r;
+        }
+
+        function rotIa(n) {
+            if (Math.random() >= n.rot) return 0;
+            return (Math.random() < 0.5 ? -1 : 1) * (0.5 + Math.random() * 0.5);
         }
 
         /* Où la balle croisera la ligne yCible, rebonds sur les côtés compris. */
@@ -1255,25 +1294,31 @@
             var r = canvas.getBoundingClientRect();
             return (e.clientX - r.left) * W / r.width;
         }
+        function versLogiqueY(e) {
+            var r = canvas.getBoundingClientRect();
+            return (e.clientY - r.top) * H / r.height;
+        }
+        function oublierGeste() { geste.y = geste.yAvant = null; geste.vy = 0; }
         var appui = null;
         scene.addEventListener('pointerdown', function (e) {
             if (e.target.closest('.pong-message, .pong-menu, .pong-menu-bouton')) return;
             appui = { x: e.clientX, y: e.clientY, t: performance.now() };
-            if (e.pointerType !== 'mouse') cible = versLogique(e);
+            if (e.pointerType !== 'mouse') { cible = versLogique(e); oublierGeste(); geste.y = versLogiqueY(e); }
             try { scene.setPointerCapture(e.pointerId); } catch (err) { /* ignoré */ }
         });
         scene.addEventListener('pointermove', function (e) {
-            if (e.pointerType === 'mouse' || appui) cible = versLogique(e);
+            if (e.pointerType === 'mouse' || appui) { cible = versLogique(e); geste.y = versLogiqueY(e); }
         });
         scene.addEventListener('pointerup', function (e) {
             if (!appui) return;
             var court = performance.now() - appui.t < 350 &&
                 Math.abs(e.clientX - appui.x) + Math.abs(e.clientY - appui.y) < 24;
             appui = null;
-            if (court && phase === 'service' && match.serveur() === 'joueur') servir('joueur');
+            if (e.pointerType !== 'mouse') oublierGeste();
+            if (court) appuiService();
         });
-        scene.addEventListener('pointercancel', function () { appui = null; });
-        scene.addEventListener('pointerleave', function (e) { if (e.pointerType === 'mouse') cible = null; });
+        scene.addEventListener('pointercancel', function () { appui = null; oublierGeste(); });
+        scene.addEventListener('pointerleave', function (e) { if (e.pointerType === 'mouse') { cible = null; oublierGeste(); } });
 
         root.addEventListener('keydown', function (e) {
             if (enPause) {
@@ -1290,14 +1335,18 @@
             var k = e.key;
             if (k === 'ArrowLeft' || k === 'a' || k === 'q') { touches.g = true; cible = null; e.preventDefault(); }
             else if (k === 'ArrowRight' || k === 'd') { touches.d = true; cible = null; e.preventDefault(); }
+            else if (k === 'ArrowUp' || k === 'z' || k === 'w') { touches.h = true; e.preventDefault(); }
+            else if (k === 'ArrowDown' || k === 's') { touches.b = true; e.preventDefault(); }
             else if (k === ' ' || k === 'Enter') {
                 e.preventDefault();
-                if (phase === 'service' && match.serveur() === 'joueur') servir('joueur');
+                if (!e.repeat) appuiService();
             }
         });
         root.addEventListener('keyup', function (e) {
             if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'q') touches.g = false;
             if (e.key === 'ArrowRight' || e.key === 'd') touches.d = false;
+            if (e.key === 'ArrowUp' || e.key === 'z' || e.key === 'w') touches.h = false;
+            if (e.key === 'ArrowDown' || e.key === 's') touches.b = false;
         });
 
         var redim = 0;
@@ -1318,6 +1367,10 @@
             }
             figJ.x = clamp(figJ.x, 20, W - 20);
             figJ.vx = (figJ.x - avant) / Math.max(dt, 0.001);
+            // Vitesse verticale du geste, lissée (négative = vers l'adversaire).
+            var vy = geste.y !== null && geste.yAvant !== null ? (geste.y - geste.yAvant) / Math.max(dt, 0.001) : 0;
+            geste.vy += (vy - geste.vy) * Math.min(1, dt * 15);
+            geste.yAvant = geste.y;
         }
 
         function deplacerIa(dt) {
@@ -1348,11 +1401,15 @@
                 if (s === 'joueur') {
                     balle.x = figJ.x + SVG.raquette * FIG_J.h / SVG.h;
                     balle.y = HIT_J - R - 4;
+                    if (lancer !== null) {
+                        lancer += dt;
+                        if (lancer >= LANCER) servir('joueur');
+                    }
                 } else {
                     balle.x = figA.x + SVG.raquette * FIG_A.h / SVG.h;
                     balle.y = HIT_A + R + 4;
                     minuterie -= dt;
-                    if (minuterie <= 0) servir('adversaire');
+                    if (minuterie <= 0) servir('adversaire', Math.random() < NIVEAUX[etat.niveau].rapide ? SERVICE_RAPIDE : 1);
                 }
                 return;
             }
@@ -1377,7 +1434,8 @@
             var yr = balle.y0 + (balle.vy > 0 ? 1 : -1) * Math.abs(HIT_J - HIT_A) * 0.72;
             if (!balle.rebond && (balle.vy > 0 ? balle.y >= yr : balle.y <= yr)) {
                 balle.rebond = true;
-                tock(1100, etat.son);
+                balle.vy *= 1 + ROT_GAIN * balle.rot;
+                tock(1100 + 250 * balle.rot, etat.son);
             }
 
             if (balle.vy > 0 && py + R <= HIT_J && balle.y + R >= HIT_J) {
@@ -1472,6 +1530,10 @@
         }
 
         function hauteurBalle() {
+            if (phase === 'service' && lancer !== null) {
+                var l = clamp(lancer / LANCER, 0, 1);
+                return 10 + HAUTEUR_LANCER * 4 * l * (1 - l);
+            }
             if (phase !== 'jeu') return 10;
             var total = Math.abs(HIT_J - HIT_A);
             var u = clamp(Math.abs(balle.y - balle.y0) / total, 0, 1.2);
@@ -1483,10 +1545,12 @@
             if (!balle.visible) return;
             var z = hauteurBalle();
             // Sillage visible seulement quand la balle a de l'effet.
-            var effet = Math.abs(balle.ax) / EFFET_MAX;
+            // Blanc pour l'effet latéral, orangé pour le lifté, bleuté pour le coupé.
+            var effet = Math.max(Math.abs(balle.ax) / EFFET_MAX, Math.abs(balle.rot));
+            var teinteSillage = balle.rot > 0.15 ? '255,120,40' : balle.rot < -0.15 ? '90,170,255' : '255,255,255';
             if (phase === 'jeu' && effet > 0.15) {
                 balle.trace.forEach(function (p, i) {
-                    ctx.fillStyle = 'rgba(255,255,255,' + (effet * 0.35 * (1 - i / balle.trace.length)).toFixed(3) + ')';
+                    ctx.fillStyle = 'rgba(' + teinteSillage + ',' + (Math.min(1, effet) * 0.35 * (1 - i / balle.trace.length)).toFixed(3) + ')';
                     ctx.beginPath();
                     ctx.arc(p.x, p.y - z * 0.6, R * (1 - i / 10), 0, Math.PI * 2);
                     ctx.fill();
