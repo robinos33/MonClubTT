@@ -952,11 +952,29 @@
             requestAnimationFrame(dimensionner);
             if (!enPause) root.focus({ preventScroll: true });
         }
-        btnPlein.addEventListener('click', function () { basculerPleinEcran(!pleinEcran); });
+        btnPlein.addEventListener('click', function () {
+            // Plein écran quitté à la main : plus imposé pendant la visite.
+            if (pleinEcran) refusPleinEcran = true;
+            basculerPleinEcran(!pleinEcran);
+        });
+
+        /* Mobile (écran tactile étroit) : plein écran au lancement du match.
+         * Les navigateurs l'exigent pendant un geste du visiteur, d'où l'appel
+         * depuis le toucher sur l'adversaire, et non au chargement de la page. */
+        var mobile = tactile && window.matchMedia('(max-width: 820px)').matches;
+        var pleinEcranAuto = false, refusPleinEcran = false;
+        function pleinEcranMobile() {
+            if (!mobile || pleinEcran || refusPleinEcran) return;
+            pleinEcranAuto = true;
+            basculerPleinEcran(true);
+        }
         // Sortie par la touche Échap ou le geste du navigateur.
         ['fullscreenchange', 'webkitfullscreenchange'].forEach(function (evt) {
             document.addEventListener(evt, function () {
                 if (vraiPleinEcran && elementPleinEcran() !== root) {
+                    // Sortie par le visiteur (geste retour, Échap) : plus imposé.
+                    refusPleinEcran = true;
+                    pleinEcranAuto = false;
                     vraiPleinEcran = false;
                     basculerPleinEcran(false);
                 }
@@ -1037,6 +1055,7 @@
         }
 
         function demarrer(p) {
+            pleinEcranMobile();
             etat.joueur = p;
             etat.force = forceAdversaire(p, adv);
             montrer(ecranJeu);
@@ -1055,6 +1074,11 @@
 
         function retourSelection() {
             fermerMenu();
+            // Retour au choix de l'adversaire : la page reprend sa place.
+            if (pleinEcranAuto) {
+                pleinEcranAuto = false;
+                basculerPleinEcran(false);
+            }
             cancelAnimationFrame(raf);
             raf = 0;
             phase = 'arret';
