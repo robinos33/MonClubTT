@@ -83,6 +83,8 @@ class MonClubTT_Plugin
         add_action('wp_ajax_nopriv_monclubtt_feuille_match', array($this, 'handle_ajax_feuille_match'));
         add_action('wp_ajax_monclubtt_pong_scores',          array($this, 'handle_ajax_pong_scores'));
         add_action('wp_ajax_nopriv_monclubtt_pong_scores',   array($this, 'handle_ajax_pong_scores'));
+        add_action('wp_ajax_monclubtt_pong_debut',           array($this, 'handle_ajax_pong_debut'));
+        add_action('wp_ajax_nopriv_monclubtt_pong_debut',    array($this, 'handle_ajax_pong_debut'));
         add_action('wp_ajax_monclubtt_pong_fin',             array($this, 'handle_ajax_pong_fin'));
         add_action('wp_ajax_nopriv_monclubtt_pong_fin',      array($this, 'handle_ajax_pong_fin'));
         // Partage d'un match : image générée et balises Open Graph.
@@ -153,6 +155,7 @@ class MonClubTT_Plugin
         register_setting('monclubtt_settings', MonClubTT_Constantes::MONCLUBTT_PONG_PROS, array('sanitize_callback' => array($this, 'sanitize_case')));
         register_setting('monclubtt_settings', MonClubTT_Constantes::MONCLUBTT_PONG_ADVERSAIRES, array('sanitize_callback' => array($this, 'sanitize_pong_adversaires')));
         register_setting('monclubtt_settings', MonClubTT_Constantes::MONCLUBTT_PONG_MUSIQUE, array('sanitize_callback' => array($this, 'sanitize_pong_musique')));
+        register_setting('monclubtt_settings', 'monclubtt_pong_raz_compteurs', array('sanitize_callback' => array($this, 'sanitize_pong_raz_compteurs')));
         register_setting('monclubtt_settings', 'monclubtt_pong_vider_scores', array('sanitize_callback' => array($this, 'sanitize_pong_vider_scores')));
 
         add_settings_section('monclubtt_section', '', array($this, 'section_html'), 'monclubtt_settings');
@@ -166,6 +169,7 @@ class MonClubTT_Plugin
         add_settings_field(MonClubTT_Constantes::MONCLUBTT_PONG_PROS, 'Top 10 mondial dans le jeu de pong', array($this, 'pong_pros_html'), 'monclubtt_settings', 'monclubtt_section');
         add_settings_field(MonClubTT_Constantes::MONCLUBTT_PONG_ADVERSAIRES, 'Adversaires du jeu de pong', array($this, 'pong_adversaires_html'), 'monclubtt_settings', 'monclubtt_section');
         add_settings_field(MonClubTT_Constantes::MONCLUBTT_PONG_MUSIQUE, 'Musique du jeu de pong', array($this, 'pong_musique_html'), 'monclubtt_settings', 'monclubtt_section');
+        add_settings_field('monclubtt_pong_raz_compteurs', 'Parties du jeu de pong', array($this, 'pong_compteurs_html'), 'monclubtt_settings', 'monclubtt_section');
         add_settings_field('monclubtt_pong_vider_scores', 'Meilleurs scores du jeu de pong', array($this, 'pong_vider_scores_html'), 'monclubtt_settings', 'monclubtt_section');
     }
 
@@ -435,6 +439,65 @@ class MonClubTT_Plugin
         }
         $url = esc_url_raw($valeur, array('http', 'https'));
         return $url ? $url : '';
+    }
+
+    public function pong_compteurs_html()
+    {
+        $c         = $this->compteursPong();
+        $jouees    = (int) $c['jouees'];
+        $terminees = (int) $c['terminees'];
+        ?>
+        <p>
+            <strong><?php echo esc_html(sprintf(_n('%s partie jouée', '%s parties jouées', $jouees, 'mon-club-tt'), number_format_i18n($jouees))); ?></strong>,
+            <strong><?php echo esc_html(sprintf(_n('%s partie terminée', '%s parties terminées', $terminees, 'mon-club-tt'), number_format_i18n($terminees))); ?></strong>
+            <?php if ($jouees > 0): ?>
+                (<?php echo esc_html(number_format_i18n(min(100, 100 * $terminees / $jouees))); ?> %)
+            <?php endif; ?>
+            <?php if (!empty($c['depuis'])): ?>
+                depuis le <?php echo esc_html(wp_date(get_option('date_format'), (int) $c['depuis'])); ?>
+            <?php endif; ?>
+        </p>
+        <label>
+            <input type="checkbox" name="monclubtt_pong_raz_compteurs" value="1">
+            Remettre les compteurs à zéro
+        </label>
+        <p class="description">
+            Une partie est jouée à chaque match lancé (« Rejouer » compris), terminée quand le match va jusqu'au bout.
+            Les visites des robots qui n'exécutent pas le jeu ne sont pas comptées.
+        </p>
+        <?php
+    }
+
+    /** Case « Remettre à zéro » : rien n'est conservé dans l'option elle-même. */
+    public function sanitize_pong_raz_compteurs($valeur)
+    {
+        if ($valeur === '1') {
+            delete_option(MonClubTT_Constantes::MONCLUBTT_PONG_COMPTEURS);
+        }
+        return '';
+    }
+
+    /** @return array{jouees: int, terminees: int, depuis: int} */
+    private function compteursPong()
+    {
+        $c = get_option(MonClubTT_Constantes::MONCLUBTT_PONG_COMPTEURS, array());
+        $c = is_array($c) ? $c : array();
+        return array(
+            'jouees'    => (int) ($c['jouees'] ?? 0),
+            'terminees' => (int) ($c['terminees'] ?? 0),
+            'depuis'    => (int) ($c['depuis'] ?? 0),
+        );
+    }
+
+    /** Ajoute une partie au compteur « jouees » ou « terminees ». */
+    private function compterPong($cle)
+    {
+        $c = $this->compteursPong();
+        $c[$cle]++;
+        if (!$c['depuis']) {
+            $c['depuis'] = time();
+        }
+        update_option(MonClubTT_Constantes::MONCLUBTT_PONG_COMPTEURS, $c, false);
     }
 
     public function pong_vider_scores_html()
@@ -808,6 +871,27 @@ class MonClubTT_Plugin
     }
 
     /**
+     * Handler AJAX (public) : début d'un match de pong, pour le compteur des
+     * parties jouées. Un envoi toutes les 2 secondes au plus par adresse IP.
+     */
+    public function handle_ajax_pong_debut()
+    {
+        if (!check_ajax_referer('monclubtt_pong', 'nonce', false)) {
+            wp_send_json_error(null, 403);
+            return;
+        }
+        $ip  = isset($_SERVER['REMOTE_ADDR']) ? sanitize_text_field(wp_unslash($_SERVER['REMOTE_ADDR'])) : '';
+        $cle = 'monclubtt_pong_debut_' . md5($ip);
+        if (get_transient($cle)) {
+            wp_send_json_error(null, 429);
+            return;
+        }
+        set_transient($cle, 1, 2);
+        $this->compterPong('jouees');
+        wp_send_json_success();
+    }
+
+    /**
      * Handler AJAX (public) : fin d'un match de pong.
      *
      * Chaque match est enregistré pour être partagé (page avec balises
@@ -862,6 +946,7 @@ class MonClubTT_Plugin
             return;
         }
         set_transient($cle, 1, 15);
+        $this->compterPong('terminees');
 
         $reponse = array('classement' => null, 'rang' => null, 'partage' => null);
 

@@ -1005,6 +1005,8 @@
         }
 
         function nouveauMatch() {
+            // Compteur des parties jouées (réglages du plugin) ; sans réponse attendue.
+            appelAjax('monclubtt_pong_debut', { nonce: cfg.nonce || '' }).catch(function () {});
             match = new Match(nbManches);
             marqueur.maj(match);
             figJ.x = W / 2; figA.x = W / 2;

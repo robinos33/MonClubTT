@@ -22,6 +22,8 @@ if ( ! class_exists( 'MonClubTT_Constantes' ) ) {
         const MONCLUBTT_PONG_PROS = 'monclubtt_pong_pros';
         /** Matchs récents partageables (id => données), pour les pages et images de partage. */
         const MONCLUBTT_PONG_MATCHS = 'monclubtt_pong_matchs';
+        /** Compteurs du jeu de pong : parties jouées, parties terminées, date de départ. */
+        const MONCLUBTT_PONG_COMPTEURS = 'monclubtt_pong_compteurs';
         /** Ancienne option (1.6.2), relue tant que les réglages n'ont pas été enregistrés. */
         const MONCLUBTT_SOCIAL_COULEURS = 'monclubtt_social_couleurs';
 
