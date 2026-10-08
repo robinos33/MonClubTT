@@ -683,13 +683,37 @@
             fetch(p.image).then(function (r) { return r.blob(); }).then(function (b) {
                 fichier = new File([b], 'pong-du-club.png', { type: b.type || 'image/png' });
             }, function () {});
-            insta.addEventListener('click', function () {
-                if (fichier && navigator.canShare && navigator.canShare({ files: [fichier] })) {
-                    navigator.share({ files: [fichier], text: p.texte + ' ' + p.url }).catch(function () {});
-                    return;
+            /* Instagram ne garde que l'image : texte et lien vont dans le
+             * presse-papier, à coller en légende ou dans un sticker « Lien ». */
+            function copier(texte) {
+                if (navigator.clipboard && window.isSecureContext) {
+                    return navigator.clipboard.writeText(texte).then(function () { return true; }, function () { return false; });
                 }
-                window.open(p.image, '_blank', 'noopener');
-                aide.textContent = 'Enregistre l\'image, puis publie-la dans Instagram.';
+                var zoneTexte = el('textarea');
+                zoneTexte.value = texte;
+                zoneTexte.setAttribute('readonly', '');
+                zoneTexte.style.cssText = 'position:fixed;top:0;left:0;opacity:0';
+                document.body.appendChild(zoneTexte);
+                zoneTexte.select();
+                var ok = false;
+                try { ok = document.execCommand('copy'); } catch (err) { ok = false; }
+                document.body.removeChild(zoneTexte);
+                return Promise.resolve(ok);
+            }
+            insta.addEventListener('click', function () {
+                // Copie lancée avant le partage : les deux demandent le geste du visiteur.
+                var copie = copier(p.texte + ' ' + p.url);
+                var partageNatif = fichier && navigator.canShare && navigator.canShare({ files: [fichier] });
+                if (partageNatif) {
+                    navigator.share({ files: [fichier], text: p.texte + ' ' + p.url }).catch(function () {});
+                } else {
+                    window.open(p.image, '_blank', 'noopener');
+                }
+                copie.then(function (ok) {
+                    aide.textContent = (partageNatif ? '' : 'Enregistre l\'image, puis publie-la dans Instagram. ') + (ok
+                        ? 'Texte et lien copiés : colle-les dans ta légende, ou dans un sticker « Lien » en story.'
+                        : 'Ajoute le lien dans un sticker « Lien » en story : ' + p.url);
+                });
             });
         }
 
