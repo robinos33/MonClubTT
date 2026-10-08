@@ -784,24 +784,71 @@
         scene.appendChild(message);
         ecranJeu.appendChild(scene);
 
-        var actions = el('div', 'pong-actions');
-        var btnChanger = el('button', 'pong-lien', '← Adversaire');
-        btnChanger.title = 'Changer d\'adversaire';
-        btnChanger.type = 'button';
-        var btnSon = el('button', 'pong-lien pong-bouton-icone');
-        btnSon.type = 'button';
-        var btnMusique = el('button', 'pong-lien pong-bouton-icone');
-        btnMusique.type = 'button';
-        var btnPlein = el('button', 'pong-lien pong-bouton-icone');
-        btnPlein.type = 'button';
+        /* Roue crantée posée dans le coin de la table : ouvre le panneau
+         * « Pause » (le match est figé) avec les réglages et le retour au
+         * choix de l'adversaire. Touche P ou Échap aussi. */
+        var btnMenu = el('button', 'pong-menu-bouton');
+        btnMenu.type = 'button';
+        btnMenu.innerHTML = '<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" focusable="false">' +
+            '<path d="M10.3 2.5h3.4l.5 2.6 1.6.9 2.5-.9 1.7 2.9-2 1.8v1.4l2 1.8-1.7 2.9-2.5-.9-1.6.9-.5 2.6h-3.4l-.5-2.6-1.6-.9-2.5.9-1.7-2.9 2-1.8v-1.4l-2-1.8 1.7-2.9 2.5.9 1.6-.9z" fill="currentColor"/>' +
+            '<circle cx="12" cy="12" r="3.2" fill="#fff"/></svg>';
+        btnMenu.setAttribute('aria-label', 'Pause et réglages');
+        btnMenu.setAttribute('aria-haspopup', 'dialog');
+        btnMenu.title = 'Pause et réglages (P)';
+        scene.appendChild(btnMenu);
+
+        var menu = el('div', 'pong-menu');
+        menu.hidden = true;
+        menu.setAttribute('role', 'dialog');
+        menu.setAttribute('aria-modal', 'true');
+        menu.setAttribute('aria-label', 'Pause');
+        var panneau = el('div', 'pong-menu-panneau');
+        panneau.appendChild(el('strong', 'pong-message-titre', 'Pause'));
+        var btnReprendre = el('button', 'pong-bouton', 'Reprendre');
+        btnReprendre.type = 'button';
+        function option() {
+            var b = el('button', 'pong-menu-option');
+            b.type = 'button';
+            return b;
+        }
+        var btnSon = option();
+        var btnMusique = option();
+        var btnPlein = option();
         btnPlein.setAttribute('aria-pressed', 'false');
-        var reglagesSon = el('span', 'pong-reglages-son');
-        reglagesSon.appendChild(btnPlein);
-        reglagesSon.appendChild(btnSon);
-        if (cfg.musique) reglagesSon.appendChild(btnMusique);
-        actions.appendChild(btnChanger);
-        actions.appendChild(reglagesSon);
-        ecranJeu.appendChild(actions);
+        var btnChanger = el('button', 'pong-bouton pong-bouton--secondaire', 'Changer d\'adversaire');
+        btnChanger.type = 'button';
+        var options = el('div', 'pong-menu-options');
+        options.appendChild(btnSon);
+        if (cfg.musique) options.appendChild(btnMusique);
+        options.appendChild(btnPlein);
+        panneau.appendChild(btnReprendre);
+        panneau.appendChild(options);
+        panneau.appendChild(btnChanger);
+        menu.appendChild(panneau);
+        scene.appendChild(menu);
+
+        var enPause = false;
+        function ouvrirMenu() {
+            if (ecranJeu.hidden || enPause) return;
+            enPause = true;
+            touches.g = touches.d = false;
+            cible = null;
+            menu.hidden = false;
+            btnMenu.setAttribute('aria-expanded', 'true');
+            setTimeout(function () { btnReprendre.focus({ preventScroll: true }); }, 30);
+        }
+        function fermerMenu() {
+            if (!enPause) return;
+            enPause = false;
+            menu.hidden = true;
+            btnMenu.setAttribute('aria-expanded', 'false');
+            root.focus({ preventScroll: true });
+        }
+        btnMenu.setAttribute('aria-expanded', 'false');
+        btnMenu.addEventListener('click', ouvrirMenu);
+        btnReprendre.addEventListener('click', fermerMenu);
+        // Clic à côté du panneau : reprise.
+        menu.addEventListener('click', function (e) { if (e.target === menu) fermerMenu(); });
 
         // Écrans avant les crédits photo posés par le shortcode.
         var credits = root.querySelector('.pong-credits');
@@ -819,17 +866,17 @@
         function picto(contenu) {
             return '<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" focusable="false">' + contenu + '</svg>';
         }
+        /* Ligne du panneau : pictogramme, libellé, état (Oui / Non). */
+        function contenuOption(svg, libelle, actif) {
+            return svg + '<span class="pong-menu-libelle">' + libelle + '</span><span class="pong-menu-etat">' + (actif ? 'Oui' : 'Non') + '</span>';
+        }
         function majBoutonsSon() {
-            btnSon.innerHTML = picto(PICTO_SON + (etat.son ? ONDES : BARRE));
+            btnSon.innerHTML = contenuOption(picto(PICTO_SON + (etat.son ? ONDES : BARRE)), 'Effets sonores', etat.son);
             btnSon.setAttribute('aria-pressed', String(etat.son));
             btnSon.classList.toggle('pong-coupe', !etat.son);
-            btnSon.setAttribute('aria-label', 'Effets sonores');
-            btnSon.title = etat.son ? 'Couper les effets sonores' : 'Activer les effets sonores';
-            btnMusique.innerHTML = picto(PICTO_NOTE + (etat.musique ? '' : BARRE));
+            btnMusique.innerHTML = contenuOption(picto(PICTO_NOTE + (etat.musique ? '' : BARRE)), 'Musique', etat.musique);
             btnMusique.setAttribute('aria-pressed', String(etat.musique));
             btnMusique.classList.toggle('pong-coupe', !etat.musique);
-            btnMusique.setAttribute('aria-label', 'Musique');
-            btnMusique.title = etat.musique ? 'Couper la musique' : 'Activer la musique';
         }
         majBoutonsSon();
         btnSon.addEventListener('click', function () {
@@ -868,7 +915,7 @@
                 else if (musiqueLancee) jouerMusique();
             });
         }
-        btnChanger.addEventListener('click', retourSelection);
+        btnChanger.addEventListener('click', function () { fermerMenu(); retourSelection(); });
 
         /* ---- Plein écran ----
          * API Fullscreen quand le navigateur la permet ; sinon (iPhone, cadre
@@ -877,10 +924,8 @@
         var PICTO_PLEIN = '<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" focusable="false"><path d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
         var PICTO_REDUIRE = '<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" focusable="false"><path d="M9 4v5H4M20 9h-5V4M15 20v-5h5M4 15h5v5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
         function majBoutonPlein() {
-            btnPlein.innerHTML = pleinEcran ? PICTO_REDUIRE : PICTO_PLEIN;
+            btnPlein.innerHTML = contenuOption(pleinEcran ? PICTO_REDUIRE : PICTO_PLEIN, 'Plein écran', pleinEcran);
             btnPlein.setAttribute('aria-pressed', String(pleinEcran));
-            btnPlein.setAttribute('aria-label', 'Plein écran');
-            btnPlein.title = pleinEcran ? 'Quitter le plein écran' : 'Plein écran';
         }
         majBoutonPlein();
         function elementPleinEcran() { return document.fullscreenElement || document.webkitFullscreenElement || null; }
@@ -905,7 +950,7 @@
                 if (elementPleinEcran() === root && sortir) sortir.call(document);
             }
             requestAnimationFrame(dimensionner);
-            root.focus({ preventScroll: true });
+            if (!enPause) root.focus({ preventScroll: true });
         }
         btnPlein.addEventListener('click', function () { basculerPleinEcran(!pleinEcran); });
         // Sortie par la touche Échap ou le geste du navigateur.
@@ -965,14 +1010,13 @@
             var hauteurFenetre = window.visualViewport ? window.visualViewport.height : window.innerHeight;
             var style = getComputedStyle(root);
             var marges = pleinEcran ? parseFloat(style.paddingTop) + parseFloat(style.paddingBottom) : 0;
-            var ecarts = 2 * (parseFloat(getComputedStyle(ecranJeu).rowGap) || 0);
+            var ecarts = parseFloat(getComputedStyle(ecranJeu).rowGap) || 0;
             var largeurDispo = ecranJeu.clientWidth;
-            var hauteurDispo = hauteurFenetre - marges - marqueur.el.offsetHeight - actions.offsetHeight - ecarts - 4;
+            var hauteurDispo = hauteurFenetre - marges - marqueur.el.offsetHeight - ecarts - 4;
             var largeur = Math.max(120, Math.min(largeurDispo, pleinEcran ? Infinity : 520, hauteurDispo * W / H));
             canvas.style.width = largeur + 'px';
             canvas.style.height = (largeur * H / W) + 'px';
             scene.style.width = largeur + 'px';
-            actions.style.maxWidth = Math.max(largeur, 300) + 'px';
             canvas.width = Math.round(largeur * dpr);
             canvas.height = Math.round(largeur * H / W * dpr);
             echelle = largeur / W;
@@ -981,8 +1025,20 @@
             if (!passe && canvas.style.width !== avant) dimensionner(true);
         }
 
+        /* Force de l'adversaire selon l'écart de points avec le joueur choisi
+         * (pour un visiteur, la médiane du club) : 5 % par tranche de
+         * 150 points, ±20 % au plus. Top 10 et invité, sans points : niveau de base. */
+        var ptsClub = joueurs.map(function (j) { return +j.pts || 0; }).filter(Boolean).sort(function (a, b) { return a - b; });
+        var medianeClub = ptsClub.length ? ptsClub[Math.floor(ptsClub.length / 2)] : 0;
+        function forceAdversaire(p, a) {
+            var ref = +p.pts || medianeClub;
+            if (!(+a.pts) || !ref) return 1;
+            return clamp(1 + 0.05 * (a.pts - ref) / 150, 0.8, 1.2);
+        }
+
         function demarrer(p) {
             etat.joueur = p;
+            etat.force = forceAdversaire(p, adv);
             montrer(ecranJeu);
             marqueur.noms(nomAffiche(p), nomAffiche(adv));
             Promise.all([
@@ -998,6 +1054,7 @@
         }
 
         function retourSelection() {
+            fermerMenu();
             cancelAnimationFrame(raf);
             raf = 0;
             phase = 'arret';
@@ -1076,7 +1133,7 @@
 
         function viserIa() {
             var n = NIVEAUX[etat.niveau];
-            ia.erreur = (Math.random() * 2 - 1) * n.erreur;
+            ia.erreur = (Math.random() * 2 - 1) * n.erreur / (etat.force || 1);
             ia.vise = (Math.random() * 2 - 1) * figA.demi * 0.7;
         }
 
@@ -1151,7 +1208,7 @@
         }
         var appui = null;
         scene.addEventListener('pointerdown', function (e) {
-            if (e.target.closest('.pong-message')) return;
+            if (e.target.closest('.pong-message, .pong-menu, .pong-menu-bouton')) return;
             appui = { x: e.clientX, y: e.clientY, t: performance.now() };
             if (e.pointerType !== 'mouse') cible = versLogique(e);
             try { scene.setPointerCapture(e.pointerId); } catch (err) { /* ignoré */ }
@@ -1170,6 +1227,15 @@
         scene.addEventListener('pointerleave', function (e) { if (e.pointerType === 'mouse') cible = null; });
 
         root.addEventListener('keydown', function (e) {
+            if (enPause) {
+                if (e.key === 'Escape' || e.key === 'p' || e.key === 'P') { e.preventDefault(); fermerMenu(); }
+                return;
+            }
+            if (!ecranJeu.hidden && (e.key === 'p' || e.key === 'P' || (e.key === 'Escape' && !pleinEcran))) {
+                e.preventDefault();
+                ouvrirMenu();
+                return;
+            }
             if (e.key === 'Escape' && pleinEcran) { basculerPleinEcran(false); return; }
             if (ecranJeu.hidden || e.target.closest('.pong-message') || e.target.tagName === 'BUTTON') return;
             var k = e.key;
@@ -1215,7 +1281,7 @@
             } else if (phase === 'service' && match.serveur() === 'adversaire') {
                 but = figA.x;
             }
-            var pas = n.vIa * dt, avant = figA.x;
+            var pas = n.vIa * (etat.force || 1) * dt, avant = figA.x;
             figA.x += clamp(but - figA.x, -pas, pas);
             figA.x = clamp(figA.x, 20, W - 20);
             figA.vx = (figA.x - avant) / Math.max(dt, 0.001);
@@ -1426,7 +1492,7 @@
         function boucle(t) {
             var dt = Math.min((t - dernier) / 1000, 1 / 30);
             dernier = t;
-            if (!document.hidden) step(dt);
+            if (!document.hidden && !enPause) step(dt);
             rendu();
             raf = phase === 'arret' || !root.isConnected ? 0 : requestAnimationFrame(boucle);
         }

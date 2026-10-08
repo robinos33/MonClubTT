@@ -549,30 +549,74 @@
     box-shadow: inset 0 0 0 2px rgba(35, 52, 74, 0.25);
 }
 
-.monclubtt-pong .pong-actions {
+/* Roue crantée (coin haut droit de la table) et panneau « Pause ». */
+.monclubtt-pong .pong-menu-bouton {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    z-index: 2;
     display: flex;
-    justify-content: space-between;
-    gap: 8px;
-    width: 100%;
-    max-width: 520px;
-    white-space: nowrap;
-}
-
-.monclubtt-pong .pong-reglages-son { display: inline-flex; gap: 4px; }
-
-.monclubtt-pong .pong-bouton-icone {
-    display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 36px;
-    height: 32px;
+    width: 40px;
+    height: 40px;
     padding: 0;
-    border-radius: 8px;
-    text-decoration: none;
+    border: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.92);
+    color: var(--pong-encre);
+    box-shadow: 0 2px 8px rgba(15, 20, 26, 0.3);
+}
+.monclubtt-pong .pong-menu-bouton:focus-visible { outline: 2px solid var(--pong-encre); outline-offset: 2px; }
+
+.monclubtt-pong .pong-menu {
+    position: absolute;
+    inset: 0;
+    z-index: 3;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(15, 20, 26, 0.45);
+}
+.monclubtt-pong .pong-menu[hidden] { display: none; }
+
+.monclubtt-pong .pong-menu-panneau {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: min(88%, 300px);
+    max-height: calc(100% - 16px);
+    overflow-y: auto;
+    box-sizing: border-box;
+    padding: 18px;
+    border-radius: 6px;
+    background: linear-gradient(var(--pong-papier), #f1ece0);
+    color: var(--pong-encre);
+    text-align: center;
+    box-shadow: 0 4px 0 #e2dccd, 0 14px 30px rgba(15, 20, 26, 0.35);
 }
 
-.monclubtt-pong .pong-bouton-icone.pong-coupe { opacity: 0.55; }
-.monclubtt-pong .pong-bouton-icone:focus-visible { outline: 2px solid var(--pong-encre); outline-offset: 1px; }
+.monclubtt-pong .pong-menu-options { display: flex; flex-direction: column; }
+
+.monclubtt-pong .pong-menu-option {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 4px;
+    border: 0;
+    border-top: 1px solid rgba(35, 52, 74, 0.12);
+    background: none;
+    color: var(--pong-encre);
+    font: inherit;
+    font-weight: 700;
+    text-align: left;
+}
+.monclubtt-pong .pong-menu-option:last-child { border-bottom: 1px solid rgba(35, 52, 74, 0.12); }
+.monclubtt-pong .pong-menu-option svg { flex: none; }
+.monclubtt-pong .pong-menu-libelle { flex: 1; }
+.monclubtt-pong .pong-menu-etat { font-size: 0.85rem; color: var(--pong-primaire); }
+.monclubtt-pong .pong-menu-option.pong-coupe .pong-menu-etat { color: rgba(35, 52, 74, 0.6); }
+.monclubtt-pong .pong-menu-option:focus-visible { outline: 2px solid var(--pong-encre); outline-offset: -2px; }
 
 /* Plein écran : vrai (API Fullscreen) ou simulé (position fixe sur la fenêtre). */
 .monclubtt-pong.pong-plein-ecran {
@@ -624,7 +668,6 @@ html.monclubtt-pong-verrou body { overflow: hidden; }
     .monclubtt-pong .pong-fiche--manches .pong-page { font-size: 18px; }
     .monclubtt-pong .pong-camp--adversaire { flex-direction: row-reverse; }
     .monclubtt-pong .pong-jeu { gap: 6px; }
-    .monclubtt-pong .pong-lien { padding: 2px 4px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
