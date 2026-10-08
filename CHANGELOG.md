@@ -5,6 +5,12 @@ Format : [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/)
 
 ---
 
+## [1.20.3] — 2026-10-08
+
+### Modifié
+
+- Jeu de pong : les victoires des visiteurs hors club entrent désormais au tableau des meilleurs scores, avec la mention « hors club » à côté de leur prénom. Le tableau peut toujours être vidé dans les réglages en cas d'entrée douteuse.
+
 ## [1.20.2] — 2026-10-08
 
 ### Modifié
