@@ -5,6 +5,12 @@ Format : [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/)
 
 ---
 
+## [1.20.0] — 2026-10-08
+
+### Ajouté
+
+- Jeu de pong : sur mobile (écran tactile de 820 px de large au plus), le jeu passe en plein écran au lancement du match, et le quitte au retour au choix de l'adversaire. Pas dès le chargement de la page : les navigateurs ne l'autorisent qu'après un geste du visiteur. Si le visiteur quitte le plein écran lui-même, il n'est plus imposé pendant sa visite.
+
 ## [1.19.1] — 2026-10-08
 
 ### Corrigé
