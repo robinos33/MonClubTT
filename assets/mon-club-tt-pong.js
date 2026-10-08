@@ -790,8 +790,8 @@
         var btnMenu = el('button', 'pong-menu-bouton');
         btnMenu.type = 'button';
         btnMenu.innerHTML = '<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" focusable="false">' +
-            '<path d="M10.3 2.5h3.4l.5 2.6 1.6.9 2.5-.9 1.7 2.9-2 1.8v1.4l2 1.8-1.7 2.9-2.5-.9-1.6.9-.5 2.6h-3.4l-.5-2.6-1.6-.9-2.5.9-1.7-2.9 2-1.8v-1.4l-2-1.8 1.7-2.9 2.5.9 1.6-.9z" fill="currentColor"/>' +
-            '<circle cx="12" cy="12" r="3.2" fill="#fff"/></svg>';
+            // Roue à 6 dents, centre évidé (fill-rule evenodd).
+            '<path fill-rule="evenodd" fill="currentColor" d="M9.55 4.60L9.69 1.66A10.6 10.6 0 0 1 14.31 1.66L14.45 4.60A7.8 7.8 0 0 1 17.19 6.17L19.80 4.82A10.6 10.6 0 0 1 22.12 8.83L19.64 10.42A7.8 7.8 0 0 1 19.64 13.58L22.12 15.17A10.6 10.6 0 0 1 19.80 19.18L17.19 17.83A7.8 7.8 0 0 1 14.45 19.40L14.31 22.34A10.6 10.6 0 0 1 9.69 22.34L9.55 19.40A7.8 7.8 0 0 1 6.81 17.83L4.20 19.18A10.6 10.6 0 0 1 1.88 15.17L4.36 13.58A7.8 7.8 0 0 1 4.36 10.42L1.88 8.83A10.6 10.6 0 0 1 4.20 4.82L6.81 6.17A7.8 7.8 0 0 1 9.55 4.60ZM8.70 12.00a3.3 3.3 0 1 0 6.6 0a3.3 3.3 0 1 0 -6.6 0Z"/></svg>';
         btnMenu.setAttribute('aria-label', 'Pause et réglages');
         btnMenu.setAttribute('aria-haspopup', 'dialog');
         btnMenu.title = 'Pause et réglages (P)';
