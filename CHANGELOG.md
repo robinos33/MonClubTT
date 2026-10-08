@@ -5,6 +5,12 @@ Format : [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/)
 
 ---
 
+## [1.18.0] — 2026-10-08
+
+### Ajouté
+
+- Jeu de pong : compteurs « parties jouées » (chaque match lancé, « Rejouer » compris) et « parties terminées » (match allé jusqu'au bout), affichés dans les réglages avec le taux de parties terminées et la date de départ, et remise à zéro possible.
+
 ## [1.17.1] — 2026-10-07
 
 ### Modifié
