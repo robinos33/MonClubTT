@@ -5,6 +5,12 @@ Format : [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/)
 
 ---
 
+## [1.20.2] — 2026-10-08
+
+### Modifié
+
+- Partage Instagram d'un match de pong : Instagram ne garde que l'image, le texte et le lien du match sont donc copiés dans le presse-papier au clic, avec une aide pour les coller en légende ou dans un sticker « Lien » en story (le lien est affiché si la copie échoue).
+
 ## [1.20.1] — 2026-10-08
 
 ### Modifié
