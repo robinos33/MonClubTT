@@ -5,6 +5,12 @@ Format : [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/)
 
 ---
 
+## [1.19.1] — 2026-10-08
+
+### Corrigé
+
+- Jeu de pong : roue crantée redessinée (6 dents régulières, centre évidé), l'ancienne était déformée.
+
 ## [1.19.0] — 2026-10-08
 
 ### Modifié

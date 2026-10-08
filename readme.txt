@@ -3,7 +3,7 @@ Contributors: robinos33
 Tags: table tennis, fftt, club, rankings, results
 Requires at least: 5.0
 Tested up to: 7.0
-Stable tag: 1.19.0
+Stable tag: 1.19.1
 Requires PHP: 7.4
 License: GPLv2
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -60,6 +60,9 @@ Player data is refreshed on manual sync only. League standings and results are c
 Yes. The plugin exposes five filters: `monclubtt_get_joueurs`, `monclubtt_get_equipes`, `monclubtt_get_classement_poule`, `monclubtt_get_rencontres_poule`, `monclubtt_get_feuille_rencontre`. See the documentation for usage.
 
 == Changelog ==
+
+= 1.19.1 =
+* Fixed: the pong game gear button is redrawn (6 regular teeth, hollow centre); the previous one was distorted
 
 = 1.19.0 =
 * Changed: in the pong game, the bar under the table is replaced by a gear button in the top right corner of the table, opening a "Pause" panel that freezes the match (resume, sound effects, music, full screen, change opponent); P or Escape key too
@@ -205,6 +208,9 @@ Yes. The plugin exposes five filters: `monclubtt_get_joueurs`, `monclubtt_get_eq
 * Automatic team page generation and deletion
 
 == Upgrade Notice ==
+
+= 1.19.1 =
+Cleaner gear icon in the pong game.
 
 = 1.19.0 =
 Pong game: pause menu behind a gear button on the table, and club opponents' strength now follows their points.
