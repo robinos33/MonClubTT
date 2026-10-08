@@ -3,7 +3,7 @@ Contributors: robinos33
 Tags: table tennis, fftt, club, rankings, results
 Requires at least: 5.0
 Tested up to: 7.0
-Stable tag: 1.20.3
+Stable tag: 1.21.0
 Requires PHP: 7.4
 License: GPLv2
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -60,6 +60,10 @@ Player data is refreshed on manual sync only. League standings and results are c
 Yes. The plugin exposes five filters: `monclubtt_get_joueurs`, `monclubtt_get_equipes`, `monclubtt_get_classement_poule`, `monclubtt_get_rencontres_poule`, `monclubtt_get_feuille_rencontre`. See the documentation for usage.
 
 == Changelog ==
+
+= 1.21.0 =
+* Added: topspin and backspin in the pong game. A forward gesture at impact (or the up arrow) gives topspin, a backward gesture (or the down arrow) gives backspin; the ball speeds up or slows down by up to 30% after bouncing on the table, with a coloured trail. The opponent uses them too
+* Added: timed fast serve. A first tap tosses the ball, which is served automatically at the end of the toss; a second tap at the very end of the toss gives a fast serve, too early gives a soft serve. The opponent sometimes serves fast too
 
 = 1.20.3 =
 * Changed: in the pong game, wins by visitors who are not club members now enter the high score table, marked "hors club" (non-member) next to their first name
@@ -221,6 +225,9 @@ Yes. The plugin exposes five filters: `monclubtt_get_joueurs`, `monclubtt_get_eq
 * Automatic team page generation and deletion
 
 == Upgrade Notice ==
+
+= 1.21.0 =
+Topspin, backspin and a timed fast serve in the pong game.
 
 = 1.20.3 =
 Visitors who are not club members can now enter the pong high score table.

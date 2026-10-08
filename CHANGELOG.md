@@ -5,6 +5,13 @@ Format : [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/)
 
 ---
 
+## [1.21.0] — 2026-10-08
+
+### Ajouté
+
+- Jeu de pong : lifté et coupé. Un geste vers l'avant au moment de la frappe (ou la flèche haut) donne du lifté, un geste vers l'arrière (ou la flèche bas) du coupé : la balle accélère ou freine jusqu'à 30 % après son rebond sur la table. Le sillage de la balle est orangé pour le lifté, bleuté pour le coupé, et l'adversaire en fait aussi.
+- Jeu de pong : service rapide au bon moment. La première touche lance la balle, qui part seule en fin de lancer ; une seconde touche dans les 100 dernières millisecondes du lancer donne un service rapide, trop tôt un service mou. L'adversaire sert aussi rapide de temps en temps.
+
 ## [1.20.3] — 2026-10-08
 
 ### Modifié
