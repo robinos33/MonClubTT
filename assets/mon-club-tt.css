@@ -178,7 +178,8 @@
 }
 
 /* Vignette photo détourée devant le nom (repli : initiales) */
-.monclubtt-div .listeJoueurs .monclubtt-vignette {
+.monclubtt-div .listeJoueurs .monclubtt-vignette,
+.monclubtt-div .monclubtt-cartes .monclubtt-vignette {
     display: inline-block;
     width: 34px;
     height: 34px;
@@ -189,7 +190,8 @@
     vertical-align: middle;
 }
 
-.monclubtt-div .listeJoueurs .monclubtt-vignette img {
+.monclubtt-div .listeJoueurs .monclubtt-vignette img,
+.monclubtt-div .monclubtt-cartes .monclubtt-vignette img {
     display: block;
     width: 100%;
     height: 100%;
@@ -201,7 +203,8 @@
     max-width: none;
 }
 
-.monclubtt-div .listeJoueurs .monclubtt-vignette--vide::before {
+.monclubtt-div .listeJoueurs .monclubtt-vignette--vide::before,
+.monclubtt-div .monclubtt-cartes .monclubtt-vignette--vide::before {
     content: attr(data-initiales);
     display: block;
     line-height: 34px;
@@ -210,6 +213,128 @@
     font-weight: 700;
     letter-spacing: 0.02em;
     color: #8794a1;
+}
+
+/* ===== Joueurs — cartes (mobile) ===== */
+/* Le tableau à 7 colonnes ne tient pas sous 600 px : il cède la place à une carte par joueur. */
+.monclubtt-div .monclubtt-joueurs-mobile {
+    display: none;
+}
+
+@media (max-width: 600px) {
+    .monclubtt-div .listeJoueurs {
+        display: none;
+    }
+    .monclubtt-div .monclubtt-joueurs-mobile {
+        display: block;
+        margin-bottom: 28px;
+    }
+}
+
+.monclubtt-div .monclubtt-tri {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0 0 10px;
+    font-size: 13px;
+    color: #6c7884;
+}
+
+.monclubtt-div .monclubtt-tri select {
+    width: auto;
+    margin: 0;
+    padding: 5px 8px;
+    border: 1px solid #dde3e9;
+    border-radius: 6px;
+    background: #fff;
+    color: #2b3a4f;
+    font-family: inherit;
+    font-size: 13px;
+}
+
+.monclubtt-div .monclubtt-cartes {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    text-align: left;
+}
+
+.monclubtt-div .monclubtt-carte {
+    display: grid;
+    grid-template-columns: 34px minmax(0, 1fr) auto;
+    gap: 10px;
+    align-items: center;
+    margin: 0;
+    padding: 9px 10px;
+    border-bottom: 1px solid #ececec;
+    color: var(--monclubtt-prim-fonce);
+}
+
+.monclubtt-div .monclubtt-carte.odd {
+    background-color: #fff;
+}
+
+.monclubtt-div .monclubtt-carte.even {
+    background-color: color-mix(in srgb, var(--monclubtt-primaire) 5%, #fff);
+}
+
+.monclubtt-div .monclubtt-carte.F {
+    color: var(--monclubtt-secondaire);
+}
+
+.monclubtt-div .monclubtt-carte .monclubtt-vignette {
+    margin: 0;
+}
+
+.monclubtt-div .monclubtt-carte-cl {
+    display: grid;
+    place-items: center;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: var(--monclubtt-primaire);
+    color: #fff;
+    font-size: 15px;
+    font-weight: 700;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+}
+
+.monclubtt-div .monclubtt-carte.F .monclubtt-carte-cl {
+    background: var(--monclubtt-secondaire);
+}
+
+.monclubtt-div .monclubtt-carte-qui strong {
+    display: block;
+    overflow: hidden;
+    font-size: 14px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.monclubtt-div .monclubtt-carte-qui small {
+    display: block;
+    font-size: 12px;
+    color: #6c7884;
+    font-variant-numeric: tabular-nums;
+}
+
+.monclubtt-div .monclubtt-carte-prog {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 3px;
+}
+
+.monclubtt-div .monclubtt-carte-lbl {
+    margin-right: 4px;
+    font-size: 10px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: #909aa6;
 }
 
 /* ===== Filtre Tous / Hommes / Femmes ===== */

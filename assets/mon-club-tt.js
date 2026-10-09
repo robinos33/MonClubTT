@@ -4,13 +4,31 @@ jQuery(document).ready(function ($) {
     // Tri par défaut : colonne « Pts Off. » (indice 3), décroissant.
     jQuery('.sortableTable').tablesorter({ sortList: [[3, 1]] });
 
-    // Zébrage recalculé sur les seules lignes visibles (après tri ou filtre).
-    function rezebrer($table) {
-        $table.find('tbody tr:visible').each(function (i) {
+    // Zébrage recalculé sur les seules lignes non filtrées (après tri ou filtre).
+    // Pas de :visible : selon la largeur d'écran, le tableau ou les cartes sont masqués.
+    function zebrer($lignes) {
+        $lignes.filter(function () { return this.style.display !== 'none'; }).each(function (i) {
             $(this).removeClass('odd even').addClass(i % 2 ? 'odd' : 'even');
         });
     }
+    function rezebrer($table) { zebrer($table.find('tbody tr')); }
     $('.sortableTable').on('sortEnd', function () { rezebrer($(this)); });
+
+    // ===== Cartes joueurs (mobile) : tri par menu =====
+    function rezebrerCartes($liste) { zebrer($liste.children('li')); }
+    $(document).on('change', '.monclubtt-tri-select', function () {
+        var cle    = $(this).val();
+        var $liste = $(this).closest('.monclubtt-joueurs-mobile').find('.monclubtt-cartes');
+        var cartes = $liste.children('li').get();
+        cartes.sort(function (a, b) {
+            if (cle === 'nom') {
+                return $(a).attr('data-nom').localeCompare($(b).attr('data-nom'), 'fr');
+            }
+            return parseFloat($(b).attr('data-' + cle)) - parseFloat($(a).attr('data-' + cle));
+        });
+        $liste.append(cartes);
+        rezebrerCartes($liste);
+    });
 
     // ===== Filtre Tous / Hommes / Femmes =====
     $(document).on('click', '.monclubtt-filtre', function () {
@@ -25,6 +43,12 @@ jQuery(document).ready(function ($) {
             $(this).toggle(filtre === 'MF' || $(this).hasClass(filtre));
         });
         rezebrer($table);
+
+        var $cartes = $div.find('.monclubtt-cartes');
+        $cartes.children('li').each(function () {
+            $(this).toggle(filtre === 'MF' || $(this).hasClass(filtre));
+        });
+        rezebrerCartes($cartes);
 
         $div.find('.monclubtt-stats').each(function () {
             this.hidden = $(this).data('filtre') !== filtre;
