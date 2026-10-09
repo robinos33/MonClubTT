@@ -269,7 +269,8 @@ endif; ?>
                     <?php endif; ?>
                     <span class="monclubtt-carte-qui">
                         <strong><?php echo esc_html($joueur->getPrenom() . ' ' . $joueur->getNom()); ?></strong>
-                        <small><?php echo esc_html($cl->getPointsMensuels() . ' pts' . ($avecPhotos ? ' · Cl. ' . $cl->getClassementOfficiel() : '')); ?></small>
+                        <?php // Points arrondis à l'entier inférieur, comme le calcul du classement. ?>
+                        <small><?php echo esc_html((int) floor((float) $cl->getPointsMensuels()) . ' pts' . ($avecPhotos ? ' · Cl. ' . $cl->getClassementOfficiel() : '')); ?></small>
                     </span>
                     <span class="monclubtt-carte-prog">
                         <?php foreach ($badges as $libelle => $prog): ?>
