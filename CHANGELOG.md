@@ -5,6 +5,12 @@ Format : [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/)
 
 ---
 
+## [1.21.1] — 2026-10-09
+
+### Modifié
+
+- Liste des joueurs sur mobile : sous 600 px, le tableau à 7 colonnes débordait et faisait défiler toute la page en largeur. Il est remplacé par une carte par joueur avec le classement, les points actuels (mensuels, arrondis à l'entier inférieur) et les progressions du mois et de la saison. Un menu « Trier par » remplace le tri par colonne et le filtre Hommes / Femmes s'applique aussi aux cartes. Le tableau reste inchangé sur ordinateur.
+
 ## [1.21.0] — 2026-10-08
 
 ### Ajouté
