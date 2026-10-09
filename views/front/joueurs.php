@@ -224,4 +224,73 @@ endif; ?>
             ?>
         </tbody>
     </table>
+
+    <?php if ($nbJoueurs > 0): ?>
+    <?php // Version mobile (sous 600 px) : une carte par joueur, triée sur les points mensuels (les points actuels). ?>
+    <div class="monclubtt-joueurs-mobile">
+        <div class="monclubtt-tri">
+            <label for="monclubtt-tri-<?php echo esc_attr($atts['type']); ?>">Trier par</label>
+            <select id="monclubtt-tri-<?php echo esc_attr($atts['type']); ?>" class="monclubtt-tri-select">
+                <option value="pts">Points</option>
+                <?php if (!$sansCompetition): ?>
+                <option value="mens">Progression du mois</option>
+                <?php endif; ?>
+                <option value="ann">Progression sur la saison</option>
+                <option value="nom">Nom</option>
+            </select>
+        </div>
+        <ul class="monclubtt-cartes">
+            <?php
+            $cartes = $joueursList;
+            usort($cartes, function ($a, $b) {
+                return (float) $b->getClassement()->getPointsMensuels() <=> (float) $a->getClassement()->getPointsMensuels();
+            });
+            $i = 0;
+            foreach ($cartes as $joueur) {
+                $i++;
+                $cl       = $joueur->getClassement();
+                $progMens = $cl->getProgressionMensuelle();
+                $progAnn  = $cl->getProgressionAnnuelle();
+                $badges   = $sansCompetition ? ['saison' => $progAnn] : ['mois' => $progMens, 'saison' => $progAnn];
+                ?>
+                <li class="monclubtt-carte <?php echo esc_attr((($i % 2 == 0) ? 'odd' : 'even') . ' ' . $joueur->getSexe()); ?>"
+                    data-nom="<?php echo esc_attr($joueur->getNom() . ' ' . $joueur->getPrenom()); ?>"
+                    data-pts="<?php echo esc_attr($cl->getPointsMensuels()); ?>"
+                    data-mens="<?php echo esc_attr($progMens); ?>"
+                    data-ann="<?php echo esc_attr($progAnn); ?>">
+                    <?php if ($avecPhotos): ?>
+                        <?php if ($joueur->getPhotoUrl() !== ''): ?>
+                            <span class="monclubtt-vignette"><img src="<?php echo esc_url($joueur->getPhotoUrl()); ?>" alt="" loading="lazy" decoding="async"></span>
+                        <?php else: ?>
+                            <span class="monclubtt-vignette monclubtt-vignette--vide" data-initiales="<?php echo esc_attr(mb_substr((string) $joueur->getPrenom(), 0, 1) . mb_substr((string) $joueur->getNom(), 0, 1)); ?>" aria-hidden="true"></span>
+                        <?php endif; ?>
+                    <?php else: ?>
+                        <span class="monclubtt-carte-cl" aria-hidden="true"><?php echo esc_html($cl->getClassementOfficiel()); ?></span>
+                    <?php endif; ?>
+                    <span class="monclubtt-carte-qui">
+                        <strong><?php echo esc_html($joueur->getPrenom() . ' ' . $joueur->getNom()); ?></strong>
+                        <?php // Points arrondis à l'entier inférieur, comme le calcul du classement. ?>
+                        <small><?php echo esc_html((int) floor((float) $cl->getPointsMensuels()) . ' pts' . ($avecPhotos ? ' · Cl. ' . $cl->getClassementOfficiel() : '')); ?></small>
+                    </span>
+                    <span class="monclubtt-carte-prog">
+                        <?php foreach ($badges as $libelle => $prog): ?>
+                        <span>
+                            <span class="monclubtt-carte-lbl"><?php echo esc_html($libelle); ?></span>
+                            <?php if ($prog > 0): ?>
+                                <span class="monclubtt-badge monclubtt-badge--up">+<?php echo esc_html($prog); ?></span>
+                            <?php elseif ($prog < 0): ?>
+                                <span class="monclubtt-badge monclubtt-badge--down"><?php echo esc_html($prog); ?></span>
+                            <?php else: ?>
+                                <span class="monclubtt-badge monclubtt-badge--neutral">—</span>
+                            <?php endif; ?>
+                        </span>
+                        <?php endforeach; ?>
+                    </span>
+                </li>
+                <?php
+            }
+            ?>
+        </ul>
+    </div>
+    <?php endif; ?>
 </div>

@@ -3,7 +3,7 @@ Contributors: robinos33
 Tags: table tennis, fftt, club, rankings, results
 Requires at least: 5.0
 Tested up to: 7.0
-Stable tag: 1.21.0
+Stable tag: 1.21.1
 Requires PHP: 7.4
 License: GPLv2
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -60,6 +60,9 @@ Player data is refreshed on manual sync only. League standings and results are c
 Yes. The plugin exposes five filters: `monclubtt_get_joueurs`, `monclubtt_get_equipes`, `monclubtt_get_classement_poule`, `monclubtt_get_rencontres_poule`, `monclubtt_get_feuille_rencontre`. See the documentation for usage.
 
 == Changelog ==
+
+= 1.21.1 =
+* Changed: on phones, the players table is replaced by one card per player (official ranking, current monthly points rounded down, monthly and season progression), with a "sort by" menu and the men/women filter. The table no longer overflows the page width
 
 = 1.21.0 =
 * Added: topspin and backspin in the pong game. A forward gesture at impact (or the up arrow) gives topspin, a backward gesture (or the down arrow) gives backspin; the ball speeds up or slows down by up to 30% after bouncing on the table, with a coloured trail. The opponent uses them too
@@ -225,6 +228,9 @@ Yes. The plugin exposes five filters: `monclubtt_get_joueurs`, `monclubtt_get_eq
 * Automatic team page generation and deletion
 
 == Upgrade Notice ==
+
+= 1.21.1 =
+The players list no longer overflows on phones: it is shown as one card per player.
 
 = 1.21.0 =
 Topspin, backspin and a timed fast serve in the pong game.
