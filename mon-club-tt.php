@@ -1252,13 +1252,15 @@ class MonClubTT_Plugin
 
     /**
      * Charge la médiathèque WordPress uniquement sur les pages qui s'en
-     * servent : « Joueurs » (photos) et réglages (logo du club).
+     * servent : « Joueurs », réglages et « Réseaux sociaux ».
      *
      * @param string $hook Suffixe de hook de la page admin courante.
      */
     public function admin_enqueue_media($hook)
     {
-        if ($hook === $this->joueurs_page_hook || $hook === $this->parametres_page_hook) {
+        $mediatheque_sociale = $hook === $this->reseaux_sociaux_page_hook
+            && monclubtt_photos_affichees() && current_user_can('upload_files');
+        if ($hook === $this->joueurs_page_hook || $hook === $this->parametres_page_hook || $mediatheque_sociale) {
             wp_enqueue_media();
         }
     }

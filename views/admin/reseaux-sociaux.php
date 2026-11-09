@@ -39,11 +39,14 @@
                 <label><input type="radio" name="mise-en-page" value="classique" checked> Classique</label>
                 <label><input type="radio" name="mise-en-page" value="photo"> Avec photo</label>
                 <div id="monclubtt-social-photo-options" hidden>
-                    <p><label for="monclubtt-social-photo">Photo en vedette (PNG)</label></p>
+                    <?php if (current_user_can('upload_files')): ?>
+                        <p><button type="button" class="button" id="monclubtt-social-photo-media">Médiathèque WordPress</button></p>
+                    <?php endif; ?>
+                    <p><label for="monclubtt-social-photo">Choisir un fichier PNG sur cet ordinateur</label></p>
                     <input type="file" id="monclubtt-social-photo" accept="image/png,.png"
                            aria-describedby="monclubtt-social-photo-aide monclubtt-social-photo-statut">
                     <p id="monclubtt-social-photo-aide" class="description">
-                        Choisissez un PNG détouré sur votre ordinateur. La photo est utilisée dans ce visuel, directement dans votre navigateur.
+                        Utilisez un PNG détouré. Les fichiers importés dans la médiathèque sont réutilisables dans les prochains visuels.
                     </p>
                     <p id="monclubtt-social-photo-statut" role="status"></p>
                 </div>

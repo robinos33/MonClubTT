@@ -34,6 +34,7 @@
     var photoEl   = document.getElementById('monclubtt-social-photo');
     var photoOptions = document.getElementById('monclubtt-social-photo-options');
     var photoStatut  = document.getElementById('monclubtt-social-photo-statut');
+    var btnMedia = document.getElementById('monclubtt-social-photo-media');
     if (!canvas || !form || !canvas.getContext) return;
     var ctx = canvas.getContext('2d');
 
@@ -41,7 +42,7 @@
     var perfsErreur  = '';
     var renderToken  = 0;
     var imageCache   = {};
-    var photoLocale  = Promise.resolve(null);
+    var photoChoisie = null;
     var legendeModifiee = false; // texte retouché à la main : ne plus l'écraser
     var P = {};                  // palette courante (voir palette())
 
@@ -148,6 +149,34 @@
             img.onerror = function () { terminer(null); };
             img.src = url;
         });
+    }
+
+    function ouvrirMediatheque() {
+        if (typeof wp === 'undefined' || typeof wp.media !== 'function') {
+            photoStatut.textContent = 'Impossible d’ouvrir la médiathèque WordPress.';
+            return;
+        }
+        var frame = wp.media({
+            title: 'Choisir un PNG détouré',
+            button: { text: 'Utiliser cette photo' },
+            library: { type: 'image' },
+            multiple: false
+        });
+        frame.on('select', function () {
+            var selection = frame.state().get('selection').first();
+            if (!selection) return;
+            var media = selection.toJSON();
+            photoEl.value = '';
+            photoChoisie = {
+                nom: media.filename || media.title,
+                chargement: media.mime === 'image/png' ? chargerImage(media.url) : null,
+                erreur: media.mime === 'image/png'
+                    ? 'Impossible de charger ce PNG depuis la médiathèque.'
+                    : 'Choisissez une image au format PNG dans la médiathèque.'
+            };
+            render();
+        });
+        frame.open();
     }
 
     /* Joueur du podium en pose de victoire (viewBox 256×200, image ×2) ;
@@ -1097,6 +1126,7 @@
         var L = LAYOUT;
         var weekend = CLE_WEEKEND.hasOwnProperty(st.visuel);
         var podium = st.visuel === 'prog-mens' || st.visuel === 'prog-ann';
+        var choix = st.avecPhoto ? photoChoisie : null;
 
         form.querySelectorAll('[data-visuel="prog"]').forEach(function (el) { el.hidden = !(podium || st.visuel === 'paliers'); });
         if (photoOptions) {
@@ -1106,13 +1136,15 @@
         btn.disabled = true;
 
         var contenu = weekend ? preparerWeekend(L, st.visuel) : (podium ? preparerPodium(st) : preparerPaliers(L, st));
-        Promise.all([contenu, chargerImage(DATA.logo), st.avecPhoto ? photoLocale : null]).then(function (res) {
+        Promise.all([contenu, chargerImage(DATA.logo), choix ? choix.chargement : null]).then(function (res) {
             if (token !== renderToken) return; // un rendu plus récent a été demandé
             var donnees = res[0], logo = res[1], photo = res[2];
-            if (st.avecPhoto && !photo) {
-                photoStatut.textContent = photoEl.files.length
-                    ? 'Impossible de lire cette image. Choisissez un fichier PNG valide.'
-                    : 'Choisissez une photo pour activer cette mise en page.';
+            if (st.avecPhoto) {
+                if (photo) {
+                    photoStatut.textContent = '« ' + choix.nom + ' » est utilisée dans le visuel.';
+                } else {
+                    photoStatut.textContent = choix ? choix.erreur : 'Choisissez une photo pour activer cette mise en page.';
+                }
             }
 
             P = palette(st.couleurs);
@@ -1224,7 +1256,14 @@
 
     form.addEventListener('change', function (e) {
         if (e.target === legendeEl) return;
-        if (e.target === photoEl) photoLocale = chargerPhotoLocale(photoEl.files[0]);
+        if (e.target === photoEl) {
+            var fichier = photoEl.files[0];
+            photoChoisie = fichier ? {
+                nom: fichier.name,
+                chargement: chargerPhotoLocale(fichier),
+                erreur: 'Impossible de lire cette image. Choisissez un fichier PNG valide.'
+            } : null;
+        }
         // Nouveau visuel ou filtre : le texte suit à nouveau le visuel.
         if (e.target.name === 'visuel' || e.target.name === 'sexe') legendeModifiee = false;
         render();
@@ -1234,6 +1273,7 @@
     }
     var btnCopier = document.getElementById('monclubtt-social-copier');
     if (btnCopier) btnCopier.addEventListener('click', copierLegende);
+    if (btnMedia) btnMedia.addEventListener('click', ouvrirMediatheque);
     form.addEventListener('submit', function (e) { e.preventDefault(); });
     var champClub = document.getElementById('monclubtt-social-club');
     var attente;
