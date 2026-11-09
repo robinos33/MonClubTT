@@ -31,6 +31,9 @@
     var btn       = document.getElementById('monclubtt-social-download');
     var legendeEl = document.getElementById('monclubtt-social-message');
     var statusEl  = document.getElementById('monclubtt-social-status');
+    var photoEl   = document.getElementById('monclubtt-social-photo');
+    var photoOptions = document.getElementById('monclubtt-social-photo-options');
+    var photoStatut  = document.getElementById('monclubtt-social-photo-statut');
     if (!canvas || !form || !canvas.getContext) return;
     var ctx = canvas.getContext('2d');
 
@@ -38,6 +41,7 @@
     var perfsErreur  = '';
     var renderToken  = 0;
     var imageCache   = {};
+    var photoLocale  = Promise.resolve(null);
     var legendeModifiee = false; // texte retouché à la main : ne plus l'écraser
     var P = {};                  // palette courante (voir palette())
 
@@ -49,6 +53,7 @@
             visuel: fd.get('visuel') || 'prog-mens',
             sexe:   fd.get('sexe') || 'MF',
             club:   String(fd.get('club') || '').trim(),
+            avecPhoto: !!photoEl && fd.get('mise-en-page') === 'photo',
             couleurs: DATA.couleurs // réglage du plugin (couleurs du club)
         };
     }
@@ -126,6 +131,23 @@
             img.src = url;
         });
         return imageCache[url];
+    }
+
+    function chargerPhotoLocale(fichier) {
+        if (!fichier || (fichier.type ? fichier.type !== 'image/png' : !/\.png$/i.test(fichier.name))) {
+            return Promise.resolve(null);
+        }
+        return new Promise(function (resolve) {
+            var url = URL.createObjectURL(fichier);
+            var img = new Image();
+            function terminer(resultat) {
+                URL.revokeObjectURL(url);
+                resolve(resultat);
+            }
+            img.onload = function () { terminer(img); };
+            img.onerror = function () { terminer(null); };
+            img.src = url;
+        });
     }
 
     /* Joueur du podium en pose de victoire (viewBox 256×200, image ×2) ;
@@ -229,9 +251,11 @@
 
     /* ------------------------------------------------------ fond / cadre */
 
-    function fond(L) {
+    function fond(L, photo) {
         ctx.fillStyle = P.fond;
         ctx.fillRect(0, 0, W, L.h);
+
+        if (photo) return;
 
         // Balle de ping-pong en filigrane, très discrète, hors de la zone du titre
         ctx.fillStyle = alpha(P.texte, 0.035);
@@ -259,11 +283,64 @@
         espacement(0);
     }
 
+    /* Silhouette entière, centrée dans la colonne et alignée sur sa base. */
+    function dessinerPhotoEntete(photo, x, bas, w, h) {
+        var echelle = Math.min(w / photo.naturalWidth, h / photo.naturalHeight);
+        var largeur = photo.naturalWidth * echelle, hauteur = photo.naturalHeight * echelle;
+        ctx.drawImage(photo, x + (w - largeur) / 2, bas - hauteur, largeur, hauteur);
+    }
+
+    function bandeauPhoto(photo, x, bas) {
+        var nuit = melange(P.primaire, '#080e1b', 0.84);
+        ctx.save();
+        ctx.beginPath();
+        ctx.rect(0, 0, W, bas);
+        ctx.clip();
+        ctx.fillStyle = nuit;
+        ctx.fillRect(0, 0, W, bas);
+
+        // L'aplat oblique cadre le geste et laisse un fond uni sous le titre.
+        var couleur = ctx.createLinearGradient(x, 0, W, bas);
+        couleur.addColorStop(0, melange(P.primaire, '#ffffff', 0.2));
+        couleur.addColorStop(1, P.primaire);
+        ctx.fillStyle = couleur;
+        ctx.beginPath();
+        ctx.moveTo(x + 190, 0);
+        ctx.lineTo(W, 0);
+        ctx.lineTo(W, bas);
+        ctx.lineTo(x, bas);
+        ctx.closePath();
+        ctx.fill();
+
+        // Deux lignes en bordure, inspirées des marquages d'une table.
+        ctx.lineWidth = 3;
+        ctx.strokeStyle = 'rgba(255,255,255,0.22)';
+        ctx.beginPath();
+        ctx.moveTo(x + 214, 0);
+        ctx.lineTo(x + 24, bas);
+        ctx.moveTo(x + 232, 0);
+        ctx.lineTo(x + 42, bas);
+        ctx.stroke();
+
+        ctx.shadowColor = 'rgba(0,0,0,0.28)';
+        ctx.shadowBlur = 22;
+        ctx.shadowOffsetY = 8;
+        dessinerPhotoEntete(photo, x + 8, bas + 3, W - x - 32, bas - 24);
+        ctx.restore();
+        ctx.fillStyle = P.secondaire;
+        ctx.fillRect(0, bas - 6, W, 6);
+    }
+
     /* En-tête : logo + club, gros titre (+ accent à droite), pastille de date
        et filet. Retourne l'ordonnée du bas de l'en-tête. */
-    function entete(L, club, titre, accent, tag, logo) {
+    function entete(L, club, titre, accent, tag, logo, photo) {
         var y = L.headY, ts = L.ts;
         var logoT = 92 * ts;
+        var photoX = 602;
+        var droiteTexte = photo ? photoX - 12 : W - M;
+        var basPhoto = 456;
+        var texteEntete = photo ? '#ffffff' : P.texte;
+        if (photo) bandeauPhoto(photo, photoX, basPhoto);
 
         // Logo dans un rond cerclé, sinon pastille avec l'initiale du club
         var cx = M + logoT / 2, cy = y + logoT / 2;
@@ -271,7 +348,7 @@
         ctx.fillStyle = '#ffffff';
         ctx.fill();
         ctx.lineWidth = 3 * ts;
-        ctx.strokeStyle = P.texte;
+        ctx.strokeStyle = texteEntete;
         ctx.stroke();
         if (logo) {
             ctx.save();
@@ -290,18 +367,41 @@
         var textX = M + logoT + 24 * ts;
         ctx.textAlign = 'left';
         if (club) {
-            ctx.fillStyle = P.texte;
+            ctx.fillStyle = texteEntete;
             espacement(1);
-            ajuster(club.toUpperCase(), 800, 30 * ts, W - textX - M);
-            ctx.fillText(club.toUpperCase(), textX, cy - 4 * ts);
+            ajuster(club.toUpperCase(), 800, 30 * ts, droiteTexte - textX);
+            ctx.fillText(club.toUpperCase(), textX, cy - 4 * ts, droiteTexte - textX);
         }
-        ctx.fillStyle = P.discret;
+        ctx.fillStyle = photo ? '#c4d0e0' : P.discret;
         espacement(1);
         ctx.font = font(600, 22 * ts);
         ctx.fillText('TENNIS DE TABLE', textX, cy + 28 * ts);
 
         // Titre + accent (ex. « J1 ») en couleur secondaire
         var titreY = y + logoT + 150 * ts;
+        if (photo) {
+            var titreYPhoto = 332;
+            var largeurTitre = droiteTexte - M;
+            var lignes = titre === 'TOP PROGRESSION' || titre === 'NOUVEAUX PALIERS' ? titre.split(' ') : [titre];
+            espacement(-2);
+            var tailleTitre = Math.min.apply(null, lignes.map(function (ligne) {
+                return ajuster(ligne, 900, lignes.length === 1 ? 110 : 88, largeurTitre);
+            }));
+            ctx.font = font(900, tailleTitre);
+            ctx.fillStyle = texteEntete;
+            lignes.forEach(function (ligne, i) {
+                ctx.fillText(ligne, M, titreYPhoto - (lignes.length - i - 1) * tailleTitre, largeurTitre);
+            });
+            espacement(0);
+
+            var tagPhoto = [accent, tag.toUpperCase()].filter(Boolean).join('  •  ');
+            if (tagPhoto) {
+                var tailleTag = ajuster(tagPhoto, 900, 26 * ts, largeurTitre - 72 * ts);
+                pastille(tagPhoto, M, 365, tailleTag, P.secondaire, P.surSec, 'left');
+            }
+            return basPhoto;
+        }
+
         espacement(-2);
         var accentW = 0, accentT = 0;
         if (accent) {
@@ -999,23 +1099,32 @@
         var podium = st.visuel === 'prog-mens' || st.visuel === 'prog-ann';
 
         form.querySelectorAll('[data-visuel="prog"]').forEach(function (el) { el.hidden = !(podium || st.visuel === 'paliers'); });
+        if (photoOptions) {
+            photoOptions.hidden = !st.avecPhoto;
+            photoStatut.textContent = '';
+        }
         btn.disabled = true;
 
         var contenu = weekend ? preparerWeekend(L, st.visuel) : (podium ? preparerPodium(st) : preparerPaliers(L, st));
-        Promise.all([contenu, chargerImage(DATA.logo)]).then(function (res) {
+        Promise.all([contenu, chargerImage(DATA.logo), st.avecPhoto ? photoLocale : null]).then(function (res) {
             if (token !== renderToken) return; // un rendu plus récent a été demandé
-            var donnees = res[0], logo = res[1];
+            var donnees = res[0], logo = res[1], photo = res[2];
+            if (st.avecPhoto && !photo) {
+                photoStatut.textContent = photoEl.files.length
+                    ? 'Impossible de lire cette image. Choisissez un fichier PNG valide.'
+                    : 'Choisissez une photo pour activer cette mise en page.';
+            }
 
             P = palette(st.couleurs);
             canvas.width = W;
             canvas.height = L.h;
-            fond(L);
+            fond(L, photo);
 
             if (weekend) {
                 var tag = perfsData ? dateCourte(perfsData.date_debut, perfsData.date_fin) : '';
                 var accent = perfsData && perfsData.tour ? 'J' + perfsData.tour : '';
                 var titre = st.visuel === 'resultats' ? 'RÉSULTATS' : LISTES[st.visuel].titre;
-                var bas = entete(L, st.club, titre, accent, tag, logo);
+                var bas = entete(L, st.club, titre, accent, tag, logo, photo);
                 if (!perfsData || !donnees.length) {
                     messageVide(L, perfsErreur || (st.visuel === 'resultats' ? 'Aucune rencontre ce week-end.' : LISTES[st.visuel].vide));
                     majLegende('');
@@ -1040,12 +1149,12 @@
                 setStatus(perfsData ? perfsData.rencontres + ' rencontre(s) analysée(s) sur le dernier week-end de championnat.' : perfsErreur);
             } else if (podium) {
                 var tagProg = st.visuel === 'prog-mens' ? DATA.moisLabel : DATA.saisonLabel;
-                entete(L, st.club, 'TOP PROGRESSION', '', tagProg, logo);
+                entete(L, st.club, 'TOP PROGRESSION', '', tagProg, logo, photo);
                 dessinerPodium(L, donnees);
                 setStatus('');
                 majLegende(donnees.length ? legendePodium(st, donnees) : '');
             } else {
-                var basPaliers = entete(L, st.club, LISTES.paliers.titre, '', DATA.moisLabel, logo);
+                var basPaliers = entete(L, st.club, LISTES.paliers.titre, '', DATA.moisLabel, logo, photo);
                 if (donnees.length) {
                     dessinerLignes(L, donnees, basPaliers + 50 * L.ts, contenuPalier);
                 } else {
@@ -1055,7 +1164,7 @@
                 majLegende(donnees.length ? legendePaliers(donnees) : '');
             }
             pied(L, st.club);
-            btn.disabled = !donnees.length;
+            btn.disabled = !donnees.length || (st.avecPhoto && !photo);
         });
     }
 
@@ -1070,7 +1179,8 @@
             'belles':    'victoires-a-la-belle-' + (perfsData ? perfsData.date_fin : ''),
             'paliers':   'nouveaux-paliers-' + DATA.moisLabel
         }[st.visuel];
-        return nom.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') + '.png';
+        return nom.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') +
+            (st.avecPhoto ? '-avec-photo' : '') + '.png';
     }
 
     function telecharger() {
@@ -1114,6 +1224,7 @@
 
     form.addEventListener('change', function (e) {
         if (e.target === legendeEl) return;
+        if (e.target === photoEl) photoLocale = chargerPhotoLocale(photoEl.files[0]);
         // Nouveau visuel ou filtre : le texte suit à nouveau le visuel.
         if (e.target.name === 'visuel' || e.target.name === 'sexe') legendeModifiee = false;
         render();

@@ -33,6 +33,23 @@
                 <label><input type="radio" name="sexe" value="F"> Femmes</label>
             </fieldset>
 
+            <?php if (monclubtt_photos_affichees()): ?>
+            <fieldset>
+                <legend>Mise en page</legend>
+                <label><input type="radio" name="mise-en-page" value="classique" checked> Classique</label>
+                <label><input type="radio" name="mise-en-page" value="photo"> Avec photo</label>
+                <div id="monclubtt-social-photo-options" hidden>
+                    <p><label for="monclubtt-social-photo">Photo en vedette (PNG)</label></p>
+                    <input type="file" id="monclubtt-social-photo" accept="image/png,.png"
+                           aria-describedby="monclubtt-social-photo-aide monclubtt-social-photo-statut">
+                    <p id="monclubtt-social-photo-aide" class="description">
+                        Choisissez un PNG détouré sur votre ordinateur. La photo est utilisée dans ce visuel, directement dans votre navigateur.
+                    </p>
+                    <p id="monclubtt-social-photo-statut" role="status"></p>
+                </div>
+            </fieldset>
+            <?php endif; ?>
+
             <fieldset class="monclubtt-social-couleurs">
                 <legend>Couleurs du club</legend>
                 <?php foreach (monclubtt_get_couleurs() as $monclubtt_cle => $monclubtt_couleur): ?>
