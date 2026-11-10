@@ -12,6 +12,7 @@ if ( ! class_exists( 'MonClubTT_Constantes' ) ) {
         const MONCLUBTT_JOUEUR_PHOTOS = 'monclubtt_joueur_photos';
         /** '1' (défaut) : photos des joueurs affichées sur le site, le jeu et les visuels ; '0' : avatars dessinés. */
         const MONCLUBTT_AFFICHER_PHOTOS = 'monclubtt_afficher_photos';
+        const MONCLUBTT_COLLECTION_SOCIALE = 'monclubtt_collection_sociale';
         const MONCLUBTT_COULEURS = 'monclubtt_couleurs';
         const MONCLUBTT_LOGO = 'monclubtt_logo';
         const MONCLUBTT_PONG_ADVERSAIRES = 'monclubtt_pong_adversaires';

@@ -61,6 +61,7 @@ class MonClubTT_Plugin
         add_action('admin_enqueue_scripts', array($this, 'admin_enqueue_media'));
         add_action('admin_enqueue_scripts', array($this, 'admin_enqueue_reseaux_sociaux'));
         add_action('init', array($this, 'monclubtt_style_scripts'));
+        add_action('init', array('MonClubTT_CollectionsPhotos', 'enregistrer'));
         add_shortcode('monclubtt_equipe', array($this, 'equipes_front'));
         add_shortcode('monclubtt_joueurs', array($this, 'joueurs_front'));
         add_shortcode('monclubtt_pong', array($this, 'pong_front'));
@@ -79,6 +80,7 @@ class MonClubTT_Plugin
         add_action('wp_ajax_monclubtt_remove_joueur_photo', array($this, 'handle_ajax_remove_joueur_photo'));
         add_action('wp_ajax_monclubtt_generate_pages', array($this, 'handle_ajax_generate_pages'));
         add_action('wp_ajax_monclubtt_top_perfs', array($this, 'handle_ajax_top_perfs'));
+        add_action('wp_ajax_monclubtt_collection_photos', array($this, 'handle_ajax_collection_photos'));
         add_action('wp_ajax_monclubtt_feuille_match',        array($this, 'handle_ajax_feuille_match'));
         add_action('wp_ajax_nopriv_monclubtt_feuille_match', array($this, 'handle_ajax_feuille_match'));
         add_action('wp_ajax_monclubtt_pong_scores',          array($this, 'handle_ajax_pong_scores'));
@@ -152,6 +154,7 @@ class MonClubTT_Plugin
         register_setting('monclubtt_settings', MonClubTT_Constantes::MONCLUBTT_COULEURS, array('sanitize_callback' => array($this, 'sanitize_couleurs')));
         register_setting('monclubtt_settings', MonClubTT_Constantes::MONCLUBTT_LOGO, array('sanitize_callback' => array($this, 'sanitize_logo')));
         register_setting('monclubtt_settings', MonClubTT_Constantes::MONCLUBTT_AFFICHER_PHOTOS, array('sanitize_callback' => array($this, 'sanitize_case')));
+        register_setting('monclubtt_settings', MonClubTT_Constantes::MONCLUBTT_COLLECTION_SOCIALE, array('sanitize_callback' => 'absint'));
         register_setting('monclubtt_settings', MonClubTT_Constantes::MONCLUBTT_PONG_PROS, array('sanitize_callback' => array($this, 'sanitize_case')));
         register_setting('monclubtt_settings', MonClubTT_Constantes::MONCLUBTT_PONG_ADVERSAIRES, array('sanitize_callback' => array($this, 'sanitize_pong_adversaires')));
         register_setting('monclubtt_settings', MonClubTT_Constantes::MONCLUBTT_PONG_MUSIQUE, array('sanitize_callback' => array($this, 'sanitize_pong_musique')));
@@ -166,6 +169,7 @@ class MonClubTT_Plugin
         add_settings_field(MonClubTT_Constantes::MONCLUBTT_LOGO, 'Logo du club', array($this, 'logo_html'), 'monclubtt_settings', 'monclubtt_section');
         add_settings_field(MonClubTT_Constantes::MONCLUBTT_COULEURS, 'Couleurs du club', array($this, 'couleurs_html'), 'monclubtt_settings', 'monclubtt_section');
         add_settings_field(MonClubTT_Constantes::MONCLUBTT_AFFICHER_PHOTOS, 'Photos des joueurs', array($this, 'afficher_photos_html'), 'monclubtt_settings', 'monclubtt_section');
+        add_settings_field(MonClubTT_Constantes::MONCLUBTT_COLLECTION_SOCIALE, 'Collection photo par défaut', array($this, 'collection_sociale_html'), 'monclubtt_settings', 'monclubtt_section');
         add_settings_field(MonClubTT_Constantes::MONCLUBTT_PONG_PROS, 'Top 10 mondial dans le jeu de pong', array($this, 'pong_pros_html'), 'monclubtt_settings', 'monclubtt_section');
         add_settings_field(MonClubTT_Constantes::MONCLUBTT_PONG_ADVERSAIRES, 'Adversaires du jeu de pong', array($this, 'pong_adversaires_html'), 'monclubtt_settings', 'monclubtt_section');
         add_settings_field(MonClubTT_Constantes::MONCLUBTT_PONG_MUSIQUE, 'Musique du jeu de pong', array($this, 'pong_musique_html'), 'monclubtt_settings', 'monclubtt_section');
@@ -361,6 +365,22 @@ class MonClubTT_Plugin
                 $(this).hide();
             });
         });');
+    }
+
+    public function collection_sociale_html()
+    {
+        $option = MonClubTT_Constantes::MONCLUBTT_COLLECTION_SOCIALE;
+        wp_dropdown_categories(array(
+            'taxonomy'          => MonClubTT_CollectionsPhotos::TAXONOMIE,
+            'name'              => $option,
+            'selected'          => (int) get_option($option, 0),
+            'hide_empty'        => false,
+            'show_option_none'  => 'Toute la médiathèque',
+            'option_none_value' => '0',
+        ));
+        ?>
+        <p class="description">Collection ouverte par défaut dans les visuels « Avec photo ».</p>
+        <?php
     }
 
     public function afficher_photos_html()
@@ -1301,6 +1321,7 @@ class MonClubTT_Plugin
         wp_localize_script('monclubtt-social-js', 'MonClubTTSocial', array(
             'ajaxurl'     => admin_url('admin-ajax.php'),
             'nonce'       => wp_create_nonce('monclubtt_top_perfs_nonce'),
+            'nonceCollection' => wp_create_nonce('monclubtt_collection_photos'),
             'players'     => $players,
             'paliers'     => $paliers,
             'moisLabel'   => $moisFr[(int) date_i18n('n') - 1] . ' ' . date_i18n('Y'),
@@ -1310,6 +1331,58 @@ class MonClubTT_Plugin
             'logo'        => monclubtt_get_logo_url(256),
             'couleurs'    => monclubtt_get_couleurs(),
         ));
+    }
+
+    public function handle_ajax_collection_photos()
+    {
+        check_ajax_referer('monclubtt_collection_photos', 'nonce');
+        if (!current_user_can('manage_options') || !current_user_can('upload_files') || !monclubtt_photos_affichees()) {
+            wp_send_json_error(array('message' => 'Accès aux collections de photos refusé.'), 403);
+            return;
+        }
+
+        $taxonomie = MonClubTT_CollectionsPhotos::TAXONOMIE;
+        $collection = absint(wp_unslash($_POST['collection'] ?? '0')); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+        if (!$collection || !term_exists($collection, $taxonomie)) {
+            wp_send_json_error(array('message' => 'Collection introuvable. Rechargez la page.'), 404);
+            return;
+        }
+
+        $operation = sanitize_key(wp_unslash($_POST['operation'] ?? ''));
+        if ($operation === 'lister') {
+            $ids = get_objects_in_term($collection, $taxonomie);
+            if (is_wp_error($ids)) {
+                wp_send_json_error(array('message' => 'Impossible de lire la collection.'), 500);
+                return;
+            }
+            wp_send_json_success(array('ids' => array_map('intval', $ids)));
+            return;
+        }
+
+        $photos = wp_parse_id_list(wp_unslash($_POST['photos'] ?? '')); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+        if (!in_array($operation, array('ajouter', 'retirer'), true) || !$photos) {
+            wp_send_json_error(array('message' => 'Sélectionnez au moins un PNG.'), 400);
+            return;
+        }
+        foreach ($photos as $photo) {
+            if (get_post_type($photo) !== 'attachment' || get_post_mime_type($photo) !== 'image/png' || !current_user_can('edit_post', $photo)) {
+                wp_send_json_error(array('message' => 'La sélection doit contenir des PNG que vous pouvez modifier.'), 400);
+                return;
+            }
+        }
+
+        $traites = 0;
+        foreach ($photos as $photo) {
+            $resultat = $operation === 'ajouter'
+                ? wp_add_object_terms($photo, $collection, $taxonomie)
+                : wp_remove_object_terms($photo, $collection, $taxonomie);
+            if (is_wp_error($resultat) || ($resultat === false && ($operation === 'ajouter' || has_term($collection, $taxonomie, $photo)))) {
+                wp_send_json_error(array('message' => 'Mise à jour interrompue après ' . $traites . ' fichier(s). Vous pouvez réessayer.'), 500);
+                return;
+            }
+            $traites++;
+        }
+        wp_send_json_success(array('total' => $traites));
     }
 
     /**

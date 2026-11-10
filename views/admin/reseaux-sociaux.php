@@ -40,7 +40,23 @@
                 <label><input type="radio" name="mise-en-page" value="photo"> Avec photo</label>
                 <div id="monclubtt-social-photo-options" hidden>
                     <?php if (current_user_can('upload_files')): ?>
+                        <p><label for="monclubtt-social-collection">Collection de photos</label></p>
+                        <?php wp_dropdown_categories(array(
+                            'taxonomy'          => MonClubTT_CollectionsPhotos::TAXONOMIE,
+                            'id'                => 'monclubtt-social-collection',
+                            'name'              => 'collection',
+                            'hide_empty'        => false,
+                            'selected'          => (int) get_option(MonClubTT_Constantes::MONCLUBTT_COLLECTION_SOCIALE, 0),
+                            'show_option_none'  => 'Toute la médiathèque',
+                            'option_none_value' => '0',
+                        )); ?>
                         <p><button type="button" class="button" id="monclubtt-social-photo-media">Médiathèque WordPress</button></p>
+                        <p>
+                            <button type="button" class="button" id="monclubtt-social-collection-ajouter" hidden>Ajouter des PNG</button>
+                            <button type="button" class="button" id="monclubtt-social-collection-retirer" hidden>Retirer des PNG</button>
+                            <a href="<?php echo esc_url(admin_url('edit-tags.php?taxonomy=' . MonClubTT_CollectionsPhotos::TAXONOMIE . '&post_type=attachment')); ?>">Gérer les collections</a>
+                        </p>
+                        <p id="monclubtt-social-collection-statut" role="status"></p>
                     <?php endif; ?>
                     <p><label for="monclubtt-social-photo">Choisir un fichier PNG sur cet ordinateur</label></p>
                     <input type="file" id="monclubtt-social-photo" accept="image/png,.png"

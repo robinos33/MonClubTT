@@ -35,6 +35,10 @@
     var photoOptions = document.getElementById('monclubtt-social-photo-options');
     var photoStatut  = document.getElementById('monclubtt-social-photo-statut');
     var btnMedia = document.getElementById('monclubtt-social-photo-media');
+    var collectionEl = document.getElementById('monclubtt-social-collection');
+    var btnAjouter = document.getElementById('monclubtt-social-collection-ajouter');
+    var btnRetirer = document.getElementById('monclubtt-social-collection-retirer');
+    var collectionStatut = document.getElementById('monclubtt-social-collection-statut');
     if (!canvas || !form || !canvas.getContext) return;
     var ctx = canvas.getContext('2d');
 
@@ -151,32 +155,121 @@
         });
     }
 
-    function ouvrirMediatheque() {
+    function ouvrirCadreMedia(options, choisir) {
         if (typeof wp === 'undefined' || typeof wp.media !== 'function') {
             photoStatut.textContent = 'Impossible d’ouvrir la médiathèque WordPress.';
             return;
         }
-        var frame = wp.media({
-            title: 'Choisir un PNG détouré',
-            button: { text: 'Utiliser cette photo' },
-            library: { type: 'image' },
-            multiple: false
-        });
+        var frame = wp.media(options);
         frame.on('select', function () {
-            var selection = frame.state().get('selection').first();
-            if (!selection) return;
-            var media = selection.toJSON();
-            photoEl.value = '';
-            photoChoisie = {
-                nom: media.filename || media.title,
-                chargement: media.mime === 'image/png' ? chargerImage(media.url) : null,
-                erreur: media.mime === 'image/png'
-                    ? 'Impossible de charger ce PNG depuis la médiathèque.'
-                    : 'Choisissez une image au format PNG dans la médiathèque.'
-            };
-            render();
+            choisir(frame.state().get('selection'));
         });
         frame.open();
+    }
+
+    function collectionActive() {
+        return collectionEl ? Number(collectionEl.value) : 0;
+    }
+
+    function majBoutonsCollection() {
+        var collection = collectionActive();
+        btnMedia.textContent = collection ? 'Choisir dans cette collection' : 'Médiathèque WordPress';
+        btnAjouter.hidden = btnRetirer.hidden = !collection;
+    }
+
+    function requeteCollection(operation, collection, photos) {
+        btnMedia.disabled = btnAjouter.disabled = btnRetirer.disabled = collectionEl.disabled = true;
+        collectionStatut.textContent = 'Chargement de la collection…';
+        var body = new URLSearchParams({
+            action: 'monclubtt_collection_photos', nonce: DATA.nonceCollection,
+            operation: operation, collection: collection, photos: (photos || []).join(',')
+        });
+        return fetch(DATA.ajaxurl, { method: 'POST', credentials: 'same-origin', body: body })
+            .then(function (res) { return res.json(); })
+            .catch(function () { throw new Error('Impossible de communiquer avec WordPress.'); })
+            .then(function (res) {
+                if (!res.success) {
+                    throw new Error((res.data && res.data.message) || 'La collection est indisponible.');
+                }
+                collectionStatut.textContent = '';
+                return res.data;
+            })
+            .finally(function () {
+                btnMedia.disabled = btnAjouter.disabled = btnRetirer.disabled = collectionEl.disabled = false;
+            });
+    }
+
+    function ouvrirMediatheque() {
+        var collection = collectionActive();
+        var liste = collection ? requeteCollection('lister', collection) : Promise.resolve(null);
+        liste.then(function (res) {
+            var library = { type: 'image' };
+            if (res) {
+                if (!res.ids.length) {
+                    collectionStatut.textContent = 'Collection vide. Utilisez « Ajouter des PNG ».';
+                    return;
+                }
+                library.include = res.ids;
+            }
+            ouvrirCadreMedia({
+                title: 'Choisir un PNG détouré',
+                button: { text: 'Utiliser cette photo' },
+                library: library,
+                multiple: false
+            }, function (selection) {
+                var attachment = selection.first();
+                if (!attachment) return;
+                var media = attachment.toJSON();
+                if (res && res.ids.indexOf(Number(media.id)) === -1) {
+                    collectionStatut.textContent = 'Ajoutez d’abord ce fichier à la collection.';
+                    return;
+                }
+                photoEl.value = '';
+                photoChoisie = {
+                    nom: media.filename || media.title,
+                    chargement: media.mime === 'image/png' ? chargerImage(media.url) : null,
+                    erreur: media.mime === 'image/png'
+                        ? 'Impossible de charger ce PNG depuis la médiathèque.'
+                        : 'Choisissez une image au format PNG dans la médiathèque.'
+                };
+                render();
+            });
+        }).catch(function (erreur) { collectionStatut.textContent = erreur.message; });
+    }
+
+    function modifierCollection(operation) {
+        var collection = collectionActive();
+        if (!collection) return;
+        var ajout = operation === 'ajouter';
+        var liste = ajout ? Promise.resolve(null) : requeteCollection('lister', collection);
+        liste.then(function (res) {
+            var library = { type: 'image' };
+            if (res) {
+                if (!res.ids.length) {
+                    collectionStatut.textContent = 'La collection est vide.';
+                    return;
+                }
+                library.include = res.ids;
+            }
+            var action = ajout ? 'Ajouter à la collection' : 'Retirer de la collection';
+            ouvrirCadreMedia({
+                title: action,
+                button: { text: action },
+                library: library,
+                multiple: 'add'
+            }, function (selection) {
+                var photos = selection.toJSON();
+                if (photos.some(function (media) { return media.mime !== 'image/png'; })) {
+                    collectionStatut.textContent = 'Sélectionnez uniquement des fichiers PNG.';
+                    return;
+                }
+                requeteCollection(operation, collection, photos.map(function (media) { return media.id; }))
+                    .then(function (resultat) {
+                        collectionStatut.textContent = resultat.total + (ajout ? ' PNG ajouté(s) à la collection.' : ' PNG retiré(s) de la collection.');
+                    })
+                    .catch(function (erreur) { collectionStatut.textContent = erreur.message; });
+            });
+        }).catch(function (erreur) { collectionStatut.textContent = erreur.message; });
     }
 
     /* Joueur du podium en pose de victoire (viewBox 256×200, image ×2) ;
@@ -1256,6 +1349,11 @@
 
     form.addEventListener('change', function (e) {
         if (e.target === legendeEl) return;
+        if (e.target === collectionEl) {
+            collectionStatut.textContent = '';
+            majBoutonsCollection();
+            return;
+        }
         if (e.target === photoEl) {
             var fichier = photoEl.files[0];
             photoChoisie = fichier ? {
@@ -1273,7 +1371,12 @@
     }
     var btnCopier = document.getElementById('monclubtt-social-copier');
     if (btnCopier) btnCopier.addEventListener('click', copierLegende);
-    if (btnMedia) btnMedia.addEventListener('click', ouvrirMediatheque);
+    if (btnMedia) {
+        btnMedia.addEventListener('click', ouvrirMediatheque);
+        btnAjouter.addEventListener('click', function () { modifierCollection('ajouter'); });
+        btnRetirer.addEventListener('click', function () { modifierCollection('retirer'); });
+        majBoutonsCollection();
+    }
     form.addEventListener('submit', function (e) { e.preventDefault(); });
     var champClub = document.getElementById('monclubtt-social-club');
     var attente;
