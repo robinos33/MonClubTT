@@ -101,7 +101,9 @@ class MonClubTT_CalendrierWP {
             ),
             'public'          => false,
             'show_ui'         => true,
-            'show_in_menu'    => 'monclubtt_parametres',
+            // Sous-menu ajouté à la main dans menus() : avec show_in_menu sur le menu du plugin,
+            // WordPress l'insère avant que « Mon Club TT » existe et l'entrée des réglages disparaît.
+            'show_in_menu'    => false,
             'show_in_rest'    => false,
             'supports'        => array('title'),
             'capability_type' => 'post',
@@ -375,6 +377,7 @@ class MonClubTT_CalendrierWP {
     public function menus()
     {
         $type = self::TYPE;
+        add_submenu_page('monclubtt_parametres', 'Calendrier', 'Calendrier', 'edit_posts', 'edit.php?post_type=' . $type);
         add_submenu_page('monclubtt_parametres', 'Ajouter un événement', '— Ajouter', 'edit_posts', 'post-new.php?post_type=' . $type);
         add_submenu_page('monclubtt_parametres', 'Séries', '— Séries', 'manage_categories', 'edit-tags.php?taxonomy=' . self::SERIE . '&post_type=' . $type);
         add_submenu_page('monclubtt_parametres', 'Catégories', '— Catégories', 'manage_categories', 'edit-tags.php?taxonomy=' . self::CATEGORIE . '&post_type=' . $type);
@@ -675,7 +678,7 @@ class MonClubTT_CalendrierWP {
                         </ul>
                     <?php endif; ?>
                     <?php if (!empty($rapport['simulation'])) : ?>
-                        <p>Rien n'a été enregistré : relancez sans cocher « Vérifier seulement » pour importer.</p>
+                        <p>Rien n'a été enregistré : choisissez à nouveau le fichier et cliquez sur « Importer ».</p>
                     <?php else : ?>
                         <p><a href="<?php echo esc_url(admin_url('edit.php?post_type=' . self::TYPE . '&monclubtt_saison=' . (int) $rapport['saison'])); ?>">Voir les événements de la saison</a></p>
                     <?php endif; ?>
@@ -713,13 +716,15 @@ class MonClubTT_CalendrierWP {
                     <tr>
                         <th scope="row">Options</th>
                         <td>
-                            <label><input type="checkbox" name="simulation" value="1" checked> Vérifier seulement (rien n'est enregistré)</label><br>
                             <label><input type="checkbox" name="remplacer" value="1"> Mettre à la corbeille les événements importés de cette saison qui ne sont plus dans le fichier</label>
                             <p class="description">Les événements ajoutés à la main ne sont jamais touchés. Un événement déjà importé est reconnu par sa colonne <code>source</code> (sinon par sa date et son intitulé) et mis à jour.</p>
                         </td>
                     </tr>
                 </table>
-                <?php submit_button('Importer'); ?>
+                <p class="submit">
+                    <button type="submit" name="mode" value="importer" class="button button-primary">Importer</button>
+                    <button type="submit" name="mode" value="verifier" class="button">Vérifier sans importer</button>
+                </p>
             </form>
 
             <h2>Colonnes reconnues</h2>
@@ -751,7 +756,7 @@ class MonClubTT_CalendrierWP {
             $contenu = mb_convert_encoding($contenu, 'UTF-8', 'Windows-1252');
         }
         $saison     = isset($_POST['saison']) ? absint($_POST['saison']) : MonClubTT_Calendrier::saisonDe($this->aujourdhui());
-        $simulation = !empty($_POST['simulation']);
+        $simulation = isset($_POST['mode']) && 'verifier' === $_POST['mode'];
         $remplacer  = !empty($_POST['remplacer']);
 
         $analyse = MonClubTT_Calendrier::analyserImport($contenu);
