@@ -162,7 +162,7 @@ class MonClubTT_Plugin
     public function register_settings()
     {
         register_setting('monclubtt_settings', MonClubTT_Constantes::MONCLUBTT_ID_APPLICATION, array('sanitize_callback' => 'sanitize_text_field'));
-        register_setting('monclubtt_settings', MonClubTT_Constantes::MONCLUBTT_MOT_DE_PASSE,    array('sanitize_callback' => array($this, 'sanitize_mot_de_passe')));
+        register_setting('monclubtt_settings', MonClubTT_Constantes::MONCLUBTT_MOT_DE_PASSE,    array('sanitize_callback' => 'sanitize_text_field'));
         register_setting('monclubtt_settings', MonClubTT_Constantes::MONCLUBTT_NUM_CLUB,        array('sanitize_callback' => 'sanitize_text_field'));
         register_setting('monclubtt_settings', MonClubTT_Constantes::MONCLUBTT_LICENCES_EXCLUES, array('sanitize_callback' => 'monclubtt_sanitize_licences_exclues'));
         register_setting('monclubtt_settings', MonClubTT_Constantes::MONCLUBTT_COULEURS, array('sanitize_callback' => array($this, 'sanitize_couleurs')));
@@ -206,25 +206,28 @@ class MonClubTT_Plugin
     }
 
     /**
-     * Le mot de passe n'est jamais réaffiché : le champ est vide et le laisser
-     * vide conserve le mot de passe enregistré.
+     * Mot de passe masqué par défaut, avec un bouton « œil » pour l'afficher
+     * (même présentation que le mot de passe du profil WordPress).
      */
     public function mot_de_passe_html()
     {
-        $enregistre = (string) get_option(MonClubTT_Constantes::MONCLUBTT_MOT_DE_PASSE, '') !== '';
         ?>
-        <input type="password" name="monclubtt_mot_de_passe" value="" autocomplete="new-password"
-               placeholder="<?php echo esc_attr($enregistre ? '•••••••• (enregistré)' : ''); ?>"/>
-        <?php if ($enregistre): ?>
-            <p class="description">Laisser vide pour conserver le mot de passe enregistré.</p>
-        <?php endif;
-    }
-
-    /** Champ vide : le mot de passe enregistré est conservé. */
-    public function sanitize_mot_de_passe($valeur)
-    {
-        $valeur = sanitize_text_field((string) $valeur);
-        return $valeur !== '' ? $valeur : (string) get_option(MonClubTT_Constantes::MONCLUBTT_MOT_DE_PASSE, '');
+        <span class="wp-pwd monclubtt-mot-de-passe">
+            <input type="password" id="monclubtt_mot_de_passe" name="monclubtt_mot_de_passe" class="regular-text" spellcheck="false"
+                   autocomplete="off" value="<?php echo esc_attr(get_option(MonClubTT_Constantes::MONCLUBTT_MOT_DE_PASSE)); ?>"/>
+            <button type="button" class="button wp-hide-pw hide-if-no-js" aria-controls="monclubtt_mot_de_passe" aria-label="Afficher le mot de passe">
+                <span class="dashicons dashicons-visibility" aria-hidden="true"></span>
+            </button>
+        </span>
+        <?php
+        wp_add_inline_script('monclubtt-js', 'jQuery(function($) {
+            $(".monclubtt-mot-de-passe .wp-hide-pw").on("click", function() {
+                var $champ = $("#monclubtt_mot_de_passe"), visible = $champ.attr("type") === "password";
+                $champ.attr("type", visible ? "text" : "password");
+                $(this).attr("aria-label", visible ? "Masquer le mot de passe" : "Afficher le mot de passe")
+                    .find(".dashicons").toggleClass("dashicons-visibility", !visible).toggleClass("dashicons-hidden", visible);
+            });
+        });');
     }
 
     public function equipe_num_html()

@@ -14,7 +14,7 @@ Format : [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/)
 - Import du calendrier : réservé aux éditeurs et administrateurs. Un contributeur pouvait publier des événements, modifier ceux des autres (titres, dates, liens) et mettre la saison à la corbeille. Chaque événement existant n'est désormais modifié ou supprimé que si l'utilisateur en a le droit (#28).
 - API FFTT : l'initialisation n'a plus lieu à chaque affichage de page, mais seulement avant un vrai appel réseau, au plus une fois par jour (et après une synchronisation ou un changement d'identifiants). Les visiteurs ne déclenchent plus d'écriture dans les logs, qui ne sont plus chargés à chaque requête. Délai de 10 s pour les appels déclenchés par un visiteur (#29).
 - Widget « Synchronisation » du tableau de bord réservé aux administrateurs (#30).
-- Mot de passe de l'API FFTT masqué et jamais réaffiché ; laisser le champ vide conserve celui enregistré (#30).
+- Mot de passe de l'API FFTT masqué par défaut, avec un bouton « œil » pour l'afficher (#30).
 - Pages d'équipe générées : identifiants de division et de poule acceptés seulement s'ils sont numériques (#30).
 
 ### Ajouté
