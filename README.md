@@ -13,6 +13,7 @@ Plugin WordPress non-officiel pour afficher les données d'un club issues de l'[
 - **Liste des joueurs** — tableau trié par classement, avec badges de progression mensuelle et annuelle, filtrable par sexe (H / F / mixte)
 - **Page d'équipe** — classement de poule mis en évidence + résultats de championnat organisés par journée
 - **Feuilles de match** — au clic sur un résultat, la composition des deux équipes et le détail partie par partie s'affichent (chargement AJAX, mis en cache)
+- **Calendrier du club** — agenda de la saison, prochain rendez-vous d'une série (tour du Grand Prix, stage…) qui avance tout seul, listes de dates, abonnement des adhérents dans leur agenda
 
 ### Côté administration
 
@@ -20,6 +21,7 @@ Plugin WordPress non-officiel pour afficher les données d'un club issues de l'[
 - **Widget tableau de bord** avec bouton de synchronisation rapide
 - **Gestion des équipes** — liste des équipes de championnat sénior, génération / suppression automatique des pages WordPress correspondantes (corbeille réversible)
 - **Vue joueurs** — liste complète des licenciés du club
+- **Calendrier** — événements saisis à la main ou importés du tableur de la saison (CSV ou JSON), rangés par série et par catégorie
 - **Réseaux sociaux** — visuels prêts à poster (Top Progression, nouveaux paliers de points, et pour le dernier week-end de championnat : résultats des équipes, top perfs, cartons pleins, victoires à la belle), générés dans le navigateur et téléchargeables en PNG portrait 4:5 (1080 × 1350, affiché en entier dans le fil Instagram et Facebook), avec un texte de publication pré-rempli
 
 ---
@@ -57,6 +59,72 @@ Au-dessus de la liste, le podium Top Progression montre les 3 plus fortes progre
 
 Les valeurs `iddiv` et `idpoule` sont générées automatiquement dans *MonClubTT → Équipes*.  
 Copier le shortcode affiché dans le tableau et le coller dans la page WordPress souhaitée.
+
+### Calendrier du club
+
+Les dates du club vivent à un seul endroit, *Mon Club TT › Calendrier*. Chaque page qui affiche une date la lit avec un shortcode : quand un tour ou un stage est passé, le suivant s'affiche tout seul.
+
+**Saisie.** Chaque saison, importer le tableur dans *Mon Club TT › — Importer* (CSV exporté du tableur, séparateur `;` ou `,`, ou le JSON de l'ancien calendrier), puis compléter les événements dans l'admin (lieu, lien d'inscription, série). Colonnes reconnues sur la première ligne : `debut` et `titre` obligatoires ; `fin`, `categorie`, `serie`, `heure`, `heure fin`, `lieu`, `lien`, `note`, `source` facultatives. Dates `28/11/2026` ou `2026-11-28`. Un nouvel import met à jour les événements déjà importés (reconnus par `source`, sinon par date et intitulé) sans effacer le lieu, le lien ou la note saisis dans l'admin si le tableur ne les renseigne pas. Les événements ajoutés à la main ne sont jamais touchés par un import.
+
+**Séries.** Une série regroupe les rendez-vous qui reviennent (« Grand Prix du Conseil départemental », « Stage Multisports »…). Son *slug* (*Mon Club TT › — Séries*) sert dans les shortcodes. **Saison** : chaque événement appartient à une saison (choisie à l'import), ce qui permet de ranger les stages d'août dans la saison qui se termine.
+
+```
+[monclubtt_calendrier]
+```
+
+Agenda de la saison du prochain rendez-vous : vue mois ou liste, filtres par catégorie, choix d'une période, détail d'un rendez-vous, téléchargement `.ics` et **abonnement** (Apple Calendrier, Outlook, Google Agenda) qui suit les changements du club.
+
+| Attribut | Valeurs | Défaut | Description |
+|----------|---------|--------|-------------|
+| `saison` | année de début (`2026`) | saison du prochain rendez-vous | Saison affichée |
+| `categorie` | noms ou slugs, séparés par des virgules | — | Restreindre à certaines catégories |
+| `serie` | slugs, séparés par des virgules | — | Restreindre à certaines séries |
+
+```
+[monclubtt_prochain serie="grand-prix-du-conseil-departemental" libelle="Tour %n"]
+```
+
+Prochain rendez-vous (ou celui en cours) d'une série ou d'une catégorie : encadré avec date, lieu, note et lien. En `format="texte"`, renvoie un seul champ, à glisser dans une phrase ou un bloc HTML :
+
+```
+Prochain tour : Tour [monclubtt_prochain serie="grand-prix-du-conseil-departemental" format="texte" champ="numero"] : [monclubtt_prochain serie="grand-prix-du-conseil-departemental" format="texte"]
+→ Prochain tour : Tour 1 : 28 et 29 novembre
+
+Horaires du [monclubtt_prochain serie="grand-prix-du-conseil-departemental" format="texte" champ="ordinal"] tour
+→ Horaires du 1er tour
+
+<a href="[monclubtt_prochain serie="grand-prix-du-conseil-departemental" format="texte" champ="lien"]">S'inscrire</a>
+```
+
+| Attribut | Valeurs | Défaut | Description |
+|----------|---------|--------|-------------|
+| `serie` | slugs | — | Série(s) concernée(s) |
+| `categorie` | noms ou slugs | — | Ou une catégorie |
+| `libelle` | texte avec `%n` (rang dans la série), `%t` (titre), `%s` (série) | titre | Libellé affiché |
+| `format` | `bloc`, `texte` | `bloc` | Encadré ou texte seul |
+| `champ` | `periode`, `libelle`, `titre`, `numero`, `ordinal`, `heure`, `lieu`, `lien`, `note`, `debut`, `fin` | `periode` | Champ renvoyé en `format="texte"` |
+| `annee` | `0`, `1` | `0` | Ajouter l'année à la date |
+| `vide` | texte | `Dates à venir` | Texte quand il n'y a plus de date |
+
+```
+[monclubtt_dates serie="grand-prix-du-conseil-departemental" libelle="Tour %n"]
+[monclubtt_dates serie="stage-multisports,stage-perfectionnement" titres="Multisports,Perfectionnements"]
+```
+
+Dates de la saison d'une série : cartes avec la prochaine mise en avant et les passées grisées. Avec plusieurs séries, tableau par mois (une colonne par série), le prochain rendez-vous de chaque série en avant.
+
+| Attribut | Valeurs | Défaut | Description |
+|----------|---------|--------|-------------|
+| `serie` | slugs, séparés par des virgules | — | Série(s) |
+| `categorie` | noms ou slugs | — | Ou une catégorie |
+| `saison` | année de début | saison du prochain rendez-vous | Saison affichée |
+| `libelle` | comme `[monclubtt_prochain]` | titre | Libellé des cartes |
+| `titres` | textes séparés par des virgules | noms des séries | En-têtes des colonnes du tableau |
+| `grouper` | `auto`, `liste`, `mois` | `auto` | Cartes, ou tableau par mois (auto : tableau dès deux séries) |
+| `passes` | `afficher`, `masquer` | `afficher` | Dates passées grisées ou masquées |
+| `annee` | `0`, `1` | `0` | Ajouter l'année aux dates |
+
+**Flux d'abonnement** : `https://votre-site/?monclubtt_calendrier=ics` (paramètres facultatifs `saison`, `categorie`, `serie`, `du`, `au`, `evenement`, `telecharger=1`).
 
 ### Jeu de pong
 
@@ -139,6 +207,13 @@ $rencontres = apply_filters('monclubtt_get_rencontres_poule', null, [
 $feuille = apply_filters('monclubtt_get_feuille_rencontre', null, [
     'renc_id'   => '6595431',
     'is_retour' => 0,
+]);
+
+// Événements du calendrier (debut, fin, heure, titre, categorie, serie, lieu,
+// lien, note, saison, numero…), triés par date
+$stages = apply_filters('monclubtt_get_evenements', [], [
+    'serie'  => 'stage-multisports', // slugs séparés par des virgules
+    'saison' => '2026',              // défaut : toutes
 ]);
 ```
 

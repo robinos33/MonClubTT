@@ -93,6 +93,9 @@ class MonClubTT_Plugin
 
         // Widget dashboard
         add_action('wp_dashboard_setup', array($this, 'add_dashboard_widget'));
+
+        // Calendrier du club : événements, import, flux .ics et shortcodes.
+        new MonClubTT_CalendrierWP(__FILE__);
     }
 
     public function add_admin_menu()

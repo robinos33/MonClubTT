@@ -1,0 +1,592 @@
+/* CALENDRIER DU CLUB : [monclubtt_calendrier], [monclubtt_prochain], [monclubtt_dates] */
+
+.monclubtt-calendrier,
+.monclubtt-prochain,
+.monclubtt-dates {
+    --mct-accent: var(--monclubtt-primaire);
+    --mct-accent-fonce: var(--monclubtt-prim-fonce);
+    --mct-papier: #fff;
+    --mct-encre: #252b28;
+    --mct-doux: #f6f7f6;
+    --mct-trait: #d9dfdb;
+    --mct-discret: #5f6964;
+    text-align: left;
+    color: var(--mct-encre);
+}
+.monclubtt-calendrier *,
+.monclubtt-dates *,
+.monclubtt-prochain * {
+    box-sizing: border-box;
+}
+.monclubtt-calendrier [hidden] {
+    display: none !important;
+}
+
+/* ---------- Agenda ---------- */
+
+.monclubtt-calendrier {
+    font-size: 14px;
+    line-height: 1.5;
+}
+.monclubtt-calendrier p {
+    margin: 0;
+}
+.monclubtt-calendrier button,
+.monclubtt-calendrier select,
+.monclubtt-calendrier input,
+.monclubtt-calendrier .mct-principal {
+    font: inherit;
+    color: var(--mct-encre);
+    background: var(--mct-papier);
+    border: 1px solid var(--mct-trait);
+    border-radius: 8px;
+    padding: 8px 13px;
+    min-height: 40px;
+    margin: 0;
+    text-transform: none;
+    letter-spacing: normal;
+    box-shadow: none;
+    height: auto;
+    white-space: normal;
+    cursor: pointer;
+}
+.monclubtt-calendrier button:hover {
+    background: var(--mct-doux);
+}
+.monclubtt-calendrier button[aria-pressed="true"] {
+    background: var(--mct-accent);
+    border-color: var(--mct-accent);
+    color: #fff;
+}
+.monclubtt-calendrier button:disabled {
+    opacity: .4;
+    cursor: default;
+}
+.monclubtt-calendrier :is(button, select, input, a):focus-visible {
+    outline: 2px solid var(--mct-accent);
+    outline-offset: 3px;
+}
+.monclubtt-calendrier .mct-principal {
+    display: inline-block;
+    background: var(--mct-accent);
+    border-color: var(--mct-accent);
+    color: #fff;
+    text-decoration: none;
+}
+.monclubtt-calendrier .mct-principal:hover {
+    background: var(--mct-accent-fonce);
+    color: #fff;
+}
+
+.monclubtt-calendrier .mct-entete,
+.monclubtt-calendrier .mct-barre {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+.monclubtt-calendrier .mct-entete {
+    margin-bottom: 18px;
+}
+.monclubtt-calendrier .mct-saison {
+    border: 1px solid var(--mct-trait);
+    border-radius: 30px;
+    padding: 8px 15px;
+    color: var(--mct-accent);
+    font-weight: 700;
+    white-space: nowrap;
+}
+.monclubtt-calendrier .mct-barre {
+    margin-bottom: 14px;
+}
+.monclubtt-calendrier .mct-mois-nav,
+.monclubtt-calendrier .mct-vues {
+    display: flex;
+    gap: 7px;
+    align-items: center;
+}
+.monclubtt-calendrier select {
+    font-weight: 700;
+    max-width: 100%;
+}
+
+.monclubtt-calendrier .mct-periode {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin: 0 0 14px;
+}
+.monclubtt-calendrier .mct-periode label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+    font-weight: 700;
+}
+.monclubtt-calendrier .mct-periode input {
+    width: auto;
+    max-width: 100%;
+    padding: 8px 10px;
+}
+
+.monclubtt-calendrier .mct-filtres {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+.monclubtt-calendrier .mct-filtres button {
+    font-size: 12px;
+    padding: 6px 12px;
+    min-height: 36px;
+    border-radius: 24px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+.monclubtt-calendrier .mct-pastille {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: var(--mct-evt);
+}
+.monclubtt-calendrier .mct-filtres button[aria-pressed="true"] .mct-pastille {
+    box-shadow: 0 0 0 2px #fff;
+}
+.monclubtt-calendrier .mct-compte {
+    font-size: 12px;
+    color: var(--mct-discret);
+    margin: 14px 0 10px;
+}
+
+/* Grille du mois */
+.monclubtt-calendrier .mct-grille {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    border-left: 1px solid var(--mct-trait);
+    border-top: 1px solid var(--mct-trait);
+    border-radius: 10px;
+    overflow: hidden;
+}
+.monclubtt-calendrier .mct-jour-semaine {
+    padding: 10px 5px;
+    text-align: center;
+    font-size: 11px;
+    color: var(--mct-discret);
+    border-right: 1px solid var(--mct-trait);
+    border-bottom: 1px solid var(--mct-trait);
+}
+.monclubtt-calendrier .mct-semaine {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    min-height: 110px;
+}
+.monclubtt-calendrier .mct-jour {
+    padding: 6px 7px;
+    border-right: 1px solid var(--mct-trait);
+    border-bottom: 1px solid var(--mct-trait);
+    min-width: 0;
+}
+.monclubtt-calendrier .mct-vide {
+    background: var(--mct-doux);
+}
+.monclubtt-calendrier .mct-num {
+    font-size: 12px;
+    color: var(--mct-discret);
+}
+.monclubtt-calendrier .mct-aujourdhui .mct-num {
+    display: inline-block;
+    min-width: 22px;
+    padding: 0 5px;
+    border-radius: 11px;
+    background: var(--mct-accent);
+    color: #fff;
+    font-weight: 700;
+    text-align: center;
+}
+.monclubtt-calendrier .mct-evt {
+    z-index: 1;
+    display: block;
+    min-width: 0;
+    align-self: start;
+    margin: 2px 5px 8px;
+    padding: 6px 9px;
+    min-height: 46px;
+    font-size: 12px;
+    line-height: 1.3;
+    text-align: left;
+    overflow-wrap: anywhere;
+    border: 0;
+    border-left: 3px solid var(--mct-evt);
+    border-radius: 6px;
+    background: color-mix(in srgb, var(--mct-evt) 10%, #fff);
+}
+.monclubtt-calendrier .mct-evt:hover {
+    background: color-mix(in srgb, var(--mct-evt) 22%, #fff);
+}
+.monclubtt-calendrier .mct-evt small {
+    display: block;
+    font-size: 10px;
+    color: var(--mct-discret);
+    margin-bottom: 2px;
+}
+.monclubtt-calendrier .mct-plage {
+    display: block;
+    font-size: 11px;
+    color: var(--mct-discret);
+    margin-top: 3px;
+}
+.monclubtt-calendrier .mct-suite-gauche {
+    border-left: 0;
+    border-radius: 0 6px 6px 0;
+    margin-left: 0;
+}
+.monclubtt-calendrier .mct-suite-droite {
+    border-radius: 6px 0 0 6px;
+    margin-right: 0;
+}
+.monclubtt-calendrier .mct-suite-gauche.mct-suite-droite {
+    border-radius: 0;
+}
+
+/* Liste */
+.monclubtt-calendrier .mct-agenda-mois {
+    font-size: 18px;
+    color: var(--mct-accent);
+    margin: 22px 0 4px;
+    text-transform: none;
+    letter-spacing: normal;
+}
+.monclubtt-calendrier .mct-agenda-mois::first-letter {
+    text-transform: uppercase;
+}
+.monclubtt-calendrier .mct-ligne {
+    display: grid;
+    grid-template-columns: 120px 1fr auto;
+    gap: 18px;
+    align-items: center;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--mct-trait);
+}
+.monclubtt-calendrier .mct-ligne .mct-date {
+    font-weight: 700;
+    color: var(--mct-accent);
+}
+.monclubtt-calendrier .mct-ligne small {
+    display: block;
+    color: var(--mct-discret);
+    margin-top: 2px;
+}
+.monclubtt-calendrier .mct-ligne small::before {
+    content: "";
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    margin-right: 6px;
+    border-radius: 50%;
+    background: var(--mct-evt);
+}
+.monclubtt-calendrier .mct-passe {
+    opacity: .6;
+}
+.monclubtt-calendrier .mct-vide-liste {
+    padding: 35px 10px;
+    text-align: center;
+    color: var(--mct-discret);
+}
+
+/* Détail */
+.monclubtt-calendrier .mct-detail {
+    margin-top: 16px;
+    padding: 20px;
+    background: var(--mct-doux);
+    border-radius: 10px;
+    border-left: 4px solid var(--mct-evt, var(--mct-accent));
+}
+.monclubtt-calendrier .mct-detail h3 {
+    font-size: 19px;
+    margin: 4px 0;
+    color: var(--mct-encre);
+    text-transform: none;
+    letter-spacing: normal;
+}
+.monclubtt-calendrier .mct-detail p {
+    margin-top: 8px;
+}
+.monclubtt-calendrier .mct-detail-date {
+    font-weight: 700;
+}
+.monclubtt-calendrier .mct-detail-actions a:not(.mct-principal) {
+    color: var(--mct-accent);
+}
+.monclubtt-calendrier .mct-surtitre {
+    color: var(--mct-accent);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+}
+.monclubtt-calendrier .mct-fermer {
+    float: right;
+    margin: 0 0 10px 10px;
+}
+
+/* Fenêtre d'export */
+.monclubtt-calendrier .mct-dialogue {
+    color: var(--mct-encre);
+    background: #fff;
+    border: 1px solid var(--mct-trait);
+    border-radius: 14px;
+    padding: 24px;
+    width: min(520px, calc(100% - 32px));
+    max-height: calc(100dvh - 40px);
+    overflow: auto;
+    box-shadow: 0 16px 70px rgba(0, 0, 0, .2);
+}
+.monclubtt-calendrier .mct-dialogue::backdrop {
+    background: rgba(0, 0, 0, .4);
+}
+.monclubtt-calendrier .mct-dialogue h2 {
+    font-size: 22px;
+    margin: 4px 0 14px;
+    text-transform: none;
+    letter-spacing: normal;
+}
+.monclubtt-calendrier .mct-dialogue h3 {
+    font-size: 15px;
+    margin: 20px 0 6px;
+    text-transform: none;
+    letter-spacing: normal;
+}
+.monclubtt-calendrier .mct-abonnement {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 12px 0 8px;
+}
+.monclubtt-calendrier .mct-note {
+    font-size: 12px;
+    color: var(--mct-discret);
+    margin-top: 8px;
+}
+.monclubtt-calendrier .mct-note input {
+    width: 100%;
+    margin-top: 4px;
+    font-size: 12px;
+}
+.monclubtt-calendrier .mct-export-options {
+    border: 0;
+    padding: 0;
+    margin: 10px 0 14px;
+    display: grid;
+    gap: 8px;
+}
+.monclubtt-calendrier .mct-export-options legend {
+    position: absolute;
+    clip: rect(0 0 0 0);
+}
+.monclubtt-calendrier .mct-export-options label {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    border: 1px solid var(--mct-trait);
+    border-radius: 8px;
+    padding: 10px 12px;
+    cursor: pointer;
+}
+.monclubtt-calendrier .mct-export-options label:has(input:checked) {
+    border-color: var(--mct-accent);
+    background: color-mix(in srgb, var(--mct-accent) 6%, #fff);
+}
+.monclubtt-calendrier .mct-export-options label:has(input:disabled) {
+    opacity: .5;
+    cursor: default;
+}
+.monclubtt-calendrier .mct-export-options input {
+    accent-color: var(--mct-accent);
+    margin: 4px 0 0;
+    min-height: 0;
+    width: 17px;
+    height: 17px;
+    flex-shrink: 0;
+}
+.monclubtt-calendrier .mct-export-options small {
+    display: block;
+    color: var(--mct-discret);
+    font-size: 12px;
+}
+
+@media (max-width: 620px) {
+    .monclubtt-calendrier .mct-mois-nav {
+        width: 100%;
+    }
+    .monclubtt-calendrier select {
+        flex: 1;
+        min-width: 0;
+        font-size: 16px;
+    }
+    .monclubtt-calendrier button {
+        min-height: 44px;
+    }
+    .monclubtt-calendrier .mct-periode label {
+        flex: 1 1 140px;
+    }
+    .monclubtt-calendrier .mct-periode input {
+        flex: 1;
+        min-width: 0;
+        font-size: 16px;
+    }
+    .monclubtt-calendrier .mct-ligne {
+        grid-template-columns: 1fr;
+        gap: 4px;
+    }
+    .monclubtt-calendrier .mct-ligne button {
+        justify-self: start;
+        margin-top: 4px;
+    }
+}
+
+/* ---------- Prochain rendez-vous ---------- */
+
+.monclubtt-prochain {
+    border: 1px solid color-mix(in srgb, var(--mct-accent) 30%, #fff);
+    background: color-mix(in srgb, var(--mct-accent) 6%, #fff);
+    border-radius: 10px;
+    padding: 14px 18px;
+}
+.monclubtt-prochain p {
+    margin: 0;
+}
+.monclubtt-prochain__surtitre {
+    color: var(--mct-accent);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+}
+.monclubtt-prochain__titre {
+    font-size: 1.15em;
+    font-weight: 700;
+    margin-top: 2px !important;
+}
+.monclubtt-prochain__date {
+    font-weight: 700;
+    color: var(--mct-accent);
+}
+.monclubtt-prochain__lieu,
+.monclubtt-prochain__note {
+    color: var(--mct-discret);
+    margin-top: 4px !important;
+}
+.monclubtt-prochain__lien {
+    margin-top: 8px !important;
+}
+.monclubtt-prochain__lien a {
+    color: var(--mct-accent);
+    font-weight: 700;
+}
+.monclubtt-prochain--vide {
+    color: var(--mct-discret);
+}
+
+/* ---------- Dates d'une série ---------- */
+
+.monclubtt-dates ol {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+    gap: 12px;
+}
+.monclubtt-dates li {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    margin: 0;
+    padding: 14px 16px;
+    border: 1px solid var(--mct-trait);
+    border-radius: 10px;
+    background: #fff;
+}
+.monclubtt-dates li.is-prochain {
+    border: 2px solid var(--mct-accent);
+    background: color-mix(in srgb, var(--mct-accent) 6%, #fff);
+}
+.monclubtt-dates li.is-passe {
+    opacity: .55;
+}
+.monclubtt-dates__titre {
+    font-weight: 700;
+}
+.monclubtt-dates__date {
+    color: var(--mct-accent);
+    font-weight: 700;
+}
+.monclubtt-dates li.is-passe .monclubtt-dates__date {
+    color: var(--mct-discret);
+}
+.monclubtt-dates__lieu {
+    font-size: .9em;
+    color: var(--mct-discret);
+}
+.monclubtt-dates__lien {
+    font-size: .9em;
+    color: var(--mct-accent);
+    margin-top: 4px;
+}
+.monclubtt-dates__badge {
+    display: inline-block;
+    margin-left: 6px;
+    padding: 1px 8px;
+    border-radius: 10px;
+    background: var(--mct-accent);
+    color: #fff;
+    font-size: 11px;
+    font-style: normal;
+    font-weight: 700;
+    vertical-align: 1px;
+}
+.monclubtt-dates__badge--passe {
+    background: var(--mct-trait);
+    color: var(--mct-encre);
+}
+
+.monclubtt-dates--mois table {
+    width: 100%;
+    border-collapse: collapse;
+}
+.monclubtt-dates--mois th,
+.monclubtt-dates--mois td {
+    text-align: left;
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--mct-trait);
+    vertical-align: top;
+}
+.monclubtt-dates--mois tbody th {
+    white-space: nowrap;
+}
+.monclubtt-dates--mois thead th {
+    font-size: .85em;
+    color: var(--mct-discret);
+}
+.monclubtt-dates--mois tr.is-prochain {
+    background: color-mix(in srgb, var(--mct-accent) 6%, #fff);
+}
+.monclubtt-dates__periode {
+    display: block;
+}
+.monclubtt-dates__periode.is-passe {
+    color: var(--mct-discret);
+    text-decoration: line-through;
+    text-decoration-color: color-mix(in srgb, var(--mct-discret) 50%, transparent);
+}
+.monclubtt-dates__periode.is-prochain {
+    font-weight: 700;
+    color: var(--mct-accent);
+}
+.monclubtt-dates--vide {
+    color: var(--mct-discret);
+}
