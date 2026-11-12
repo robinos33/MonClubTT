@@ -12,6 +12,12 @@ if (!class_exists('MonClubTT_AccesFFTTApi')) {
 
         private static $_instance = null;
 
+        /** Initialisation du serial auprès de la FFTT faite depuis moins d'un jour. */
+        const TRANSIENT_INIT = 'monclubtt_api_init';
+
+        /** Option des logs de l'API (non autoloadée). */
+        const OPTION_LOGS = 'monclubtt_api_logs';
+
         private $cache;
 
         /**
@@ -50,10 +56,11 @@ if (!class_exists('MonClubTT_AccesFFTTApi')) {
                 if (empty($serial)) {
                     $serial = MonClubTT_AccesFFTTApi::generateSerial();
                     update_option('monclubtt_api_serial', $serial, false);
+                    delete_transient(self::TRANSIENT_INIT);
                 }
                 $this->setSerial($serial);
-                // Initialise l'application si possible (les éventuelles erreurs XML sont gérées en interne)
-                $this->initialization();
+                // L'initialisation n'a plus lieu ici : elle est faite juste avant
+                // un vrai appel à l'API (cache absent), au plus une fois par jour.
             }
 
             // Assure que les erreurs libxml n'interrompent pas l'exécution
@@ -102,6 +109,21 @@ if (!class_exists('MonClubTT_AccesFFTTApi')) {
         public function getIpSource()
         {
             return $this->ipSource;
+        }
+
+        /**
+         * Initialise le serial auprès de la FFTT si ce n'est pas fait depuis
+         * un jour. Appelé avant chaque appel réseau, jamais quand les données
+         * viennent du cache.
+         */
+        private function initialiserSiNecessaire()
+        {
+            if (!function_exists('get_transient') || get_transient(self::TRANSIENT_INIT)) {
+                return;
+            }
+            // Posé avant l'appel : une FFTT injoignable n'est pas resollicitée à chaque requête.
+            set_transient(self::TRANSIENT_INIT, 1, DAY_IN_SECONDS);
+            $this->initialization();
         }
 
         public function initialization()
@@ -402,6 +424,9 @@ if (!class_exists('MonClubTT_AccesFFTTApi')) {
         public function getData($url, $params = array(), $generateHash = true, $silentErrors = false)
         {
             if ($generateHash) {
+                if (strpos($url, 'xml_initialisation.php') === false) {
+                    $this->initialiserSiNecessaire();
+                }
                 $params['serie'] = $this->getSerial();
                 $params['id'] = $this->getAppId();
                 $params['tm'] = gmdate('YmdHis') . substr(microtime(), 2, 3);
@@ -417,7 +442,8 @@ if (!class_exists('MonClubTT_AccesFFTTApi')) {
             $this->addApiLog("Appel API: $logUrl");
 
             $response = wp_remote_get($url, array(
-                'timeout'     => 30,
+                // Délai court quand un visiteur attend la page ; long pour la synchro.
+                'timeout'     => self::contexteAdmin() ? 30 : 10,
                 'redirection' => 5,
                 'user-agent'  => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
                 'headers'     => array('Accept' => 'text/xml,application/xml,*/*'),
@@ -515,9 +541,24 @@ if (!class_exists('MonClubTT_AccesFFTTApi')) {
         /**
          * Ajoute un log d'API pour affichage dans l'interface admin
          */
+        /**
+         * Appel lancé par un administrateur ou par le cron, et non par un
+         * visiteur : seuls ces appels sont journalisés.
+         */
+        private static function contexteAdmin()
+        {
+            return (function_exists('wp_doing_cron') && wp_doing_cron())
+                || (function_exists('current_user_can') && current_user_can('manage_options'));
+        }
+
         private function addApiLog($message, $type = 'info')
         {
-            $logs = get_option('monclubtt_api_logs', array());
+            // Les visiteurs ne doivent provoquer aucune écriture de log.
+            if (!self::contexteAdmin()) {
+                return;
+            }
+            $logs = get_option(self::OPTION_LOGS, array());
+            $logs = is_array($logs) ? $logs : array();
 
             // Ne garder que les 50 derniers logs
             if (count($logs) >= 50) {
@@ -530,7 +571,7 @@ if (!class_exists('MonClubTT_AccesFFTTApi')) {
                 'message' => $message
             );
 
-            update_option('monclubtt_api_logs', $logs);
+            update_option(self::OPTION_LOGS, $logs, false);
         }
 
         /**
@@ -538,7 +579,7 @@ if (!class_exists('MonClubTT_AccesFFTTApi')) {
          */
         public static function getApiLogs()
         {
-            return get_option('monclubtt_api_logs', array());
+            return get_option(self::OPTION_LOGS, array());
         }
 
         /**
@@ -546,7 +587,7 @@ if (!class_exists('MonClubTT_AccesFFTTApi')) {
          */
         public static function clearApiLogs()
         {
-            delete_option('monclubtt_api_logs');
+            delete_option(self::OPTION_LOGS);
         }
 
         public static function generateSerial()
