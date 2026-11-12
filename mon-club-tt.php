@@ -94,8 +94,20 @@ class MonClubTT_Plugin
         // Widget dashboard
         add_action('wp_dashboard_setup', array($this, 'add_dashboard_widget'));
 
+        // Nouveaux identifiants FFTT : le serial sera réinitialisé au prochain appel.
+        foreach (array(MonClubTT_Constantes::MONCLUBTT_ID_APPLICATION, MonClubTT_Constantes::MONCLUBTT_MOT_DE_PASSE) as $option) {
+            add_action('update_option_' . $option, array($this, 'reinitialiser_api'));
+            add_action('add_option_' . $option, array($this, 'reinitialiser_api'));
+        }
+
         // Calendrier du club : événements, import, flux .ics et shortcodes.
         new MonClubTT_CalendrierWP(__FILE__);
+    }
+
+    /** Force l'initialisation FFTT au prochain appel (identifiants modifiés, synchro). */
+    public function reinitialiser_api()
+    {
+        delete_transient(MonClubTT_AccesFFTTApi::TRANSIENT_INIT);
     }
 
     public function add_admin_menu()
@@ -150,7 +162,7 @@ class MonClubTT_Plugin
     public function register_settings()
     {
         register_setting('monclubtt_settings', MonClubTT_Constantes::MONCLUBTT_ID_APPLICATION, array('sanitize_callback' => 'sanitize_text_field'));
-        register_setting('monclubtt_settings', MonClubTT_Constantes::MONCLUBTT_MOT_DE_PASSE,    array('sanitize_callback' => 'sanitize_text_field'));
+        register_setting('monclubtt_settings', MonClubTT_Constantes::MONCLUBTT_MOT_DE_PASSE,    array('sanitize_callback' => array($this, 'sanitize_mot_de_passe')));
         register_setting('monclubtt_settings', MonClubTT_Constantes::MONCLUBTT_NUM_CLUB,        array('sanitize_callback' => 'sanitize_text_field'));
         register_setting('monclubtt_settings', MonClubTT_Constantes::MONCLUBTT_LICENCES_EXCLUES, array('sanitize_callback' => 'monclubtt_sanitize_licences_exclues'));
         register_setting('monclubtt_settings', MonClubTT_Constantes::MONCLUBTT_COULEURS, array('sanitize_callback' => array($this, 'sanitize_couleurs')));
@@ -161,6 +173,7 @@ class MonClubTT_Plugin
         register_setting('monclubtt_settings', MonClubTT_Constantes::MONCLUBTT_PONG_MUSIQUE, array('sanitize_callback' => array($this, 'sanitize_pong_musique')));
         register_setting('monclubtt_settings', 'monclubtt_pong_raz_compteurs', array('sanitize_callback' => array($this, 'sanitize_pong_raz_compteurs')));
         register_setting('monclubtt_settings', 'monclubtt_pong_vider_scores', array('sanitize_callback' => array($this, 'sanitize_pong_vider_scores')));
+        register_setting('monclubtt_settings', 'monclubtt_pong_vider_matchs', array('sanitize_callback' => array($this, 'sanitize_pong_vider_matchs')));
 
         add_settings_section('monclubtt_section', '', array($this, 'section_html'), 'monclubtt_settings');
         add_settings_field(MonClubTT_Constantes::MONCLUBTT_ID_APPLICATION, 'Id Application', array($this, 'id_application_html'), 'monclubtt_settings', 'monclubtt_section');
@@ -175,6 +188,7 @@ class MonClubTT_Plugin
         add_settings_field(MonClubTT_Constantes::MONCLUBTT_PONG_MUSIQUE, 'Musique du jeu de pong', array($this, 'pong_musique_html'), 'monclubtt_settings', 'monclubtt_section');
         add_settings_field('monclubtt_pong_raz_compteurs', 'Parties du jeu de pong', array($this, 'pong_compteurs_html'), 'monclubtt_settings', 'monclubtt_section');
         add_settings_field('monclubtt_pong_vider_scores', 'Meilleurs scores du jeu de pong', array($this, 'pong_vider_scores_html'), 'monclubtt_settings', 'monclubtt_section');
+        add_settings_field('monclubtt_pong_vider_matchs', 'Matchs partagés du jeu de pong', array($this, 'pong_vider_matchs_html'), 'monclubtt_settings', 'monclubtt_section');
     }
 
     public function section_html()
@@ -191,12 +205,26 @@ class MonClubTT_Plugin
         <?php
     }
 
+    /**
+     * Le mot de passe n'est jamais réaffiché : le champ est vide et le laisser
+     * vide conserve le mot de passe enregistré.
+     */
     public function mot_de_passe_html()
     {
+        $enregistre = (string) get_option(MonClubTT_Constantes::MONCLUBTT_MOT_DE_PASSE, '') !== '';
         ?>
-        <input type="text" name="monclubtt_mot_de_passe"
-               value="<?php echo esc_attr(get_option(MonClubTT_Constantes::MONCLUBTT_MOT_DE_PASSE)); ?>"/>
-        <?php
+        <input type="password" name="monclubtt_mot_de_passe" value="" autocomplete="new-password"
+               placeholder="<?php echo esc_attr($enregistre ? '•••••••• (enregistré)' : ''); ?>"/>
+        <?php if ($enregistre): ?>
+            <p class="description">Laisser vide pour conserver le mot de passe enregistré.</p>
+        <?php endif;
+    }
+
+    /** Champ vide : le mot de passe enregistré est conservé. */
+    public function sanitize_mot_de_passe($valeur)
+    {
+        $valeur = sanitize_text_field((string) $valeur);
+        return $valeur !== '' ? $valeur : (string) get_option(MonClubTT_Constantes::MONCLUBTT_MOT_DE_PASSE, '');
     }
 
     public function equipe_num_html()
@@ -526,6 +554,39 @@ class MonClubTT_Plugin
     {
         if ($valeur === '1') {
             delete_option(MonClubTT_Constantes::MONCLUBTT_PONG_SCORES);
+        }
+        return '';
+    }
+
+    public function pong_vider_matchs_html()
+    {
+        $nb = count((array) get_option(MonClubTT_Constantes::MONCLUBTT_PONG_MATCHS, array()));
+        ?>
+        <label>
+            <input type="checkbox" name="monclubtt_pong_vider_matchs" value="1">
+            Supprimer les matchs partagés et leurs images (<?php echo esc_html(sprintf(_n('%d match', '%d matchs', $nb, 'mon-club-tt'), $nb)); ?>)
+        </label>
+        <p class="description">
+            Chaque fin de match crée un lien de partage (image et aperçu sur les réseaux) avec le nom saisi par le joueur. Les 300 plus récents sont gardés.
+            Videz-les si un nom inapproprié circule : les liens déjà partagés afficheront alors simplement la page du jeu.
+        </p>
+        <?php
+    }
+
+    /**
+     * Case « Supprimer les matchs partagés » : supprime les matchs et les
+     * images en cache, rien n'est conservé dans l'option elle-même.
+     */
+    public function sanitize_pong_vider_matchs($valeur)
+    {
+        if ($valeur === '1') {
+            delete_option(MonClubTT_Constantes::MONCLUBTT_PONG_MATCHS);
+            $uploads = wp_upload_dir(null, false);
+            foreach ((array) glob(trailingslashit($uploads['basedir']) . 'monclubtt-pong/*.png') as $fichier) {
+                if (is_string($fichier) && preg_match('/^[a-z0-9]{12}(-sans-photo)?\.png$/', basename($fichier))) {
+                    wp_delete_file($fichier);
+                }
+            }
         }
         return '';
     }
@@ -880,8 +941,7 @@ class MonClubTT_Plugin
             wp_send_json_error(null, 403);
             return;
         }
-        $ip  = isset($_SERVER['REMOTE_ADDR']) ? sanitize_text_field(wp_unslash($_SERVER['REMOTE_ADDR'])) : '';
-        $cle = 'monclubtt_pong_debut_' . md5($ip);
+        $cle = 'monclubtt_pong_debut_' . $this->cleIpPong();
         if (get_transient($cle)) {
             wp_send_json_error(null, 429);
             return;
@@ -916,8 +976,7 @@ class MonClubTT_Plugin
         $advType = $champ('adv_type');
         $postId  = (int) $champ('page');
 
-        $ip  = isset($_SERVER['REMOTE_ADDR']) ? sanitize_text_field(wp_unslash($_SERVER['REMOTE_ADDR'])) : '';
-        $cle = 'monclubtt_pong_' . md5($ip);
+        $cle = 'monclubtt_pong_' . $this->cleIpPong();
         if (get_transient($cle)) {
             wp_send_json_error(array('message' => 'Trop de matchs envoyés, réessayez dans un instant.'), 429);
             return;
@@ -998,6 +1057,19 @@ class MonClubTT_Plugin
         }
 
         wp_send_json_success($reponse);
+    }
+
+    /**
+     * Clé de limite de débit du pong : adresse IPv4 du visiteur, ou son
+     * préfixe /64 en IPv6 (un appareil y dispose de milliards d'adresses).
+     * Derrière un proxy, REMOTE_ADDR est celle du proxy : la limite devient
+     * alors commune à tous les visiteurs.
+     */
+    private function cleIpPong()
+    {
+        $ip      = isset($_SERVER['REMOTE_ADDR']) ? sanitize_text_field(wp_unslash($_SERVER['REMOTE_ADDR'])) : '';
+        $binaire = filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6) ? inet_pton($ip) : false;
+        return md5($binaire !== false ? substr($binaire, 0, 8) : $ip);
     }
 
     /**
@@ -1579,6 +1651,7 @@ class MonClubTT_Plugin
             return;
         }
 
+        $this->reinitialiser_api();
         $api = MonClubTT_AccesFFTTApi::getInstance();
         if (!is_object($api)) {
             wp_send_json_error(array('message' => 'Erreur de connexion à l\'API FFTT'));
@@ -1725,7 +1798,8 @@ class MonClubTT_Plugin
             $iddiv   = sanitize_text_field($team['iddiv']    ?? '');
             $idpoule = sanitize_text_field($team['idpoule']  ?? '');
             $title   = sanitize_text_field($team['libequipe'] ?? '');
-            if (empty($iddiv) || empty($title)) {
+            // Identifiants FFTT numériques : rien ne doit pouvoir sortir des guillemets du shortcode.
+            if (!ctype_digit($iddiv) || ($idpoule !== '' && !ctype_digit($idpoule)) || $title === '') {
                 continue;
             }
 
@@ -1837,6 +1911,9 @@ class MonClubTT_Plugin
      */
     public function add_dashboard_widget()
     {
+        if (!current_user_can('manage_options')) {
+            return;
+        }
         wp_add_dashboard_widget(
             'monclubtt_sync_widget',
             'Mon Club TT - Synchronisation',
