@@ -3,7 +3,7 @@ Contributors: robinos33
 Tags: table tennis, fftt, club, rankings, results
 Requires at least: 5.0
 Tested up to: 7.0
-Stable tag: 1.21.1
+Stable tag: 1.22.0
 Requires PHP: 7.4
 License: GPLv2
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -23,12 +23,16 @@ Mon Club TT is an unofficial WordPress plugin that connects to the FFTT (Fédér
 * **Manual sync** — synchronise players and teams from the admin panel with real-time API logs
 * **Dashboard widget** — quick sync button on the WordPress dashboard
 * **Team management** — automatically create or trash WordPress pages per team
+* **Club calendar** — season agenda (month or list view, category filters), next date of a series (tournament round, holiday camp…) that moves on by itself, date lists, `.ics` download and calendar subscription. Events are entered in the admin or imported from the season spreadsheet (CSV or JSON)
 * **Developer hooks** — expose cached data to other plugins via `apply_filters`
 
 **Shortcodes:**
 
 * `[monclubtt_joueurs type="MF"]` — display club players (M, F, or MF)
 * `[monclubtt_equipe iddiv="198511" idpoule="1140384"]` — display a team's standings and results
+* `[monclubtt_calendrier]` — club calendar for the season, with calendar subscription (Apple, Outlook, Google)
+* `[monclubtt_prochain serie="slug"]` — next date of a series; `format="texte"` returns a single field (date, round number, place, link) to use inside your own text
+* `[monclubtt_dates serie="slug"]` — dates of a series for the season, the next one highlighted; several series give a table by month
 * `[monclubtt_pong]` — table tennis pong game: pick a club player, then pick an opponent from the world top 10 (men or women, editable in the settings) or from the club, with touch, mouse or keyboard; high score table and match sharing (Facebook, Instagram, X, WhatsApp) with a generated Open Graph image
 
 **Requirements:**
@@ -57,9 +61,14 @@ Contact the FFTT directly. An App ID and password are provided upon request.
 Player data is refreshed on manual sync only. League standings and results are cached and automatically refreshed at 08:00 and 13:00 each day. Match sheets are cached for 7 days (past results do not change).
 
 = Can I use the data in another plugin? =
-Yes. The plugin exposes five filters: `monclubtt_get_joueurs`, `monclubtt_get_equipes`, `monclubtt_get_classement_poule`, `monclubtt_get_rencontres_poule`, `monclubtt_get_feuille_rencontre`. See the documentation for usage.
+Yes. The plugin exposes six filters: `monclubtt_get_evenements`, `monclubtt_get_joueurs`, `monclubtt_get_equipes`, `monclubtt_get_classement_poule`, `monclubtt_get_rencontres_poule`, `monclubtt_get_feuille_rencontre`. See the documentation for usage.
 
 == Changelog ==
+
+= 1.22.0 =
+* Added: club calendar. Events (dates, time, place, link, note) grouped by series and category, entered in the admin or imported from the season spreadsheet (CSV or legacy JSON); re-importing updates without erasing details added in the admin
+* Added: `[monclubtt_calendrier]`, `[monclubtt_prochain]` and `[monclubtt_dates]` shortcodes, so pages show the next round or camp without manual updates
+* Added: `.ics` feed for calendar subscription and downloads, and the `monclubtt_get_evenements` filter
 
 = 1.21.1 =
 * Changed: on phones, the players table is replaced by one card per player (official ranking, current monthly points rounded down, monthly and season progression), with a "sort by" menu and the men/women filter. The table no longer overflows the page width

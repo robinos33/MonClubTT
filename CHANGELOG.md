@@ -5,6 +5,16 @@ Format : [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/)
 
 ---
 
+## [1.22.0] — 2026-11-12
+
+### Ajouté
+
+- Calendrier du club (*Mon Club TT › Calendrier*) : événements avec dates, horaire, lieu, lien et note, rangés par série (tours du Grand Prix, stages…), par catégorie et par saison. Saisie dans l'admin ou import du tableur de la saison (CSV `;` ou `,`, ou JSON de l'ancien calendrier) ; un nouvel import met à jour les événements déjà importés sans effacer le lieu, le lien ni la note complétés dans l'admin, et peut mettre à la corbeille ceux qui ont disparu du tableur. Un mode « Vérifier seulement » montre le résultat sans rien enregistrer.
+- Shortcode `[monclubtt_calendrier]` : agenda de la saison (mois ou liste, filtres par catégorie, période, détail), téléchargement `.ics` et abonnement Apple Calendrier / Outlook / Google Agenda qui suit les changements du club.
+- Shortcode `[monclubtt_prochain]` : prochain rendez-vous d'une série, qui passe tout seul au suivant ; en `format="texte"`, un seul champ (date, numéro du tour, « 1er », lieu, lien) à glisser dans le texte d'une page.
+- Shortcode `[monclubtt_dates]` : dates de la saison d'une série (prochaine en avant, passées grisées) ; avec plusieurs séries, tableau par mois.
+- Flux iCalendar `?monclubtt_calendrier=ics` et filtre `monclubtt_get_evenements` pour les autres plugins.
+
 ## [1.21.1] — 2026-10-09
 
 ### Modifié
