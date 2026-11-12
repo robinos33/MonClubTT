@@ -90,8 +90,10 @@ jQuery(document).ready(function ($) {
             type: 'POST',
             data: {
                 action:     'monclubtt_feuille_match',
-                renc_id:    $row.data('renc-id'),
-                is_retour:  $row.data('is-retour')
+                iddiv:      $row.attr('data-iddiv'),
+                idpoule:    $row.attr('data-idpoule'),
+                renc_id:    $row.attr('data-renc-id'),
+                is_retour:  $row.attr('data-is-retour')
             },
             success: function (response) {
                 if (response.success) {

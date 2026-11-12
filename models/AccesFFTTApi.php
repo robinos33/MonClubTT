@@ -276,6 +276,11 @@ if (!class_exists('MonClubTT_AccesFFTTApi')) {
             $data = get_transient($key);
             if ($data === false) {
                 $data = $callback($this);
+                // Un échec (false) n'est pas mis en cache : relu comme absent,
+                // il ne ferait qu'ajouter des lignes dans wp_options.
+                if ($data === false) {
+                    return false;
+                }
                 // Store data and last update timestamp
                 set_transient($key, $data, (int) $lifeTime);
                 set_transient($key . '__updated_at', time(), (int) $lifeTime);

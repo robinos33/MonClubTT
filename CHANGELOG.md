@@ -5,6 +5,13 @@ Format : [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/)
 
 ---
 
+## [Non publié]
+
+### Sécurité
+
+- Feuilles de match (action AJAX publique `monclubtt_feuille_match`) : seules les rencontres jouées des poules des équipes du club peuvent être demandées. Un identifiant quelconque était auparavant transmis à l'API FFTT avec les identifiants du club et mis en cache, ce qui permettait à un visiteur de saturer le site et l'accès à l'API (#27).
+- Cache de l'API : un appel en échec n'est plus enregistré dans `wp_options`.
+
 ## [1.22.1] — 2026-11-12
 
 ### Corrigé
