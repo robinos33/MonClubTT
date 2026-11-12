@@ -3,7 +3,7 @@ Contributors: robinos33
 Tags: table tennis, fftt, club, rankings, results
 Requires at least: 5.0
 Tested up to: 7.0
-Stable tag: 1.22.1
+Stable tag: 1.22.2
 Requires PHP: 7.4
 License: GPLv2
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -64,6 +64,14 @@ Player data is refreshed on manual sync only. League standings and results are c
 Yes. The plugin exposes six filters: `monclubtt_get_evenements`, `monclubtt_get_joueurs`, `monclubtt_get_equipes`, `monclubtt_get_classement_poule`, `monclubtt_get_rencontres_poule`, `monclubtt_get_feuille_rencontre`. See the documentation for usage.
 
 == Changelog ==
+
+= 1.22.2 =
+* Security: the public match-sheet request only accepts played matches from the club's own pools; arbitrary IDs no longer reach the FFTT API or the cache
+* Security: importing the calendar now requires editor rights, and each existing event is only changed or trashed if the user may edit or delete it
+* Security: the FFTT API is initialised only before a real network call (at most once a day) instead of on every page; visitors no longer write API logs
+* Security: dashboard sync widget restricted to administrators; FFTT password masked with a show/hide button; generated team pages only accept numeric IDs
+* Added: setting to delete shared pong matches and their images
+* Changed: pong rate limit groups IPv6 visitors by /64 prefix
 
 = 1.22.1 =
 * Fixed: the Mon Club TT menu lost its settings entry and showed Calendar first; the settings come back first and the calendar entries are grouped together
