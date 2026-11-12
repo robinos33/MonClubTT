@@ -88,6 +88,8 @@ require_once(__DIR__ . '/header.php'); ?>
                 ?>
                 <tr class="monclubtt-rencontre-row<?php echo $hasDetail ? ' monclubtt-expandable' : ''; ?>"
                     <?php if ($hasDetail): ?>
+                        data-iddiv="<?php echo esc_attr($equipe['iddiv']); ?>"
+                        data-idpoule="<?php echo esc_attr($equipe['idpoule']); ?>"
                         data-renc-id="<?php echo esc_attr($rencId); ?>"
                         data-is-retour="<?php echo esc_attr($isRetour); ?>"
                         title="Cliquer pour voir la feuille de match"

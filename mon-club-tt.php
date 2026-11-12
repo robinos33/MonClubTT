@@ -862,10 +862,6 @@ class MonClubTT_Plugin
     }
 
     /**
-     * Handler AJAX public : retourne le détail d'une rencontre (feuille de match).
-     * Accessible aux visiteurs non connectés (wp_ajax_nopriv).
-     */
-    /**
      * Handler AJAX (public) : tableau des meilleurs scores du jeu de pong,
      * relu à l'ouverture de la page (qui peut venir d'un cache).
      */
@@ -1233,18 +1229,41 @@ class MonClubTT_Plugin
         return array_map(array('MonClubTT_PongScores', 'publique'), $tableau);
     }
 
+    /**
+     * Handler AJAX (public) : feuille de match d'une rencontre affichée sur une
+     * page d'équipe. Liste blanche : la poule doit être celle d'une équipe du
+     * club et la rencontre doit y figurer (données déjà en cache), sinon
+     * aucune requête n'est faite à l'API FFTT.
+     */
     public function handle_ajax_feuille_match()
     {
-        $rencId   = sanitize_text_field(wp_unslash($_POST['renc_id']   ?? '')); // phpcs:ignore WordPress.Security.NonceVerification.Missing
-        $isRetour = (int) wp_unslash($_POST['is_retour'] ?? 0); // phpcs:ignore WordPress.Security.NonceVerification.Missing,WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+        // Lecture publique, sans nonce : les paramètres sont contrôlés par liste blanche.
+        // phpcs:disable WordPress.Security.NonceVerification.Missing
+        $champ = function ($cle) {
+            return isset($_POST[$cle]) && is_string($_POST[$cle]) ? sanitize_text_field(wp_unslash($_POST[$cle])) : '';
+        };
+        $iddiv    = $champ('iddiv');
+        $idpoule  = $champ('idpoule');
+        $rencId   = $champ('renc_id');
+        $isRetour = $champ('is_retour');
+        // phpcs:enable
 
-        if (empty($rencId)) {
-            wp_send_json_error(array('message' => 'ID de rencontre manquant'));
+        if (!MonClubTT_FeuilleMatch::parametresValides($iddiv, $idpoule, $rencId, $isRetour)) {
+            wp_send_json_error(array('message' => 'Rencontre invalide'), 400);
             return;
         }
 
-        $api  = MonClubTT_AccesFFTTApi::getInstance();
-        $data = $api->getRencontreDetail($rencId, $isRetour);
+        $api = MonClubTT_AccesFFTTApi::getInstance();
+        // La poule est vérifiée avant de lire ses rencontres : une poule
+        // étrangère au club ne doit déclencher aucun appel à l'API.
+        if (!is_object($api)
+            || !MonClubTT_FeuilleMatch::pouleDuClub($this->get_equipes_data(null), $iddiv, $idpoule)
+            || !MonClubTT_FeuilleMatch::rencontreDeLaPoule((array) $api->getPouleRencontres($iddiv, $idpoule), $rencId, (int) $isRetour)) {
+            wp_send_json_error(array('message' => 'Rencontre invalide'), 400);
+            return;
+        }
+
+        $data = $api->getRencontreDetail($rencId, (int) $isRetour);
 
         if (!$data) {
             wp_send_json_error(array('message' => 'Feuille de match non disponible'));
