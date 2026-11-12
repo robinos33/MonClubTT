@@ -36,6 +36,12 @@ class MonClubTT_CalendrierWP {
     /** Catégories créées à la première activation. */
     const OPTION_INIT = 'monclubtt_calendrier_init';
 
+    /**
+     * Capacité requise pour l'import : il publie des événements, modifie et met
+     * à la corbeille ceux des autres (éditeurs et administrateurs).
+     */
+    const CAP_IMPORT = 'edit_others_posts';
+
     /** Compte rendu du dernier import, affiché après redirection. */
     const TRANSIENT_IMPORT = 'monclubtt_import_calendrier_';
 
@@ -381,7 +387,7 @@ class MonClubTT_CalendrierWP {
         add_submenu_page('monclubtt_parametres', 'Ajouter un événement', '— Ajouter', 'edit_posts', 'post-new.php?post_type=' . $type);
         add_submenu_page('monclubtt_parametres', 'Séries', '— Séries', 'manage_categories', 'edit-tags.php?taxonomy=' . self::SERIE . '&post_type=' . $type);
         add_submenu_page('monclubtt_parametres', 'Catégories', '— Catégories', 'manage_categories', 'edit-tags.php?taxonomy=' . self::CATEGORIE . '&post_type=' . $type);
-        add_submenu_page('monclubtt_parametres', 'Importer le calendrier', '— Importer', 'edit_posts', 'monclubtt_import_calendrier', array($this, 'page_import'));
+        add_submenu_page('monclubtt_parametres', 'Importer le calendrier', '— Importer', self::CAP_IMPORT, 'monclubtt_import_calendrier', array($this, 'page_import'));
     }
 
     /** Garde le menu « Mon Club TT » ouvert sur les écrans du calendrier. */
@@ -654,7 +660,7 @@ class MonClubTT_CalendrierWP {
 
     public function page_import()
     {
-        if (!current_user_can('edit_posts')) {
+        if (!current_user_can(self::CAP_IMPORT)) {
             return;
         }
         $rapport = get_transient(self::TRANSIENT_IMPORT . get_current_user_id());
@@ -739,7 +745,7 @@ class MonClubTT_CalendrierWP {
 
     public function traiter_import()
     {
-        if (!current_user_can('edit_posts')) {
+        if (!current_user_can(self::CAP_IMPORT)) {
             wp_die(esc_html__('Sorry, you are not allowed to do that.', 'mon-club-tt'), 403);
         }
         check_admin_referer('monclubtt_import_calendrier');
@@ -770,7 +776,8 @@ class MonClubTT_CalendrierWP {
             $saison + 1,
             $bilan['crees'],
             $bilan['maj'],
-            $remplacer ? ', ' . $bilan['supprimes'] . ' mis à la corbeille' : ''
+            ($remplacer ? ', ' . $bilan['supprimes'] . ' mis à la corbeille' : '')
+                . ($bilan['refuses'] ? ', ' . $bilan['refuses'] . ' ignoré(s) faute de droits' : '')
         );
         set_transient(self::TRANSIENT_IMPORT . get_current_user_id(), array(
             'titre'      => $titre,
@@ -786,7 +793,10 @@ class MonClubTT_CalendrierWP {
     /**
      * Crée ou met à jour les événements importés d'une saison.
      *
-     * @return array crees, maj, supprimes
+     * Chaque événement existant n'est modifié ou mis à la corbeille que si
+     * l'utilisateur en a le droit ; les autres sont comptés dans « refuses ».
+     *
+     * @return array crees, maj, supprimes, refuses
      */
     private function importer(array $lignes, $saison, $remplacer, $simulation)
     {
@@ -805,11 +815,15 @@ class MonClubTT_CalendrierWP {
             $existants[(string) get_post_meta($id, self::META['source'], true)] = (int) $id;
         }
 
-        $bilan = array('crees' => 0, 'maj' => 0, 'supprimes' => 0);
+        $bilan = array('crees' => 0, 'maj' => 0, 'supprimes' => 0, 'refuses' => 0);
         $vus   = array();
         foreach ($lignes as $ligne) {
             $vus[$ligne['source']] = true;
             $id = $existants[$ligne['source']] ?? 0;
+            if ($id ? !current_user_can('edit_post', $id) : !current_user_can(get_post_type_object(self::TYPE)->cap->publish_posts)) {
+                $bilan['refuses']++;
+                continue;
+            }
             $bilan[$id ? 'maj' : 'crees']++;
             if ($simulation) {
                 continue;
@@ -855,6 +869,10 @@ class MonClubTT_CalendrierWP {
         if ($remplacer) {
             foreach ($existants as $source => $id) {
                 if (!isset($vus[$source])) {
+                    if (!current_user_can('delete_post', $id)) {
+                        $bilan['refuses']++;
+                        continue;
+                    }
                     $bilan['supprimes']++;
                     if (!$simulation) {
                         wp_trash_post($id);
