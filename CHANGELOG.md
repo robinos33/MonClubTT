@@ -5,6 +5,13 @@ Format : [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/)
 
 ---
 
+## [1.22.1] — 2026-11-12
+
+### Corrigé
+
+- Menu *Mon Club TT* : l'entrée des réglages avait disparu et le Calendrier passait en tête. Les réglages reviennent en premier et les entrées du calendrier sont regroupées à la suite.
+- Import du calendrier : la case « Vérifier seulement », cochée par défaut, transformait l'import en simple vérification sans rien enregistrer. Elle est remplacée par deux boutons, **Importer** et **Vérifier sans importer**.
+
 ## [1.22.0] — 2026-11-12
 
 ### Ajouté
