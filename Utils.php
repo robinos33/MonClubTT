@@ -318,7 +318,7 @@ if ( ! function_exists( 'monclubtt_normaliser_adversaires' ) ) {
                         : array('nom' => '', 'photo' => 0, 'pays' => '');
                     continue;
                 }
-                $nom = isset($ligne['nom']) && is_string($ligne['nom']) ? trim(preg_replace('/\s+/u', ' ', strip_tags($ligne['nom']))) : '';
+                $nom = isset($ligne['nom']) && is_string($ligne['nom']) ? trim(preg_replace('/\s+/u', ' ', wp_strip_all_tags($ligne['nom']))) : '';
                 $nom = function_exists('mb_substr') ? mb_substr($nom, 0, 60) : substr($nom, 0, 60);
                 if (array_key_exists('pays', $ligne)) {
                     $pays = is_string($ligne['pays']) ? strtoupper(trim($ligne['pays'])) : '';

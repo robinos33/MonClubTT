@@ -163,9 +163,9 @@ class MagicLinkMailer
             );
         }
 
-        /* translators: nombre de jours de validité du lien */
         $validity = sprintf(
             esc_html(
+                /* translators: %d: nombre de jours de validité du lien */
                 _n(
                     'Ce lien t\'est personnel et reste actif %d jour.',
                     'Ce lien t\'est personnel et reste actif %d jours.',
@@ -190,65 +190,64 @@ class MagicLinkMailer
         $inkSoft  = self::INK_SOFT;
         $border   = self::BORDER;
 
-        return <<<HTML
-<!DOCTYPE html>
-<html lang="fr">
+        // Gabarit e-mail : toutes les variables sont échappées plus haut (esc_html, esc_url, esc_attr).
+        return "<!DOCTYPE html>
+<html lang=\"fr\">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="color-scheme" content="light only">
-<meta name="supported-color-schemes" content="light only">
+<meta charset=\"utf-8\">
+<meta name=\"viewport\" content=\"width=device-width,initial-scale=1\">
+<meta name=\"color-scheme\" content=\"light only\">
+<meta name=\"supported-color-schemes\" content=\"light only\">
 <title>{$safeClub}</title>
 </head>
-<body style="margin:0;padding:0;background:{$canvas};">
-<div style="display:none;max-height:0;overflow:hidden;opacity:0;">{$preheader}</div>
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:{$canvas};">
-<tr><td align="center" style="padding:32px 16px;">
+<body style=\"margin:0;padding:0;background:{$canvas};\">
+<div style=\"display:none;max-height:0;overflow:hidden;opacity:0;\">{$preheader}</div>
+<table role=\"presentation\" width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\" style=\"background:{$canvas};\">
+<tr><td align=\"center\" style=\"padding:32px 16px;\">
 
-<table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:600px;background:#ffffff;border-radius:14px;overflow:hidden;border:1px solid {$border};">
+<table role=\"presentation\" width=\"600\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\" style=\"width:100%;max-width:600px;background:#ffffff;border-radius:14px;overflow:hidden;border:1px solid {$border};\">
 
-  <tr><td style="background:{$primary};padding:26px 32px;">
-    <div style="font:700 11px/1 {$font};letter-spacing:1.4px;text-transform:uppercase;color:#bfdbfe;">{$eyebrow}</div>
-    <div style="font:800 21px/1.25 {$font};color:#ffffff;padding-top:7px;">{$safeClub}</div>
+  <tr><td style=\"background:{$primary};padding:26px 32px;\">
+    <div style=\"font:700 11px/1 {$font};letter-spacing:1.4px;text-transform:uppercase;color:#bfdbfe;\">{$eyebrow}</div>
+    <div style=\"font:800 21px/1.25 {$font};color:#ffffff;padding-top:7px;\">{$safeClub}</div>
   </td></tr>
 
-  <tr><td style="padding:34px 32px 8px 32px;">
-    <div style="font:800 24px/1.25 {$font};color:{$ink};">{$hello}</div>
-    <div style="font:400 15px/1.6 {$font};color:{$inkSoft};padding-top:12px;">{$intro}</div>
+  <tr><td style=\"padding:34px 32px 8px 32px;\">
+    <div style=\"font:800 24px/1.25 {$font};color:{$ink};\">{$hello}</div>
+    <div style=\"font:400 15px/1.6 {$font};color:{$inkSoft};padding-top:12px;\">{$intro}</div>
   </td></tr>
 {$journees}
-  <tr><td style="padding:24px 32px 4px 32px;">{$chips}</td></tr>
+  <tr><td style=\"padding:24px 32px 4px 32px;\">{$chips}</td></tr>
 
-  <tr><td align="center" style="padding:28px 32px 10px 32px;">
-    <table role="presentation" cellpadding="0" cellspacing="0" border="0">
-    <tr><td align="center" style="background:{$primary};border-radius:10px;border-bottom:3px solid {$primaryD};">
-      <a href="{$safeUrl}" style="display:inline-block;padding:15px 34px;font:700 16px/1 {$font};color:#ffffff;text-decoration:none;">{$cta}</a>
+  <tr><td align=\"center\" style=\"padding:28px 32px 10px 32px;\">
+    <table role=\"presentation\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\">
+    <tr><td align=\"center\" style=\"background:{$primary};border-radius:10px;border-bottom:3px solid {$primaryD};\">
+      <a href=\"{$safeUrl}\" style=\"display:inline-block;padding:15px 34px;font:700 16px/1 {$font};color:#ffffff;text-decoration:none;\">{$cta}</a>
     </td></tr>
     </table>
   </td></tr>
 
-  <tr><td style="padding:14px 32px 30px 32px;">
-    <div style="font:400 13px/1.55 {$font};color:{$inkSoft};text-align:center;">
-      {$validity}<br><span style="color:#94a3b8;">{$noForward}</span>
+  <tr><td style=\"padding:14px 32px 30px 32px;\">
+    <div style=\"font:400 13px/1.55 {$font};color:{$inkSoft};text-align:center;\">
+      {$validity}<br><span style=\"color:#94a3b8;\">{$noForward}</span>
     </div>
   </td></tr>
 
-  <tr><td style="background:{$canvas};border-top:1px solid {$border};padding:20px 32px;">
-    <div style="font:400 12px/1.5 {$font};color:#94a3b8;">{$fallback}</div>
-    <div style="font:400 12px/1.5 {$font};padding-top:6px;word-break:break-all;">
-      <a href="{$safeUrl}" style="color:{$primaryD};">{$safeUrl}</a>
+  <tr><td style=\"background:{$canvas};border-top:1px solid {$border};padding:20px 32px;\">
+    <div style=\"font:400 12px/1.5 {$font};color:#94a3b8;\">{$fallback}</div>
+    <div style=\"font:400 12px/1.5 {$font};padding-top:6px;word-break:break-all;\">
+      <a href=\"{$safeUrl}\" style=\"color:{$primaryD};\">{$safeUrl}</a>
     </div>
   </td></tr>
 
 </table>
 
-<div style="font:400 12px/1.5 {$font};color:#94a3b8;padding-top:18px;">{$safeClub}</div>
+<div style=\"font:400 12px/1.5 {$font};color:#94a3b8;padding-top:18px;\">{$safeClub}</div>
 
 </td></tr>
 </table>
 </body>
-</html>
-HTML;
+</html>";
     }
 
     /** Aperçu des trois statuts proposés derrière le lien. */
@@ -385,12 +384,7 @@ HTML;
         return sprintf(
             /* translators: 1: prénom, 2: phrase d'introduction, 3: liste des journées, 4: lien personnel, 5: durée en jours, 6: nom du club */
             __(
-                "Salut %1\$s,\n\n" .
-                "%2\$s\n" .
-                "%3\$s\n" .
-                "Ton lien personnel :\n%4\$s\n\n" .
-                "Ce lien n'est valable que pour toi et reste actif pendant %5\$d jours. Ne le transfère pas.\n\n" .
-                "— %6\$s",
+                "Salut %1\$s,\n\n%2\$s\n%3\$s\nTon lien personnel :\n%4\$s\n\nCe lien n'est valable que pour toi et reste actif pendant %5\$d jours. Ne le transfère pas.\n\n— %6\$s",
                 'mon-club-tt'
             ),
             $firstName,

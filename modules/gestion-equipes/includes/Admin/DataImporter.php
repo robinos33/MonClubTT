@@ -146,7 +146,7 @@ class DataImporter
         $report = [];
         try {
             if (empty($_POST['confirmer'])) {
-                throw new \RuntimeException(__('Cochez la case de confirmation.', 'mon-club-tt'));
+                throw new \RuntimeException(esc_html__('Cochez la case de confirmation.', 'mon-club-tt'));
             }
             $source = isset($_POST['source']) ? sanitize_key(wp_unslash($_POST['source'])) : '';
             $data   = $source === 'local' ? self::buildFromLegacyTables() : self::readUploadedFile();
@@ -163,20 +163,19 @@ class DataImporter
     /** @return array<string, mixed> */
     private static function readUploadedFile(): array
     {
-        // phpcs:ignore WordPress.Security.NonceVerification.Missing -- nonce vérifié dans handle()
-        $file = $_FILES['fichier'] ?? null;
+        $file = $_FILES['fichier'] ?? null; // phpcs:ignore WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- nonce vérifié dans handle() ; seul le fichier temporaire est lu, après is_uploaded_file()
         if (! is_array($file) || ($file['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK || ! is_uploaded_file((string) $file['tmp_name'])) {
-            throw new \RuntimeException(__('Aucun fichier reçu.', 'mon-club-tt'));
+            throw new \RuntimeException(esc_html__('Aucun fichier reçu.', 'mon-club-tt'));
         }
         if ((int) $file['size'] > self::MAX_BYTES) {
-            throw new \RuntimeException(__('Fichier trop volumineux (20 Mo maximum).', 'mon-club-tt'));
+            throw new \RuntimeException(esc_html__('Fichier trop volumineux (20 Mo maximum).', 'mon-club-tt'));
         }
 
         // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- lecture du fichier téléversé temporaire
         $json = file_get_contents((string) $file['tmp_name']);
         $data = is_string($json) ? json_decode($json, true) : null;
         if (! is_array($data)) {
-            throw new \RuntimeException(__('Le fichier n\'est pas un JSON valide.', 'mon-club-tt'));
+            throw new \RuntimeException(esc_html__('Le fichier n\'est pas un JSON valide.', 'mon-club-tt'));
         }
         return $data;
     }
@@ -191,16 +190,14 @@ class DataImporter
     {
         global $wpdb;
         $players = $wpdb->prefix . self::LEGACY_TABLE_PREFIX . 'players';
-        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- détection ponctuelle de l'ancien plugin
-        if ($wpdb->get_var($wpdb->prepare('SHOW TABLES LIKE %s', $wpdb->esc_like($players))) !== $players) {
+        if ($wpdb->get_var($wpdb->prepare('SHOW TABLES LIKE %s', $wpdb->esc_like($players))) !== $players) { // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- détection ponctuelle de l'ancien plugin
             return null;
         }
 
         $counts = [];
         foreach (DataExporter::TABLES as $key => $def) {
             $table = $wpdb->prefix . self::legacyTable($def['table']);
-            // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- nom de table issu de $wpdb->prefix et d'une constante
-            $counts[$key] = (int) $wpdb->get_var("SELECT COUNT(*) FROM `{$table}`");
+            $counts[$key] = (int) $wpdb->get_var("SELECT COUNT(*) FROM `{$table}`"); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter -- nom de table issu de $wpdb->prefix et d'une constante
         }
         return $counts;
     }
@@ -215,7 +212,7 @@ class DataImporter
     {
         global $wpdb;
         if (self::legacyCounts() === null) {
-            throw new \RuntimeException(__('Aucune donnée de TT Team Planner sur ce site.', 'mon-club-tt'));
+            throw new \RuntimeException(esc_html__('Aucune donnée de TT Team Planner sur ce site.', 'mon-club-tt'));
         }
 
         $options = [];
@@ -228,8 +225,7 @@ class DataImporter
         $tables = [];
         foreach (DataExporter::TABLES as $key => $def) {
             $table = $wpdb->prefix . self::legacyTable($def['table']);
-            // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- import ponctuel, nom de table issu de $wpdb->prefix et d'une constante
-            $tables[$key] = (array) $wpdb->get_results("SELECT * FROM `{$table}` ORDER BY id", ARRAY_A);
+            $tables[$key] = (array) $wpdb->get_results("SELECT * FROM `{$table}` ORDER BY id", ARRAY_A); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter -- import ponctuel, nom de table issu de $wpdb->prefix et d'une constante
         }
 
         return [
@@ -252,13 +248,13 @@ class DataImporter
 
         $format = (string) ($data['format'] ?? '');
         if (! in_array($format, [self::LEGACY_FORMAT, DataExporter::FORMAT], true)) {
-            throw new \RuntimeException(__('Ce fichier n\'est pas un export de TT Team Planner ni de la gestion des équipes.', 'mon-club-tt'));
+            throw new \RuntimeException(esc_html__('Ce fichier n\'est pas un export de TT Team Planner ni de la gestion des équipes.', 'mon-club-tt'));
         }
         if ((int) ($data['format_version'] ?? 0) !== 1) {
-            throw new \RuntimeException(__('Version de format non prise en charge.', 'mon-club-tt'));
+            throw new \RuntimeException(esc_html__('Version de format non prise en charge.', 'mon-club-tt'));
         }
         if (! isset($data['tables']) || ! is_array($data['tables'])) {
-            throw new \RuntimeException(__('Le fichier ne contient aucune table.', 'mon-club-tt'));
+            throw new \RuntimeException(esc_html__('Le fichier ne contient aucune table.', 'mon-club-tt'));
         }
 
         // Tables vidées d'abord : les lignes gardent leurs identifiants d'origine.

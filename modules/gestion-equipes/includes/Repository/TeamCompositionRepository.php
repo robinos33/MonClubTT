@@ -139,9 +139,9 @@ class TeamCompositionRepository
         global $wpdb;
         $validatedTable = $wpdb->prefix . 'monclubtt_ge_validated_rounds';
 
-        $wpdb->query($wpdb->prepare( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+        $wpdb->query($wpdb->prepare( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter -- noms de tables issus de $wpdb->prefix
             "UPDATE {$this->table} tc" . // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- table names from $wpdb->prefix, not user input
-            " LEFT JOIN {$validatedTable} vr" .
+            " LEFT JOIN {$validatedTable} vr" . // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- table name from $wpdb->prefix
             "   ON vr.season = tc.season AND vr.phase = tc.phase AND vr.round = tc.round AND vr.team_code = tc.team_code" .
             ' SET tc.player_id = NULL' .
             ' WHERE tc.player_id = %d AND vr.id IS NULL',

@@ -69,7 +69,7 @@ class MagicLinkTemplate
 
             echo '<div id="ttp-magic-app" role="main"></div>';
             echo '<script>window.TTPMagicConfig = ' . $configJson . ';</script>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- wp_json_encode() + flags anti-XSS
-            echo '<script src="' . $jsUrl . '"></script>'; // phpcs:ignore WordPress.WP.EnqueuedResources.NonEnqueuedScript -- page standalone, hors thème
+            echo '<script src="' . esc_url($jsUrl) . '"></script>'; // phpcs:ignore WordPress.WP.EnqueuedResources.NonEnqueuedScript -- page standalone, hors thème
         }
 
         echo '</body></html>';
