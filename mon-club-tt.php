@@ -3,14 +3,14 @@
   Plugin Name: Mon Club TT
   Plugin URI: https://github.com/robinos33/MonClubTT
   Description: Display your table tennis club's players, teams, and rankings from the official FFTT Smartping API. Not affiliated with or endorsed by the FFTT.
-  Version: 1.22.2
+  Version: 2.0.0
   Author: Robin Aldasoro
   Author URI: https://github.com/robinos33
   License: GPLv2
   Text Domain: mon-club-tt
   Domain Path: /languages
-  Requires at least: 5.0
-  Requires PHP: 7.4
+  Requires at least: 6.4
+  Requires PHP: 8.4
  */
 
 if ( ! defined( 'ABSPATH' ) ) exit;
@@ -22,6 +22,13 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 if ( ! class_exists( 'MonClubTT_Plugin' ) ) {
 
 require_once( __DIR__ . '/Utils.php' );
+
+/** Fichier principal du plugin (en-tête, URL des assets des modules). */
+define( 'MONCLUBTT_PLUGIN_FILE', __FILE__ );
+
+// Gestion des équipes (ex-TT Team Planner).
+require_once( __DIR__ . '/modules/gestion-equipes/gestion-equipes.php' );
+register_deactivation_hook( __FILE__, 'monclubtt_ge_desactiver' );
 
 class MonClubTT_Plugin
 {
@@ -249,9 +256,11 @@ class MonClubTT_Plugin
 
         // Réglages : identité du club
         $groupe = 'monclubtt_settings';
+        register_setting($groupe, MonClubTT_Constantes::MONCLUBTT_NOM_CLUB, array('sanitize_callback' => 'sanitize_text_field'));
         register_setting($groupe, MonClubTT_Constantes::MONCLUBTT_LOGO, array('sanitize_callback' => array($this, 'sanitize_logo')));
         register_setting($groupe, MonClubTT_Constantes::MONCLUBTT_COULEURS, array('sanitize_callback' => array($this, 'sanitize_couleurs')));
         add_settings_section('monclubtt_section_reglages', '', '__return_false', $groupe);
+        add_settings_field(MonClubTT_Constantes::MONCLUBTT_NOM_CLUB, 'Nom du club', array($this, 'nom_club_html'), $groupe, 'monclubtt_section_reglages');
         add_settings_field(MonClubTT_Constantes::MONCLUBTT_LOGO, 'Logo du club', array($this, 'logo_html'), $groupe, 'monclubtt_section_reglages');
         add_settings_field(MonClubTT_Constantes::MONCLUBTT_COULEURS, 'Couleurs du club', array($this, 'couleurs_html'), $groupe, 'monclubtt_section_reglages');
     }
@@ -264,6 +273,16 @@ class MonClubTT_Plugin
             MonClubTT_AccesFFTTApi::clearApiLogs();
         }
         return $valeur;
+    }
+
+    public function nom_club_html()
+    {
+        ?>
+        <input type="text" class="regular-text" name="<?php echo esc_attr(MonClubTT_Constantes::MONCLUBTT_NOM_CLUB); ?>"
+               value="<?php echo esc_attr(get_option(MonClubTT_Constantes::MONCLUBTT_NOM_CLUB, '')); ?>"
+               placeholder="<?php echo esc_attr(get_bloginfo('name')); ?>">
+        <p class="description">Repris par l'application de gestion des équipes, ses e-mails et les visuels réseaux sociaux. Vide : nom du site.</p>
+        <?php
     }
 
     public function section_html()
@@ -558,7 +577,9 @@ class MonClubTT_Plugin
         $terminees = (int) $c['terminees'];
         ?>
         <p>
+            <?php /* translators: %s: nombre de parties jouées */ ?>
             <strong><?php echo esc_html(sprintf(_n('%s partie jouée', '%s parties jouées', $jouees, 'mon-club-tt'), number_format_i18n($jouees))); ?></strong>,
+            <?php /* translators: %s: nombre de parties terminées */ ?>
             <strong><?php echo esc_html(sprintf(_n('%s partie terminée', '%s parties terminées', $terminees, 'mon-club-tt'), number_format_i18n($terminees))); ?></strong>
             <?php if ($jouees > 0): ?>
                 (<?php echo esc_html(number_format_i18n(min(100, 100 * $terminees / $jouees))); ?> %)
@@ -616,6 +637,7 @@ class MonClubTT_Plugin
         ?>
         <label>
             <input type="checkbox" name="monclubtt_pong_vider_scores" value="1">
+            <?php /* translators: %d: nombre de victoires */ ?>
             Vider le tableau des meilleurs scores (<?php echo esc_html(sprintf(_n('%d victoire enregistrée', '%d victoires enregistrées', $nb, 'mon-club-tt'), $nb)); ?>)
         </label>
         <p class="description">
@@ -642,6 +664,7 @@ class MonClubTT_Plugin
         ?>
         <label>
             <input type="checkbox" name="monclubtt_pong_vider_matchs" value="1">
+            <?php /* translators: %d: nombre de matchs */ ?>
             Supprimer les matchs partagés et leurs images (<?php echo esc_html(sprintf(_n('%d match', '%d matchs', $nb, 'mon-club-tt'), $nb)); ?>)
         </label>
         <p class="description">
@@ -1364,7 +1387,7 @@ class MonClubTT_Plugin
         );
         foreach ($balises as $nom => $valeur) {
             $attribut = strpos($nom, 'twitter:') === 0 ? 'name' : 'property';
-            printf('<meta %s="%s" content="%s">' . "\n", $attribut, esc_attr($nom), esc_attr($valeur));
+            printf('<meta %s="%s" content="%s">' . "\n", esc_attr($attribut), esc_attr($nom), esc_attr($valeur));
         }
     }
 
@@ -1787,6 +1810,9 @@ class MonClubTT_Plugin
             // Enregistrer l'horodatage de la dernière synchronisation
             update_option('monclubtt_last_sync', time());
 
+            /** Données FFTT synchronisées : la gestion des équipes met à jour ses joueurs. */
+            do_action('monclubtt_apres_synchro');
+
             wp_send_json_success(array(
                 'message' => 'Synchronisation réussie',
                 'timestamp' => current_time('mysql'),
@@ -1840,8 +1866,8 @@ class MonClubTT_Plugin
             return;
         }
 
-        $teamsCreate = isset($_POST['teams_create']) ? $this->sanitizeTeamsList(wp_unslash((array) $_POST['teams_create'])) : array();
-        $teamsDelete = isset($_POST['teams_delete']) ? $this->sanitizeTeamsList(wp_unslash((array) $_POST['teams_delete'])) : array();
+        $teamsCreate = isset($_POST['teams_create']) ? $this->sanitizeTeamsList(wp_unslash((array) $_POST['teams_create'])) : array(); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- chaque champ est nettoyé par sanitizeTeamsList()
+        $teamsDelete = isset($_POST['teams_delete']) ? $this->sanitizeTeamsList(wp_unslash((array) $_POST['teams_delete'])) : array(); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- chaque champ est nettoyé par sanitizeTeamsList()
 
         if (empty($teamsCreate) && empty($teamsDelete)) {
             wp_send_json_error(array('message' => 'Aucune équipe dans la liste'));

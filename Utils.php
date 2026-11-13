@@ -19,6 +19,8 @@ if ( ! class_exists( 'MonClubTT_Constantes' ) ) {
         const MONCLUBTT_AFFICHER_PHOTOS = 'monclubtt_afficher_photos';
         const MONCLUBTT_COULEURS = 'monclubtt_couleurs';
         const MONCLUBTT_LOGO = 'monclubtt_logo';
+        /** Nom du club affiché (gestion des équipes, e-mails, visuels) ; vide : nom du site. */
+        const MONCLUBTT_NOM_CLUB = 'monclubtt_nom_club';
         const MONCLUBTT_PONG_ADVERSAIRES = 'monclubtt_pong_adversaires';
         const MONCLUBTT_PONG_SCORES = 'monclubtt_pong_scores';
         /** Musique de fond du jeu de pong : ID de média audio ou URL d'un fichier audio. */
@@ -169,6 +171,16 @@ if ( ! function_exists( 'monclubtt_photos_affichees' ) ) {
 
 }
 
+if ( ! function_exists( 'monclubtt_nom_club' ) ) {
+
+    /** Nom du club saisi dans Réglages, sinon nom du site. */
+    function monclubtt_nom_club() {
+        $nom = trim( (string) get_option( MonClubTT_Constantes::MONCLUBTT_NOM_CLUB, '' ) );
+        return $nom !== '' ? $nom : (string) get_bloginfo( 'name' );
+    }
+
+}
+
 if ( ! function_exists( 'monclubtt_admin_url_donnees' ) ) {
 
     /**
@@ -306,7 +318,7 @@ if ( ! function_exists( 'monclubtt_normaliser_adversaires' ) ) {
                         : array('nom' => '', 'photo' => 0, 'pays' => '');
                     continue;
                 }
-                $nom = isset($ligne['nom']) && is_string($ligne['nom']) ? trim(preg_replace('/\s+/u', ' ', strip_tags($ligne['nom']))) : '';
+                $nom = isset($ligne['nom']) && is_string($ligne['nom']) ? trim(preg_replace('/\s+/u', ' ', wp_strip_all_tags($ligne['nom']))) : '';
                 $nom = function_exists('mb_substr') ? mb_substr($nom, 0, 60) : substr($nom, 0, 60);
                 if (array_key_exists('pays', $ligne)) {
                     $pays = is_string($ligne['pays']) ? strtoupper(trim($ligne['pays'])) : '';
