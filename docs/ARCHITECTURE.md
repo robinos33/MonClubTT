@@ -18,8 +18,8 @@ MonClubTT/
 │   └── ...
 │
 ├── modules/
-│   └── gestion-equipes/           # Ex-TT Team Planner (PHP 8.1, chargé seulement si disponible)
-│       ├── gestion-equipes.php    # Amorce compatible PHP 7.4 : vérifications, chargement
+│   └── gestion-equipes/           # Ex-TT Team Planner
+│       ├── gestion-equipes.php    # Amorce : vérifications, chargement
 │       ├── includes/              # Namespace MonClubTT\GestionEquipes : Admin, Domain, Repository, Rest, Front, Mail, Sync
 │       └── assets/                # Application du staff (app.js), lien magique, service worker, icônes PWA
 │

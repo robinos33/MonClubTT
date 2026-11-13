@@ -160,7 +160,7 @@ Le plugin ne fournit aucune photo de joueur professionnel : n'utilisez que des i
 
 ## Gestion des équipes
 
-Ancienne extension *TT Team Planner*, intégrée au plugin (`modules/gestion-equipes/`). Elle n'est chargée qu'avec PHP 8.1 ou plus ; sinon la page *Gestion des équipes* l'explique et le reste du plugin fonctionne normalement.
+Ancienne extension *TT Team Planner*, intégrée au plugin (`modules/gestion-equipes/`).
 
 **Application du staff.** Une page contenant le shortcode `[tt_team_planner]` (bouton *Créer la page* dans *Gestion des équipes › Général*) est remplacée par l'application, sans le thème. Connexion WordPress requise. Installable sur l'écran d'accueil (PWA) si l'option est cochée.
 
@@ -244,8 +244,8 @@ $stages = apply_filters('monclubtt_get_evenements', [], [
 
 ## Prérequis
 
-- WordPress ≥ 5.0
-- PHP ≥ 7.4 (PHP ≥ 8.1 pour la gestion des équipes)
+- WordPress ≥ 6.4
+- PHP ≥ 8.4
 - Extension cURL activée
 - Identifiants API FFTT valides (à demander auprès de la FFTT)
 

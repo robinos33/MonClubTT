@@ -3,14 +3,14 @@
   Plugin Name: Mon Club TT
   Plugin URI: https://github.com/robinos33/MonClubTT
   Description: Display your table tennis club's players, teams, and rankings from the official FFTT Smartping API. Not affiliated with or endorsed by the FFTT.
-  Version: 1.22.2
+  Version: 2.0.0
   Author: Robin Aldasoro
   Author URI: https://github.com/robinos33
   License: GPLv2
   Text Domain: mon-club-tt
   Domain Path: /languages
-  Requires at least: 5.0
-  Requires PHP: 7.4
+  Requires at least: 6.4
+  Requires PHP: 8.4
  */
 
 if ( ! defined( 'ABSPATH' ) ) exit;
@@ -26,7 +26,7 @@ require_once( __DIR__ . '/Utils.php' );
 /** Fichier principal du plugin (en-tête, URL des assets des modules). */
 define( 'MONCLUBTT_PLUGIN_FILE', __FILE__ );
 
-// Gestion des équipes (ex-TT Team Planner), chargée si PHP >= 8.1.
+// Gestion des équipes (ex-TT Team Planner).
 require_once( __DIR__ . '/modules/gestion-equipes/gestion-equipes.php' );
 register_deactivation_hook( __FILE__, 'monclubtt_ge_desactiver' );
 

@@ -5,11 +5,15 @@ Format : [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/)
 
 ---
 
-## [Non publié]
+## [2.0.0] — 2026-11-13
+
+### ⚠ Changements incompatibles
+
+- PHP 8.4 et WordPress 6.4 minimum.
 
 ### Ajouté
 
-- **Gestion des équipes** : l'extension TT Team Planner est intégrée au plugin (menu *Mon Club TT › Gestion des équipes*), avec l'application du staff, la PWA, les liens magiques, les relances par e-mail et l'import des rencontres jouées. Nécessite PHP 8.1 ; avec une version plus ancienne, le reste du plugin fonctionne et la page l'explique.
+- **Gestion des équipes** : l'extension TT Team Planner est intégrée au plugin (menu *Mon Club TT › Gestion des équipes*), avec l'application du staff, la PWA, les liens magiques, les relances par e-mail et l'import des rencontres jouées. Tant que TT Team Planner est actif, elle reste en pause et la page demande de le désactiver.
 - Import des données de TT Team Planner : depuis son fichier d'export JSON ou directement depuis ses tables encore présentes sur le site. Export JSON de la gestion des équipes, réimportable.
 - Réglage « Nom du club », repris par l'application, ses e-mails et les visuels réseaux sociaux.
 

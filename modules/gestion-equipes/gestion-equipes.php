@@ -3,26 +3,17 @@
  * Module « Gestion des équipes » (ex-plugin TT Team Planner) : disponibilités
  * des joueurs, compositions d'équipes, brûlage, application du staff (PWA)
  * et liens magiques.
- *
- * Ce fichier reste compatible PHP 7.4 : le code du module (PHP 8.1) n'est
- * chargé que si le serveur le permet.
  */
 
 if ( ! defined( 'ABSPATH' ) ) exit;
 
 if ( ! function_exists( 'monclubtt_ge_charger' ) ) {
 
-    /** Version minimale de PHP du module. */
-    define( 'MONCLUBTT_GE_PHP_MIN', '8.1' );
-
     /**
-     * Le module peut-il être chargé ? Renvoie '' si oui, sinon la raison :
-     * 'php' (version trop ancienne) ou 'ttp' (TT Team Planner encore actif).
+     * Le module peut-il être chargé ? Renvoie '' si oui, sinon 'ttp' :
+     * TT Team Planner est encore actif (mêmes adresses, tâches en double).
      */
     function monclubtt_ge_blocage() {
-        if ( version_compare( PHP_VERSION, MONCLUBTT_GE_PHP_MIN, '<' ) ) {
-            return 'php';
-        }
         if ( defined( 'TTP_VERSION' ) ) {
             return 'ttp';
         }
@@ -32,9 +23,6 @@ if ( ! function_exists( 'monclubtt_ge_charger' ) ) {
     /** Message expliquant pourquoi le module n'est pas chargé (traduit : à appeler après init). */
     function monclubtt_ge_indisponible() {
         switch ( monclubtt_ge_blocage() ) {
-            case 'php':
-                /* translators: 1: version minimale de PHP, 2: version du serveur */
-                return sprintf( __( 'La gestion des équipes nécessite PHP %1$s ou plus récent (serveur : PHP %2$s). Demandez à votre hébergeur de mettre PHP à jour.', 'mon-club-tt' ), MONCLUBTT_GE_PHP_MIN, PHP_VERSION );
             case 'ttp':
                 return __( 'L\'extension TT Team Planner est encore active. Désactivez-la (sans la supprimer : sa suppression efface ses données), puis revenez ici pour importer ses données.', 'mon-club-tt' );
         }

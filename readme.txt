@@ -1,10 +1,10 @@
 === Mon Club TT ===
 Contributors: robinos33
 Tags: table tennis, fftt, club, rankings, results
-Requires at least: 5.0
+Requires at least: 6.4
 Tested up to: 7.0
-Stable tag: 1.22.2
-Requires PHP: 7.4
+Stable tag: 2.0.0
+Requires PHP: 8.4
 License: GPLv2
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -24,7 +24,7 @@ Mon Club TT is an unofficial WordPress plugin that connects to the FFTT (Fédér
 * **Dashboard widget** — quick sync button on the WordPress dashboard
 * **Team management** — automatically create or trash WordPress pages per team
 * **Club calendar** — season agenda (month or list view, category filters), next date of a series (tournament round, holiday camp…) that moves on by itself, date lists, `.ics` download and calendar subscription. Events are entered in the admin or imported from the season spreadsheet (CSV or JSON)
-* **Team management app** (PHP 8.1+) — staff web app (installable on phones) for player availability, round-by-round team line-ups, phase squads, FFTT eligibility rules ("brûlage"), pre-written SMS and magic links so players can answer without an account. Imports data from the former TT Team Planner plugin (JSON export or its tables on the same site)
+* **Team management app** — staff web app (installable on phones) for player availability, round-by-round team line-ups, phase squads, FFTT eligibility rules ("brûlage"), pre-written SMS and magic links so players can answer without an account. Imports data from the former TT Team Planner plugin (JSON export or its tables on the same site)
 * **Developer hooks** — expose cached data to other plugins via `apply_filters`
 
 **Shortcodes:**
@@ -65,6 +65,16 @@ Player data is refreshed on manual sync only. League standings and results are c
 Yes. The plugin exposes six filters: `monclubtt_get_evenements`, `monclubtt_get_joueurs`, `monclubtt_get_equipes`, `monclubtt_get_classement_poule`, `monclubtt_get_rencontres_poule`, `monclubtt_get_feuille_rencontre`. See the documentation for usage.
 
 == Changelog ==
+
+= 2.0.0 =
+* Breaking: requires PHP 8.4 and WordPress 6.4
+* Added: team management (former TT Team Planner plugin): staff web app installable on phones, player availability, round-by-round line-ups, phase squads, eligibility rules, pre-written SMS, magic links and email reminders
+* Added: import from TT Team Planner (its JSON export or its tables on the same site) and JSON export of team management data
+* Added: "Club name" setting, used by the team management app, its emails and the social media visuals
+* Changed: admin menu reorganised: FFTT data (Players, Teams and Connection tabs), Team management, Calendar, Social media, Pong, Settings
+* Changed: FFTT API logs are off by default; turn them on in FFTT data › Connection to diagnose a problem
+* Changed: each admin page now only saves its own settings
+* Changed: team management players are updated after each FFTT data sync
 
 = 1.22.2 =
 * Security: the public match-sheet request only accepts played matches from the club's own pools; arbitrary IDs no longer reach the FFTT API or the cache
@@ -250,6 +260,9 @@ Yes. The plugin exposes six filters: `monclubtt_get_evenements`, `monclubtt_get_
 * Automatic team page generation and deletion
 
 == Upgrade Notice ==
+
+= 2.0.0 =
+Requires PHP 8.4. Includes the TT Team Planner team management: deactivate TT Team Planner (do not delete it), then import its data in Mon Club TT › Team management › Import / export.
 
 = 1.21.1 =
 The players list no longer overflows on phones: it is shown as one card per player.
