@@ -37,7 +37,7 @@ if ( ! defined( 'ABSPATH' ) ) exit;
                     <li>Vérifiez que tous les paramètres ci-dessus sont correctement renseignés</li>
                     <li>Assurez-vous que le numéro de club est correct (format: 8 chiffres, ex: 10330011)</li>
                     <li>Vérifiez que vos identifiants API sont valides (obtenus auprès de la FFTT)</li>
-                    <li><strong>Consultez les "Logs de l'API FFTT" ci-dessous pour voir les détails des appels API</strong></li>
+                    <li><strong>Activez les "Logs de l'API FFTT" ci-dessous, relancez la synchronisation et consultez le détail des appels</strong></li>
                 </ol>
                 <p style="margin:.5em 0;"><strong>Erreurs fréquentes :</strong></p>
                 <ul style="margin:.3em 0 0 1.2em; padding:0;">
@@ -52,10 +52,25 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 
     <h2>Logs de l'API FFTT</h2>
     <div style="background: #fff; border: 1px solid #ccd0d4; padding: 15px; margin-bottom: 20px;">
+        <form action="options.php" method="POST" style="display:flex; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:10px;">
+            <?php settings_fields('monclubtt_logs_settings'); ?>
+            <input type="hidden" name="<?php echo esc_attr(MonClubTT_Constantes::MONCLUBTT_API_LOGS_ACTIFS); ?>" value="0">
+            <label>
+                <input type="checkbox" name="<?php echo esc_attr(MonClubTT_Constantes::MONCLUBTT_API_LOGS_ACTIFS); ?>" value="1"<?php checked(MonClubTT_AccesFFTTApi::logsActifs()); ?>>
+                Enregistrer les appels à l'API FFTT
+            </label>
+            <?php submit_button('Enregistrer', 'secondary', 'submit', false); ?>
+        </form>
+        <p class="description" style="margin-top:0;">
+            À activer seulement pour diagnostiquer un problème de synchronisation, puis à désactiver :
+            les 50 derniers appels lancés depuis l'admin ou par la tâche planifiée sont alors gardés. Désactiver efface le journal.
+        </p>
         <?php
         $monclubtt_logs = MonClubTT_AccesFFTTApi::getApiLogs();
         if (empty($monclubtt_logs)) {
-            echo '<p><em>Aucun log disponible. Lancez une synchronisation pour voir les logs.</em></p>';
+            if (MonClubTT_AccesFFTTApi::logsActifs()) {
+                echo '<p><em>Aucun log pour l\'instant. Lancez une synchronisation pour voir les appels.</em></p>';
+            }
         } else {
             echo '<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">';
             echo '<p style="margin: 0;"><strong>' . count($monclubtt_logs) . ' logs d\'API</strong></p>';

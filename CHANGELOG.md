@@ -12,6 +12,7 @@ Format : [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/)
 - Menu d'administration réorganisé : *Données FFTT* (onglets Joueurs, Équipes et Connexion), *Calendrier*, *Réseaux sociaux*, *Pong*, *Réglages*. Les identifiants de l'API FFTT, la synchronisation et les logs passent dans l'onglet Connexion, l'option « Photos des joueurs » dans l'onglet Joueurs, les réglages du jeu dans *Pong*. *Réglages* ne garde que l'identité du club (logo, couleurs).
 - Chaque page enregistre uniquement ses propres réglages.
 - Les anciennes adresses des pages *Joueurs* et *Equipes* redirigent vers l'onglet correspondant.
+- Logs de l'API FFTT désactivés par défaut : une case dans l'onglet Connexion les active le temps de diagnostiquer un problème. Les désactiver efface le journal.
 
 ## [1.22.2] — 2026-11-12
 

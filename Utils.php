@@ -12,6 +12,8 @@ if ( ! class_exists( 'MonClubTT_Constantes' ) ) {
         const MONCLUBTT_MOT_DE_PASSE = 'monclubtt_mot_de_passe';
         const MONCLUBTT_NUM_CLUB = 'monclubtt_num_club';
         const MONCLUBTT_LICENCES_EXCLUES = 'monclubtt_licences_exclues';
+        /** '1' : appels à l'API FFTT journalisés (diagnostic) ; '0' ou absent (défaut) : rien n'est enregistré. */
+        const MONCLUBTT_API_LOGS_ACTIFS = 'monclubtt_api_logs_actifs';
         const MONCLUBTT_JOUEUR_PHOTOS = 'monclubtt_joueur_photos';
         /** '1' (défaut) : photos des joueurs affichées sur le site, le jeu et les visuels ; '0' : avatars dessinés. */
         const MONCLUBTT_AFFICHER_PHOTOS = 'monclubtt_afficher_photos';

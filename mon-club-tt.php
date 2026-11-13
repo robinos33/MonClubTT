@@ -222,6 +222,9 @@ class MonClubTT_Plugin
         add_settings_field(MonClubTT_Constantes::MONCLUBTT_NUM_CLUB, 'Numéro de club', array($this, 'equipe_num_html'), $groupe, 'monclubtt_section');
         add_settings_field(MonClubTT_Constantes::MONCLUBTT_LICENCES_EXCLUES, 'Licences exclues de la liste des joueurs', array($this, 'licences_exclues_html'), $groupe, 'monclubtt_section');
 
+        // Données FFTT › Connexion : journal des appels (formulaire à part, dans la section des logs)
+        register_setting('monclubtt_logs_settings', MonClubTT_Constantes::MONCLUBTT_API_LOGS_ACTIFS, array('sanitize_callback' => array($this, 'sanitize_logs_actifs')));
+
         // Données FFTT › Joueurs
         $groupe = 'monclubtt_joueurs_settings';
         register_setting($groupe, MonClubTT_Constantes::MONCLUBTT_AFFICHER_PHOTOS, array('sanitize_callback' => array($this, 'sanitize_case')));
@@ -251,6 +254,16 @@ class MonClubTT_Plugin
         add_settings_section('monclubtt_section_reglages', '', '__return_false', $groupe);
         add_settings_field(MonClubTT_Constantes::MONCLUBTT_LOGO, 'Logo du club', array($this, 'logo_html'), $groupe, 'monclubtt_section_reglages');
         add_settings_field(MonClubTT_Constantes::MONCLUBTT_COULEURS, 'Couleurs du club', array($this, 'couleurs_html'), $groupe, 'monclubtt_section_reglages');
+    }
+
+    /** Journal désactivé : les logs déjà enregistrés sont effacés. */
+    public function sanitize_logs_actifs($valeur)
+    {
+        $valeur = $this->sanitize_case($valeur);
+        if ($valeur !== '1') {
+            MonClubTT_AccesFFTTApi::clearApiLogs();
+        }
+        return $valeur;
     }
 
     public function section_html()
