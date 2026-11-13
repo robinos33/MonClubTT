@@ -539,9 +539,6 @@ if (!class_exists('MonClubTT_AccesFFTTApi')) {
         }
 
         /**
-         * Ajoute un log d'API pour affichage dans l'interface admin
-         */
-        /**
          * Appel lancé par un administrateur ou par le cron, et non par un
          * visiteur : seuls ces appels sont journalisés.
          */
@@ -551,10 +548,20 @@ if (!class_exists('MonClubTT_AccesFFTTApi')) {
                 || (function_exists('current_user_can') && current_user_can('manage_options'));
         }
 
+        /** Journal des appels activé dans Données FFTT › Connexion ? Non par défaut. */
+        public static function logsActifs()
+        {
+            return get_option(MonClubTT_Constantes::MONCLUBTT_API_LOGS_ACTIFS, '0') === '1';
+        }
+
+        /**
+         * Ajoute un log d'API pour affichage dans l'interface admin, si le
+         * journal est activé.
+         */
         private function addApiLog($message, $type = 'info')
         {
-            // Les visiteurs ne doivent provoquer aucune écriture de log.
-            if (!self::contexteAdmin()) {
+            // Journal désactivé, ou appel d'un visiteur : aucune écriture.
+            if (!self::logsActifs() || !self::contexteAdmin()) {
                 return;
             }
             $logs = get_option(self::OPTION_LOGS, array());

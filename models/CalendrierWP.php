@@ -383,11 +383,11 @@ class MonClubTT_CalendrierWP {
     public function menus()
     {
         $type = self::TYPE;
-        add_submenu_page('monclubtt_parametres', 'Calendrier', 'Calendrier', 'edit_posts', 'edit.php?post_type=' . $type);
-        add_submenu_page('monclubtt_parametres', 'Ajouter un événement', '— Ajouter', 'edit_posts', 'post-new.php?post_type=' . $type);
-        add_submenu_page('monclubtt_parametres', 'Séries', '— Séries', 'manage_categories', 'edit-tags.php?taxonomy=' . self::SERIE . '&post_type=' . $type);
-        add_submenu_page('monclubtt_parametres', 'Catégories', '— Catégories', 'manage_categories', 'edit-tags.php?taxonomy=' . self::CATEGORIE . '&post_type=' . $type);
-        add_submenu_page('monclubtt_parametres', 'Importer le calendrier', '— Importer', self::CAP_IMPORT, 'monclubtt_import_calendrier', array($this, 'page_import'));
+        add_submenu_page(MonClubTT_Constantes::MENU_PARENT, 'Calendrier', 'Calendrier', 'edit_posts', 'edit.php?post_type=' . $type);
+        add_submenu_page(MonClubTT_Constantes::MENU_PARENT, 'Ajouter un événement', '— Ajouter', 'edit_posts', 'post-new.php?post_type=' . $type);
+        add_submenu_page(MonClubTT_Constantes::MENU_PARENT, 'Séries', '— Séries', 'manage_categories', 'edit-tags.php?taxonomy=' . self::SERIE . '&post_type=' . $type);
+        add_submenu_page(MonClubTT_Constantes::MENU_PARENT, 'Catégories', '— Catégories', 'manage_categories', 'edit-tags.php?taxonomy=' . self::CATEGORIE . '&post_type=' . $type);
+        add_submenu_page(MonClubTT_Constantes::MENU_PARENT, 'Importer le calendrier', '— Importer', self::CAP_IMPORT, 'monclubtt_import_calendrier', array($this, 'page_import'));
     }
 
     /** Garde le menu « Mon Club TT » ouvert sur les écrans du calendrier. */
@@ -395,7 +395,7 @@ class MonClubTT_CalendrierWP {
     {
         $ecran = function_exists('get_current_screen') ? get_current_screen() : null;
         if ($ecran && $ecran->post_type === self::TYPE) {
-            return 'monclubtt_parametres';
+            return MonClubTT_Constantes::MENU_PARENT;
         }
         return $parent;
     }

@@ -59,9 +59,9 @@
             <p class="monclubtt-social-status" id="monclubtt-social-status" role="status" aria-live="polite"></p>
             <p class="description">
                 <?php if (monclubtt_photos_affichees()): ?>
-                    Les photos affichées sont celles associées aux joueurs dans la page <a href="<?php echo esc_url(admin_url('admin.php?page=monclubtt_joueurs')); ?>">Joueurs</a>.
+                    Les photos affichées sont celles associées aux joueurs dans <a href="<?php echo esc_url(monclubtt_admin_url_donnees('joueurs')); ?>">Données FFTT › Joueurs</a>.
                 <?php else: ?>
-                    Photos des joueurs désactivées dans les <a href="<?php echo esc_url(admin_url('admin.php?page=monclubtt_parametres')); ?>">réglages</a> : avatars dessinés.
+                    Photos des joueurs désactivées dans <a href="<?php echo esc_url(monclubtt_admin_url_donnees('joueurs')); ?>">Données FFTT › Joueurs</a> : avatars dessinés.
                 <?php endif; ?>
                 Le logo est l'icône du site (Réglages › Général).
             </p>

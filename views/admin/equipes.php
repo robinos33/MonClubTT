@@ -5,8 +5,7 @@ $equipes      = new MonClubTT_Equipes();
 $listeEquipes = $equipes->getEquipesSeniorChampionnat('MF');
 $nonce        = wp_create_nonce('monclubtt_generate_pages_nonce');
 ?>
-<div class="wrap">
-    <h1 class="monclubtt-title">Les équipes</h1>
+<div class="monclubtt-donnees-equipes">
 
     <p>Cochez les équipes pour lesquelles vous voulez une page WordPress, décochez celles
        dont la page doit être supprimée, puis cliquez sur <strong>Appliquer la sélection</strong>.</p>

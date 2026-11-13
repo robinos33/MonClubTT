@@ -1,17 +1,5 @@
 <?php
 if ( ! defined( 'ABSPATH' ) ) exit;
-
-// Handle log clearing before any output
-if (isset($_POST['monclubtt_clear_logs']) && check_admin_referer('monclubtt_clear_logs', 'monclubtt_clear_logs_nonce')) {
-    MonClubTT_AccesFFTTApi::clearApiLogs();
-    wp_safe_redirect(add_query_arg(array('page' => 'monclubtt_parametres', 'logs_cleared' => '1'), admin_url('admin.php')));
-    exit;
-}
-
-// Afficher un message de succès après la sauvegarde des paramètres
-if (isset($_GET['settings-updated']) && filter_input(INPUT_GET, 'settings-updated', FILTER_SANITIZE_NUMBER_INT)) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-    echo '<div class="notice notice-success is-dismissible"><p><strong>Paramètres enregistrés avec succès !</strong></p></div>';
-}
 ?>
 
 <div class="monclubtt-right-box" style="display: none">
@@ -20,10 +8,9 @@ if (isset($_GET['settings-updated']) && filter_input(INPUT_GET, 'settings-update
     </p>
 </div>
 
-<div class="wrap monclubtt-wrap">
-    <p></p>
+<div class="monclubtt-wrap">
     <h2>Paramètres de l'API FFTT</h2>
-    <?php $this->getForm(); ?>
+    <?php $this->getForm('monclubtt_fftt_settings'); ?>
 
     <h2>Synchronisation des données</h2>
     <div class="monclubtt-sync-section">
@@ -50,7 +37,7 @@ if (isset($_GET['settings-updated']) && filter_input(INPUT_GET, 'settings-update
                     <li>Vérifiez que tous les paramètres ci-dessus sont correctement renseignés</li>
                     <li>Assurez-vous que le numéro de club est correct (format: 8 chiffres, ex: 10330011)</li>
                     <li>Vérifiez que vos identifiants API sont valides (obtenus auprès de la FFTT)</li>
-                    <li><strong>Consultez les "Logs de l'API FFTT" ci-dessous pour voir les détails des appels API</strong></li>
+                    <li><strong>Activez les "Logs de l'API FFTT" ci-dessous, relancez la synchronisation et consultez le détail des appels</strong></li>
                 </ol>
                 <p style="margin:.5em 0;"><strong>Erreurs fréquentes :</strong></p>
                 <ul style="margin:.3em 0 0 1.2em; padding:0;">
@@ -65,15 +52,30 @@ if (isset($_GET['settings-updated']) && filter_input(INPUT_GET, 'settings-update
 
     <h2>Logs de l'API FFTT</h2>
     <div style="background: #fff; border: 1px solid #ccd0d4; padding: 15px; margin-bottom: 20px;">
+        <form action="options.php" method="POST" style="display:flex; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:10px;">
+            <?php settings_fields('monclubtt_logs_settings'); ?>
+            <input type="hidden" name="<?php echo esc_attr(MonClubTT_Constantes::MONCLUBTT_API_LOGS_ACTIFS); ?>" value="0">
+            <label>
+                <input type="checkbox" name="<?php echo esc_attr(MonClubTT_Constantes::MONCLUBTT_API_LOGS_ACTIFS); ?>" value="1"<?php checked(MonClubTT_AccesFFTTApi::logsActifs()); ?>>
+                Enregistrer les appels à l'API FFTT
+            </label>
+            <?php submit_button('Enregistrer', 'secondary', 'submit', false); ?>
+        </form>
+        <p class="description" style="margin-top:0;">
+            À activer seulement pour diagnostiquer un problème de synchronisation, puis à désactiver :
+            les 50 derniers appels lancés depuis l'admin ou par la tâche planifiée sont alors gardés. Désactiver efface le journal.
+        </p>
         <?php
         $monclubtt_logs = MonClubTT_AccesFFTTApi::getApiLogs();
         if (empty($monclubtt_logs)) {
-            echo '<p><em>Aucun log disponible. Lancez une synchronisation pour voir les logs.</em></p>';
+            if (MonClubTT_AccesFFTTApi::logsActifs()) {
+                echo '<p><em>Aucun log pour l\'instant. Lancez une synchronisation pour voir les appels.</em></p>';
+            }
         } else {
             echo '<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">';
             echo '<p style="margin: 0;"><strong>' . count($monclubtt_logs) . ' logs d\'API</strong></p>';
-            echo '<form method="post" style="margin: 0;">';
-            echo '<input type="hidden" name="monclubtt_clear_logs" value="1">';
+            echo '<form method="post" action="' . esc_url(admin_url('admin-post.php')) . '" style="margin: 0;">';
+            echo '<input type="hidden" name="action" value="monclubtt_clear_logs">';
             wp_nonce_field('monclubtt_clear_logs', 'monclubtt_clear_logs_nonce');
             echo '<button type="submit" class="button">Effacer les logs</button>';
             echo '</form>';
@@ -103,7 +105,7 @@ if (isset($_GET['settings-updated']) && filter_input(INPUT_GET, 'settings-update
             echo '</div>';
         }
 
-        if (isset($_GET['logs_cleared'])) {
+        if (isset($_GET['logs_cleared'])) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
             echo '<div class="notice notice-success" style="margin-top: 10px;"><p>Logs effacés avec succès.</p></div>';
         }
         ?>
