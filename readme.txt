@@ -43,6 +43,10 @@ Mon Club TT is an unofficial WordPress plugin that connects to the FFTT (Fédér
 
 This plugin is not affiliated with or endorsed by the FFTT or the Smartping platform.
 
+= Credits =
+
+Admin menu icon: "Ping pong" emoji from [Twemoji](https://github.com/jdecked/twemoji), © Twitter, Inc. and other contributors, licensed under [CC-BY 4.0](https://creativecommons.org/licenses/by/4.0/).
+
 == Installation ==
 
 1. Upload the `mon-club-tt` folder to `/wp-content/plugins/`
