@@ -14,14 +14,17 @@ Plugin WordPress non-officiel pour afficher les données d'un club issues de l'[
 - **Page d'équipe** — classement de poule mis en évidence + résultats de championnat organisés par journée
 - **Feuilles de match** — au clic sur un résultat, la composition des deux équipes et le détail partie par partie s'affichent (chargement AJAX, mis en cache)
 - **Calendrier du club** — agenda de la saison, prochain rendez-vous d'une série (tour du Grand Prix, stage…) qui avance tout seul, listes de dates, abonnement des adhérents dans leur agenda
+- **Application de gestion des équipes** (staff, connexion requise, installable sur mobile) — disponibilités des joueurs, compositions par journée, effectifs de phase, contrôle du brûlage, SMS pré-rédigés, liens magiques pour que chaque joueur donne ses disponibilités sans compte
 
 ### Côté administration
 
-- **Synchronisation manuelle** des données (joueurs + équipes) avec logs d'API en temps réel
+Menu *Mon Club TT* :
+
+- **Données FFTT** — onglets *Joueurs* (licenciés, photos), *Équipes* (génération / suppression automatique des pages d'équipe, corbeille réversible) et *Connexion* (identifiants de l'API, synchronisation, logs de l'API activables pour diagnostiquer un problème)
+- **Gestion des équipes** — réglages de l'application du staff : PWA, SMS, équipes et dates des journées, joueurs et rencontres jouées (importées des feuilles de match FFTT), règles de brûlage, import / export
 - **Widget tableau de bord** avec bouton de synchronisation rapide
-- **Gestion des équipes** — liste des équipes de championnat sénior, génération / suppression automatique des pages WordPress correspondantes (corbeille réversible)
-- **Vue joueurs** — liste complète des licenciés du club
 - **Calendrier** — événements saisis à la main ou importés du tableur de la saison (CSV ou JSON), rangés par série et par catégorie
+- **Pong**, **Réglages** (nom, logo et couleurs du club)
 - **Réseaux sociaux** — visuels prêts à poster (Top Progression, nouveaux paliers de points, et pour le dernier week-end de championnat : résultats des équipes, top perfs, cartons pleins, victoires à la belle), générés dans le navigateur et téléchargeables en PNG portrait 4:5 (1080 × 1350, affiché en entier dans le fil Instagram et Facebook), avec un texte de publication pré-rempli
 
 ---
@@ -155,6 +158,26 @@ Le plugin ne fournit aucune photo de joueur professionnel : n'utilisez que des i
 
 ---
 
+## Gestion des équipes
+
+Ancienne extension *TT Team Planner*, intégrée au plugin (`modules/gestion-equipes/`). Elle n'est chargée qu'avec PHP 8.1 ou plus ; sinon la page *Gestion des équipes* l'explique et le reste du plugin fonctionne normalement.
+
+**Application du staff.** Une page contenant le shortcode `[tt_team_planner]` (bouton *Créer la page* dans *Gestion des équipes › Général*) est remplacée par l'application, sans le thème. Connexion WordPress requise. Installable sur l'écran d'accueil (PWA) si l'option est cochée.
+
+**Joueurs.** Repris des données FFTT et mis à jour à chaque synchronisation de *Données FFTT*. Les informations saisies dans l'application (téléphone, e-mail, équipe habituelle, capitaine, notes) sont conservées.
+
+**Migration depuis TT Team Planner.**
+
+1. Désactiver TT Team Planner, **sans le supprimer** (sa suppression efface ses tables). Tant qu'il est actif, la gestion des équipes intégrée reste en pause.
+2. *Gestion des équipes › Import / export* : *Importer depuis TT Team Planner* (tables encore présentes sur le site) ou importer le fichier JSON de son export (pour une migration d'un site à l'autre).
+3. Vérifier dans l'application, puis supprimer TT Team Planner.
+
+L'import remplace les données de la gestion des équipes et conserve les identifiants. Les liens magiques ne sont pas repris : en renvoyer depuis l'application. L'adresse de l'application et son shortcode ne changent pas, les mobiles où elle est installée continuent de l'ouvrir.
+
+**Export.** *Gestion des équipes › Import / export › Exporter en JSON* : sauvegarde complète, réimportable sur ce site ou un autre.
+
+---
+
 ## Génération automatique de pages
 
 Dans *MonClubTT → Équipes* :
@@ -222,7 +245,7 @@ $stages = apply_filters('monclubtt_get_evenements', [], [
 ## Prérequis
 
 - WordPress ≥ 5.0
-- PHP ≥ 7.4
+- PHP ≥ 7.4 (PHP ≥ 8.1 pour la gestion des équipes)
 - Extension cURL activée
 - Identifiants API FFTT valides (à demander auprès de la FFTT)
 

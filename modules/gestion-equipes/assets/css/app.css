@@ -1,0 +1,90 @@
+/* TT Team Planner — Direction A "Coach"
+   Reset + base styles for the #ttp-app container.
+   Component styling lives in app.js inline styles to stay
+   in sync with the design tokens. */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+#ttp-app {
+  --ttp-font: 'Inter', system-ui, -apple-system, sans-serif;
+  --ttp-radius: 10px;
+  --ttp-pri: #2563eb;
+  --ttp-pri-ink: #1d4ed8;
+
+  /* Standalone : occupe toujours tout le viewport */
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100dvh;
+  z-index: 9000;
+
+  display: flex;
+  flex-direction: column;
+  font-family: var(--ttp-font);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  box-sizing: border-box;
+  overflow: hidden;
+  line-height: 1.4;
+}
+
+/* Reset styles that bleed from WordPress themes */
+#ttp-app *,
+#ttp-app *::before,
+#ttp-app *::after {
+  box-sizing: border-box;
+}
+
+#ttp-app button,
+#ttp-app input,
+#ttp-app textarea,
+#ttp-app select {
+  font-family: var(--ttp-font);
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+#ttp-app a {
+  color: inherit;
+}
+
+/* Scrollable content areas */
+#ttp-app .ttp-screen-content {
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+
+/* Offline banner */
+#ttp-app .ttp-offline {
+  background: #fef3c7;
+  color: #92400e;
+  padding: 6px 12px;
+  font-size: 11px;
+  font-weight: 600;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+/* Login required notice */
+.ttp-login-required {
+  padding: 16px;
+  background: #fee2e2;
+  border: 1px solid #fca5a5;
+  border-radius: 8px;
+  color: #991b1b;
+  font-size: 14px;
+}
+
+/* PWA — allow install on supported browsers */
+@media (display-mode: standalone) {
+  #ttp-app {
+    height: 100dvh;
+    border-radius: 0;
+    box-shadow: none;
+    position: fixed;
+    inset: 0;
+    z-index: 9000;
+  }
+}

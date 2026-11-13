@@ -7,10 +7,17 @@ Format : [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/)
 
 ## [Non publié]
 
+### Ajouté
+
+- **Gestion des équipes** : l'extension TT Team Planner est intégrée au plugin (menu *Mon Club TT › Gestion des équipes*), avec l'application du staff, la PWA, les liens magiques, les relances par e-mail et l'import des rencontres jouées. Nécessite PHP 8.1 ; avec une version plus ancienne, le reste du plugin fonctionne et la page l'explique.
+- Import des données de TT Team Planner : depuis son fichier d'export JSON ou directement depuis ses tables encore présentes sur le site. Export JSON de la gestion des équipes, réimportable.
+- Réglage « Nom du club », repris par l'application, ses e-mails et les visuels réseaux sociaux.
+
 ### Modifié
 
 - Menu d'administration réorganisé : *Données FFTT* (onglets Joueurs, Équipes et Connexion), *Calendrier*, *Réseaux sociaux*, *Pong*, *Réglages*. Les identifiants de l'API FFTT, la synchronisation et les logs passent dans l'onglet Connexion, l'option « Photos des joueurs » dans l'onglet Joueurs, les réglages du jeu dans *Pong*. *Réglages* ne garde que l'identité du club (logo, couleurs).
 - Chaque page enregistre uniquement ses propres réglages.
+- Les joueurs de la gestion des équipes sont mis à jour à chaque synchronisation des données FFTT (plus de synchronisation séparée).
 - Les anciennes adresses des pages *Joueurs* et *Equipes* redirigent vers l'onglet correspondant.
 - Logs de l'API FFTT désactivés par défaut : une case dans l'onglet Connexion les active le temps de diagnostiquer un problème. Les désactiver efface le journal.
 

@@ -19,6 +19,8 @@ if ( ! class_exists( 'MonClubTT_Constantes' ) ) {
         const MONCLUBTT_AFFICHER_PHOTOS = 'monclubtt_afficher_photos';
         const MONCLUBTT_COULEURS = 'monclubtt_couleurs';
         const MONCLUBTT_LOGO = 'monclubtt_logo';
+        /** Nom du club affiché (gestion des équipes, e-mails, visuels) ; vide : nom du site. */
+        const MONCLUBTT_NOM_CLUB = 'monclubtt_nom_club';
         const MONCLUBTT_PONG_ADVERSAIRES = 'monclubtt_pong_adversaires';
         const MONCLUBTT_PONG_SCORES = 'monclubtt_pong_scores';
         /** Musique de fond du jeu de pong : ID de média audio ou URL d'un fichier audio. */
@@ -165,6 +167,16 @@ if ( ! function_exists( 'monclubtt_photos_affichees' ) ) {
     /** Photos des joueurs (club et adversaires du pong) affichées ? Oui par défaut. */
     function monclubtt_photos_affichees() {
         return get_option(MonClubTT_Constantes::MONCLUBTT_AFFICHER_PHOTOS, '1') !== '0';
+    }
+
+}
+
+if ( ! function_exists( 'monclubtt_nom_club' ) ) {
+
+    /** Nom du club saisi dans Réglages, sinon nom du site. */
+    function monclubtt_nom_club() {
+        $nom = trim( (string) get_option( MonClubTT_Constantes::MONCLUBTT_NOM_CLUB, '' ) );
+        return $nom !== '' ? $nom : (string) get_bloginfo( 'name' );
     }
 
 }

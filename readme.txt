@@ -24,6 +24,7 @@ Mon Club TT is an unofficial WordPress plugin that connects to the FFTT (Fédér
 * **Dashboard widget** — quick sync button on the WordPress dashboard
 * **Team management** — automatically create or trash WordPress pages per team
 * **Club calendar** — season agenda (month or list view, category filters), next date of a series (tournament round, holiday camp…) that moves on by itself, date lists, `.ics` download and calendar subscription. Events are entered in the admin or imported from the season spreadsheet (CSV or JSON)
+* **Team management app** (PHP 8.1+) — staff web app (installable on phones) for player availability, round-by-round team line-ups, phase squads, FFTT eligibility rules ("brûlage"), pre-written SMS and magic links so players can answer without an account. Imports data from the former TT Team Planner plugin (JSON export or its tables on the same site)
 * **Developer hooks** — expose cached data to other plugins via `apply_filters`
 
 **Shortcodes:**

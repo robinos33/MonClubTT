@@ -17,6 +17,12 @@ MonClubTT/
 │   ├── ParametresPlugin.php  # Accès aux options WP (ID app, mdp, num club)
 │   └── ...
 │
+├── modules/
+│   └── gestion-equipes/           # Ex-TT Team Planner (PHP 8.1, chargé seulement si disponible)
+│       ├── gestion-equipes.php    # Amorce compatible PHP 7.4 : vérifications, chargement
+│       ├── includes/              # Namespace MonClubTT\GestionEquipes : Admin, Domain, Repository, Rest, Front, Mail, Sync
+│       └── assets/                # Application du staff (app.js), lien magique, service worker, icônes PWA
+│
 ├── views/
 │   ├── admin/
 │   │   ├── donnees.php            # Page « Données FFTT » : onglets Joueurs / Équipes / Connexion
