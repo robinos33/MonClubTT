@@ -1,6 +1,7 @@
 <?php if ( ! defined( 'ABSPATH' ) ) exit; ?>
-<div class="wrap">
-    <h1 class="monclubtt-title">Les joueurs </h1>
+<div class="monclubtt-donnees-joueurs">
+    <?php $this->getForm('monclubtt_joueurs_settings'); ?>
+
     <h2>Shortcodes</h2>
     <p>Insérez le shortcode dans la page ou l'article où vous désirez afficher la liste des joueurs</p>
     <form class="monclubtt-liste-admin">
@@ -95,7 +96,7 @@ wp_add_inline_script('monclubtt-js', 'jQuery(document).ready(function($) {
         var $row = $button.closest("tr");
         var licence = $button.data("licence");
 
-        if (!window.confirm("Retirer ce joueur de la liste ? Il ne réapparaîtra plus, même après une synchronisation, jusqu\'à ce que vous retiriez son numéro de licence dans les réglages du plugin.")) {
+        if (!window.confirm("Retirer ce joueur de la liste ? Il ne réapparaîtra plus, même après une synchronisation, jusqu\'à ce que vous retiriez son numéro de licence dans l\'onglet Connexion.")) {
             return;
         }
 

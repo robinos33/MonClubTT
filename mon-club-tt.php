@@ -35,11 +35,11 @@ class MonClubTT_Plugin
     );
 
     /**
-     * Suffixe de hook de la page d'admin « Joueurs », mémorisé pour n'y charger
-     * la médiathèque (upload de photos) que sur cette page.
-     * @var string
+     * Suffixes de hook des pages d'admin qui utilisent la médiathèque
+     * (photos des joueurs, logo du club, photos et musique du pong).
+     * @var string[]
      */
-    private $joueurs_page_hook = '';
+    private $media_page_hooks = array();
 
     /**
      * Suffixe de hook de la page d'admin « Réseaux sociaux », pour n'y charger
@@ -48,15 +48,12 @@ class MonClubTT_Plugin
      */
     private $reseaux_sociaux_page_hook = '';
 
-    /**
-     * Suffixe de hook de la page des réglages (choix du logo dans la médiathèque).
-     * @var string
-     */
-    private $parametres_page_hook = '';
-
     public function __construct()
     {
         add_action('admin_menu', array($this, 'add_admin_menu'));
+        add_action('admin_menu', array($this, 'add_admin_menu_fin'), 30);
+        add_action('admin_menu', array($this, 'rediriger_anciennes_pages'), 1);
+        add_action('admin_post_monclubtt_clear_logs', array($this, 'handle_clear_logs'));
         add_action('admin_init', array($this, 'register_settings'));
         add_action('admin_enqueue_scripts', array($this, 'admin_enqueue_media'));
         add_action('admin_enqueue_scripts', array($this, 'admin_enqueue_reseaux_sociaux'));
@@ -110,18 +107,65 @@ class MonClubTT_Plugin
         delete_transient(MonClubTT_AccesFFTTApi::TRANSIENT_INIT);
     }
 
+    /**
+     * Haut du menu « Mon Club TT » : Données FFTT. Le calendrier s'ajoute
+     * ensuite (priorité 20), puis la fin du menu (priorité 30).
+     */
     public function add_admin_menu()
     {
-        $this->parametres_page_hook = add_menu_page('Mon Club TT', 'Mon Club TT', 'manage_options', 'monclubtt_parametres', array($this, 'admin_module'));
-        add_submenu_page('monclubtt_parametres', 'Mon Club TT', 'Réglages', 'manage_options', 'monclubtt_parametres', array($this, 'admin_module'));
-        add_submenu_page('monclubtt_parametres', 'Equipes', 'Equipes', 'manage_options', 'monclubtt_equipes', array($this, 'equipes_admin'));
-        $this->joueurs_page_hook = add_submenu_page('monclubtt_parametres', 'Joueurs', 'Joueurs', 'manage_options', 'monclubtt_joueurs', array($this, 'joueurs_admin'));
-        $this->reseaux_sociaux_page_hook = add_submenu_page('monclubtt_parametres', 'Réseaux sociaux', 'Réseaux sociaux', 'manage_options', 'monclubtt_reseaux_sociaux', array($this, 'reseaux_sociaux_admin'));
+        $parent = MonClubTT_Constantes::MENU_PARENT;
+        $this->media_page_hooks[] = add_menu_page('Données FFTT', 'Mon Club TT', 'manage_options', $parent, array($this, 'donnees_admin'));
+        add_submenu_page($parent, 'Données FFTT', 'Données FFTT', 'manage_options', $parent, array($this, 'donnees_admin'));
+    }
+
+    /** Fin du menu « Mon Club TT », après le calendrier. */
+    public function add_admin_menu_fin()
+    {
+        $parent = MonClubTT_Constantes::MENU_PARENT;
+        $this->reseaux_sociaux_page_hook = add_submenu_page($parent, 'Réseaux sociaux', 'Réseaux sociaux', 'manage_options', 'monclubtt_reseaux_sociaux', array($this, 'reseaux_sociaux_admin'));
+        $this->media_page_hooks[] = add_submenu_page($parent, 'Jeu de pong', 'Pong', 'manage_options', 'monclubtt_pong', array($this, 'pong_admin'));
+        $this->media_page_hooks[] = add_submenu_page($parent, 'Réglages', 'Réglages', 'manage_options', 'monclubtt_parametres', array($this, 'admin_module'));
+    }
+
+    /**
+     * Anciennes pages « Joueurs » et « Equipes » (avant 1.23) : redirigées vers
+     * l'onglet correspondant de « Données FFTT » (favoris, liens existants).
+     */
+    public function rediriger_anciennes_pages()
+    {
+        $page = isset($_GET['page']) ? sanitize_key(wp_unslash($_GET['page'])) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+        $onglets = array('monclubtt_joueurs' => 'joueurs', 'monclubtt_equipes' => 'equipes');
+        if (isset($onglets[$page])) {
+            wp_safe_redirect(monclubtt_admin_url_donnees($onglets[$page]));
+            exit;
+        }
+    }
+
+    /** Bouton « Effacer les logs » de l'onglet Connexion. */
+    public function handle_clear_logs()
+    {
+        if (!current_user_can('manage_options')) {
+            wp_die(esc_html__('Sorry, you are not allowed to access this page.', 'mon-club-tt'), 403);
+        }
+        check_admin_referer('monclubtt_clear_logs', 'monclubtt_clear_logs_nonce');
+        MonClubTT_AccesFFTTApi::clearApiLogs();
+        wp_safe_redirect(add_query_arg('logs_cleared', '1', monclubtt_admin_url_donnees('connexion')));
+        exit;
     }
 
     public function admin_module()
     {
-        $this->_getLayout('admin');
+        $this->_getLayout('reglages');
+    }
+
+    public function donnees_admin()
+    {
+        $this->_getLayout('donnees');
+    }
+
+    public function pong_admin()
+    {
+        $this->_getLayout('pong');
     }
 
     public static function getPluginData()
@@ -159,36 +203,54 @@ class MonClubTT_Plugin
         wp_register_script('monclubtt-pong-js', plugins_url('/assets/mon-club-tt-pong.js', __FILE__), array('monclubtt-js'), $pongJsVer, true);
     }
 
+    /**
+     * Un groupe de réglages par formulaire : options.php remet à vide toutes
+     * les options du groupe envoyé, un groupe ne doit donc contenir que les
+     * champs de son formulaire.
+     */
     public function register_settings()
     {
-        register_setting('monclubtt_settings', MonClubTT_Constantes::MONCLUBTT_ID_APPLICATION, array('sanitize_callback' => 'sanitize_text_field'));
-        register_setting('monclubtt_settings', MonClubTT_Constantes::MONCLUBTT_MOT_DE_PASSE,    array('sanitize_callback' => 'sanitize_text_field'));
-        register_setting('monclubtt_settings', MonClubTT_Constantes::MONCLUBTT_NUM_CLUB,        array('sanitize_callback' => 'sanitize_text_field'));
-        register_setting('monclubtt_settings', MonClubTT_Constantes::MONCLUBTT_LICENCES_EXCLUES, array('sanitize_callback' => 'monclubtt_sanitize_licences_exclues'));
-        register_setting('monclubtt_settings', MonClubTT_Constantes::MONCLUBTT_COULEURS, array('sanitize_callback' => array($this, 'sanitize_couleurs')));
-        register_setting('monclubtt_settings', MonClubTT_Constantes::MONCLUBTT_LOGO, array('sanitize_callback' => array($this, 'sanitize_logo')));
-        register_setting('monclubtt_settings', MonClubTT_Constantes::MONCLUBTT_AFFICHER_PHOTOS, array('sanitize_callback' => array($this, 'sanitize_case')));
-        register_setting('monclubtt_settings', MonClubTT_Constantes::MONCLUBTT_PONG_PROS, array('sanitize_callback' => array($this, 'sanitize_case')));
-        register_setting('monclubtt_settings', MonClubTT_Constantes::MONCLUBTT_PONG_ADVERSAIRES, array('sanitize_callback' => array($this, 'sanitize_pong_adversaires')));
-        register_setting('monclubtt_settings', MonClubTT_Constantes::MONCLUBTT_PONG_MUSIQUE, array('sanitize_callback' => array($this, 'sanitize_pong_musique')));
-        register_setting('monclubtt_settings', 'monclubtt_pong_raz_compteurs', array('sanitize_callback' => array($this, 'sanitize_pong_raz_compteurs')));
-        register_setting('monclubtt_settings', 'monclubtt_pong_vider_scores', array('sanitize_callback' => array($this, 'sanitize_pong_vider_scores')));
-        register_setting('monclubtt_settings', 'monclubtt_pong_vider_matchs', array('sanitize_callback' => array($this, 'sanitize_pong_vider_matchs')));
+        // Données FFTT › Connexion
+        $groupe = 'monclubtt_fftt_settings';
+        register_setting($groupe, MonClubTT_Constantes::MONCLUBTT_ID_APPLICATION, array('sanitize_callback' => 'sanitize_text_field'));
+        register_setting($groupe, MonClubTT_Constantes::MONCLUBTT_MOT_DE_PASSE,    array('sanitize_callback' => 'sanitize_text_field'));
+        register_setting($groupe, MonClubTT_Constantes::MONCLUBTT_NUM_CLUB,        array('sanitize_callback' => 'sanitize_text_field'));
+        register_setting($groupe, MonClubTT_Constantes::MONCLUBTT_LICENCES_EXCLUES, array('sanitize_callback' => 'monclubtt_sanitize_licences_exclues'));
+        add_settings_section('monclubtt_section', '', array($this, 'section_html'), $groupe);
+        add_settings_field(MonClubTT_Constantes::MONCLUBTT_ID_APPLICATION, 'Id Application', array($this, 'id_application_html'), $groupe, 'monclubtt_section');
+        add_settings_field(MonClubTT_Constantes::MONCLUBTT_MOT_DE_PASSE, 'Mot de passe Application', array($this, 'mot_de_passe_html'), $groupe, 'monclubtt_section');
+        add_settings_field(MonClubTT_Constantes::MONCLUBTT_NUM_CLUB, 'Numéro de club', array($this, 'equipe_num_html'), $groupe, 'monclubtt_section');
+        add_settings_field(MonClubTT_Constantes::MONCLUBTT_LICENCES_EXCLUES, 'Licences exclues de la liste des joueurs', array($this, 'licences_exclues_html'), $groupe, 'monclubtt_section');
 
-        add_settings_section('monclubtt_section', '', array($this, 'section_html'), 'monclubtt_settings');
-        add_settings_field(MonClubTT_Constantes::MONCLUBTT_ID_APPLICATION, 'Id Application', array($this, 'id_application_html'), 'monclubtt_settings', 'monclubtt_section');
-        add_settings_field(MonClubTT_Constantes::MONCLUBTT_MOT_DE_PASSE, 'Mot de passe Application', array($this, 'mot_de_passe_html'), 'monclubtt_settings', 'monclubtt_section');
-        add_settings_field(MonClubTT_Constantes::MONCLUBTT_NUM_CLUB, 'Numéro de club', array($this, 'equipe_num_html'), 'monclubtt_settings', 'monclubtt_section');
-        add_settings_field(MonClubTT_Constantes::MONCLUBTT_LICENCES_EXCLUES, 'Licences exclues de la liste des joueurs', array($this, 'licences_exclues_html'), 'monclubtt_settings', 'monclubtt_section');
-        add_settings_field(MonClubTT_Constantes::MONCLUBTT_LOGO, 'Logo du club', array($this, 'logo_html'), 'monclubtt_settings', 'monclubtt_section');
-        add_settings_field(MonClubTT_Constantes::MONCLUBTT_COULEURS, 'Couleurs du club', array($this, 'couleurs_html'), 'monclubtt_settings', 'monclubtt_section');
-        add_settings_field(MonClubTT_Constantes::MONCLUBTT_AFFICHER_PHOTOS, 'Photos des joueurs', array($this, 'afficher_photos_html'), 'monclubtt_settings', 'monclubtt_section');
-        add_settings_field(MonClubTT_Constantes::MONCLUBTT_PONG_PROS, 'Top 10 mondial dans le jeu de pong', array($this, 'pong_pros_html'), 'monclubtt_settings', 'monclubtt_section');
-        add_settings_field(MonClubTT_Constantes::MONCLUBTT_PONG_ADVERSAIRES, 'Adversaires du jeu de pong', array($this, 'pong_adversaires_html'), 'monclubtt_settings', 'monclubtt_section');
-        add_settings_field(MonClubTT_Constantes::MONCLUBTT_PONG_MUSIQUE, 'Musique du jeu de pong', array($this, 'pong_musique_html'), 'monclubtt_settings', 'monclubtt_section');
-        add_settings_field('monclubtt_pong_raz_compteurs', 'Parties du jeu de pong', array($this, 'pong_compteurs_html'), 'monclubtt_settings', 'monclubtt_section');
-        add_settings_field('monclubtt_pong_vider_scores', 'Meilleurs scores du jeu de pong', array($this, 'pong_vider_scores_html'), 'monclubtt_settings', 'monclubtt_section');
-        add_settings_field('monclubtt_pong_vider_matchs', 'Matchs partagés du jeu de pong', array($this, 'pong_vider_matchs_html'), 'monclubtt_settings', 'monclubtt_section');
+        // Données FFTT › Joueurs
+        $groupe = 'monclubtt_joueurs_settings';
+        register_setting($groupe, MonClubTT_Constantes::MONCLUBTT_AFFICHER_PHOTOS, array('sanitize_callback' => array($this, 'sanitize_case')));
+        add_settings_section('monclubtt_section_joueurs', '', '__return_false', $groupe);
+        add_settings_field(MonClubTT_Constantes::MONCLUBTT_AFFICHER_PHOTOS, 'Photos des joueurs', array($this, 'afficher_photos_html'), $groupe, 'monclubtt_section_joueurs');
+
+        // Pong
+        $groupe = 'monclubtt_pong_settings';
+        register_setting($groupe, MonClubTT_Constantes::MONCLUBTT_PONG_PROS, array('sanitize_callback' => array($this, 'sanitize_case')));
+        register_setting($groupe, MonClubTT_Constantes::MONCLUBTT_PONG_ADVERSAIRES, array('sanitize_callback' => array($this, 'sanitize_pong_adversaires')));
+        register_setting($groupe, MonClubTT_Constantes::MONCLUBTT_PONG_MUSIQUE, array('sanitize_callback' => array($this, 'sanitize_pong_musique')));
+        register_setting($groupe, 'monclubtt_pong_raz_compteurs', array('sanitize_callback' => array($this, 'sanitize_pong_raz_compteurs')));
+        register_setting($groupe, 'monclubtt_pong_vider_scores', array('sanitize_callback' => array($this, 'sanitize_pong_vider_scores')));
+        register_setting($groupe, 'monclubtt_pong_vider_matchs', array('sanitize_callback' => array($this, 'sanitize_pong_vider_matchs')));
+        add_settings_section('monclubtt_section_pong', '', '__return_false', $groupe);
+        add_settings_field(MonClubTT_Constantes::MONCLUBTT_PONG_PROS, 'Top 10 mondial', array($this, 'pong_pros_html'), $groupe, 'monclubtt_section_pong');
+        add_settings_field(MonClubTT_Constantes::MONCLUBTT_PONG_ADVERSAIRES, 'Adversaires', array($this, 'pong_adversaires_html'), $groupe, 'monclubtt_section_pong');
+        add_settings_field(MonClubTT_Constantes::MONCLUBTT_PONG_MUSIQUE, 'Musique', array($this, 'pong_musique_html'), $groupe, 'monclubtt_section_pong');
+        add_settings_field('monclubtt_pong_raz_compteurs', 'Parties', array($this, 'pong_compteurs_html'), $groupe, 'monclubtt_section_pong');
+        add_settings_field('monclubtt_pong_vider_scores', 'Meilleurs scores', array($this, 'pong_vider_scores_html'), $groupe, 'monclubtt_section_pong');
+        add_settings_field('monclubtt_pong_vider_matchs', 'Matchs partagés', array($this, 'pong_vider_matchs_html'), $groupe, 'monclubtt_section_pong');
+
+        // Réglages : identité du club
+        $groupe = 'monclubtt_settings';
+        register_setting($groupe, MonClubTT_Constantes::MONCLUBTT_LOGO, array('sanitize_callback' => array($this, 'sanitize_logo')));
+        register_setting($groupe, MonClubTT_Constantes::MONCLUBTT_COULEURS, array('sanitize_callback' => array($this, 'sanitize_couleurs')));
+        add_settings_section('monclubtt_section_reglages', '', '__return_false', $groupe);
+        add_settings_field(MonClubTT_Constantes::MONCLUBTT_LOGO, 'Logo du club', array($this, 'logo_html'), $groupe, 'monclubtt_section_reglages');
+        add_settings_field(MonClubTT_Constantes::MONCLUBTT_COULEURS, 'Couleurs du club', array($this, 'couleurs_html'), $groupe, 'monclubtt_section_reglages');
     }
 
     public function section_html()
@@ -408,7 +470,7 @@ class MonClubTT_Plugin
         </label>
         <p class="description">
             Décoché : aucun visage sur le site (podium, jeu de pong et ses images de partage, visuels réseaux sociaux), tous les joueurs ont leur avatar dessiné,
-            adversaires du top 10 compris. Les photos restent enregistrées et visibles dans la page <a href="<?php echo esc_url(admin_url('admin.php?page=monclubtt_joueurs')); ?>">Joueurs</a>.
+            adversaires du top 10 compris. Les photos restent enregistrées et visibles dans la liste ci-dessous.
         </p>
         <?php
     }
@@ -630,23 +692,19 @@ class MonClubTT_Plugin
         return monclubtt_normaliser_couleurs($valeur);
     }
 
-    public function getForm()
+    /**
+     * Formulaire d'un groupe de réglages (voir register_settings()).
+     *
+     * @param string $groupe Groupe de réglages, qui sert aussi d'identifiant de page des sections.
+     * @param string $bouton Libellé du bouton d'envoi.
+     */
+    public function getForm($groupe = 'monclubtt_settings', $bouton = 'Enregistrer')
     {
-        echo '<form action="options.php" method="POST" name="monclubtt_settings" class="monclubtt_settings_form">';
-        do_settings_sections('monclubtt_settings');
-        settings_fields('monclubtt_settings');
-        echo '<div>' . submit_button('Valider la saisie') . '</div>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+        echo '<form action="options.php" method="POST" class="monclubtt_settings_form">';
+        settings_fields($groupe);
+        do_settings_sections($groupe);
+        submit_button($bouton);
         echo '</form>';
-    }
-
-    public function equipes_admin()
-    {
-        $this->_getLayout('equipes');
-    }
-
-    public function joueurs_admin()
-    {
-        $this->_getLayout('joueurs');
     }
 
     public function reseaux_sociaux_admin()
@@ -1350,13 +1408,13 @@ class MonClubTT_Plugin
 
     /**
      * Charge la médiathèque WordPress uniquement sur les pages qui s'en
-     * servent : « Joueurs » (photos) et réglages (logo du club).
+     * servent : Données FFTT (photos), Pong (photos, musique) et Réglages (logo).
      *
      * @param string $hook Suffixe de hook de la page admin courante.
      */
     public function admin_enqueue_media($hook)
     {
-        if ($hook === $this->joueurs_page_hook || $hook === $this->parametres_page_hook) {
+        if (in_array($hook, $this->media_page_hooks, true)) {
             wp_enqueue_media();
         }
     }

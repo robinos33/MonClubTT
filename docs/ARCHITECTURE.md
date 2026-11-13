@@ -19,9 +19,13 @@ MonClubTT/
 │
 ├── views/
 │   ├── admin/
-│   │   ├── admin.php     # Page paramètres + sync + logs API
-│   │   ├── equipes.php   # Gestion des pages d'équipe (checkboxes + génération)
-│   │   ├── joueurs.php   # Liste des licenciés
+│   │   ├── donnees.php            # Page « Données FFTT » : onglets Joueurs / Équipes / Connexion
+│   │   ├── donnees-connexion.php  # Onglet Connexion : identifiants API, sync, logs API
+│   │   ├── joueurs.php            # Onglet Joueurs : licenciés, photos, shortcodes
+│   │   ├── equipes.php            # Onglet Équipes : pages d'équipe (checkboxes + génération)
+│   │   ├── reseaux-sociaux.php    # Générateur de visuels
+│   │   ├── pong.php               # Réglages du jeu de pong
+│   │   ├── reglages.php           # Identité du club : logo, couleurs
 │   │   └── header.php
 │   └── front/
 │       ├── equipes.php   # Shortcode [monclubtt_equipe] — classement + résultats + feuilles

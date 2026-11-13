@@ -1,17 +1,5 @@
 <?php
 if ( ! defined( 'ABSPATH' ) ) exit;
-
-// Handle log clearing before any output
-if (isset($_POST['monclubtt_clear_logs']) && check_admin_referer('monclubtt_clear_logs', 'monclubtt_clear_logs_nonce')) {
-    MonClubTT_AccesFFTTApi::clearApiLogs();
-    wp_safe_redirect(add_query_arg(array('page' => 'monclubtt_parametres', 'logs_cleared' => '1'), admin_url('admin.php')));
-    exit;
-}
-
-// Afficher un message de succès après la sauvegarde des paramètres
-if (isset($_GET['settings-updated']) && filter_input(INPUT_GET, 'settings-updated', FILTER_SANITIZE_NUMBER_INT)) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-    echo '<div class="notice notice-success is-dismissible"><p><strong>Paramètres enregistrés avec succès !</strong></p></div>';
-}
 ?>
 
 <div class="monclubtt-right-box" style="display: none">
@@ -20,10 +8,9 @@ if (isset($_GET['settings-updated']) && filter_input(INPUT_GET, 'settings-update
     </p>
 </div>
 
-<div class="wrap monclubtt-wrap">
-    <p></p>
+<div class="monclubtt-wrap">
     <h2>Paramètres de l'API FFTT</h2>
-    <?php $this->getForm(); ?>
+    <?php $this->getForm('monclubtt_fftt_settings'); ?>
 
     <h2>Synchronisation des données</h2>
     <div class="monclubtt-sync-section">
@@ -72,8 +59,8 @@ if (isset($_GET['settings-updated']) && filter_input(INPUT_GET, 'settings-update
         } else {
             echo '<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">';
             echo '<p style="margin: 0;"><strong>' . count($monclubtt_logs) . ' logs d\'API</strong></p>';
-            echo '<form method="post" style="margin: 0;">';
-            echo '<input type="hidden" name="monclubtt_clear_logs" value="1">';
+            echo '<form method="post" action="' . esc_url(admin_url('admin-post.php')) . '" style="margin: 0;">';
+            echo '<input type="hidden" name="action" value="monclubtt_clear_logs">';
             wp_nonce_field('monclubtt_clear_logs', 'monclubtt_clear_logs_nonce');
             echo '<button type="submit" class="button">Effacer les logs</button>';
             echo '</form>';
@@ -103,7 +90,7 @@ if (isset($_GET['settings-updated']) && filter_input(INPUT_GET, 'settings-update
             echo '</div>';
         }
 
-        if (isset($_GET['logs_cleared'])) {
+        if (isset($_GET['logs_cleared'])) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
             echo '<div class="notice notice-success" style="margin-top: 10px;"><p>Logs effacés avec succès.</p></div>';
         }
         ?>

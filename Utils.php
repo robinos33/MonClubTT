@@ -5,6 +5,9 @@ if ( ! class_exists( 'MonClubTT_Constantes' ) ) {
 
     class MonClubTT_Constantes {
 
+        /** Slug de la page « Données FFTT », parent du menu admin « Mon Club TT ». */
+        const MENU_PARENT = 'monclubtt_donnees';
+
         const MONCLUBTT_ID_APPLICATION = 'monclubtt_id_application';
         const MONCLUBTT_MOT_DE_PASSE = 'monclubtt_mot_de_passe';
         const MONCLUBTT_NUM_CLUB = 'monclubtt_num_club';
@@ -160,6 +163,24 @@ if ( ! function_exists( 'monclubtt_photos_affichees' ) ) {
     /** Photos des joueurs (club et adversaires du pong) affichées ? Oui par défaut. */
     function monclubtt_photos_affichees() {
         return get_option(MonClubTT_Constantes::MONCLUBTT_AFFICHER_PHOTOS, '1') !== '0';
+    }
+
+}
+
+if ( ! function_exists( 'monclubtt_admin_url_donnees' ) ) {
+
+    /**
+     * Adresse d'un onglet de la page admin « Données FFTT ».
+     *
+     * @param string $onglet connexion, joueurs ou equipes.
+     * @return string
+     */
+    function monclubtt_admin_url_donnees( $onglet = '' ) {
+        $args = array( 'page' => MonClubTT_Constantes::MENU_PARENT );
+        if ( $onglet !== '' ) {
+            $args['tab'] = $onglet;
+        }
+        return add_query_arg( $args, admin_url( 'admin.php' ) );
     }
 
 }
