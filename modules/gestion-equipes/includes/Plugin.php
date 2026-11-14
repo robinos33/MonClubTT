@@ -7,6 +7,7 @@ use MonClubTT\GestionEquipes\Admin\SettingsPage;
 use MonClubTT\GestionEquipes\Front\Assets;
 use MonClubTT\GestionEquipes\Front\MagicLinkTemplate;
 use MonClubTT\GestionEquipes\Front\Shortcode;
+use MonClubTT\GestionEquipes\Front\SitemapExclusion;
 use MonClubTT\GestionEquipes\Front\StandaloneTemplate;
 use MonClubTT\GestionEquipes\Mail\AvailabilityReminder;
 use MonClubTT\GestionEquipes\Sync\AppearanceImporter;
@@ -68,6 +69,7 @@ final class Plugin
         // est servie par StandaloneTemplate avant que le thème ne s'affiche.
         (new Shortcode())->register();
         (new Assets())->register();
+        (new SitemapExclusion())->register();
     }
 
     public function sendAvailabilityReminders(): void

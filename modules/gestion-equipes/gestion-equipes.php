@@ -80,6 +80,7 @@ if ( ! function_exists( 'monclubtt_ge_charger' ) ) {
             'Front/Shortcode.php',
             'Front/Assets.php',
             'Front/StandaloneTemplate.php',
+            'Front/SitemapExclusion.php',
             'Front/MagicLinkTemplate.php',
             'Activator.php',
             'Plugin.php',
