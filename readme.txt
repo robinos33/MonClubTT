@@ -3,7 +3,7 @@ Contributors: robinos33
 Tags: table tennis, fftt, club, rankings, results
 Requires at least: 6.4
 Tested up to: 7.1
-Stable tag: 2.1.0
+Stable tag: 2.2.0
 Requires PHP: 8.4
 License: GPLv2
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -69,6 +69,9 @@ Player data is refreshed on manual sync only. League standings and results are c
 Yes. The plugin exposes six filters: `monclubtt_get_evenements`, `monclubtt_get_joueurs`, `monclubtt_get_equipes`, `monclubtt_get_classement_poule`, `monclubtt_get_rencontres_poule`, `monclubtt_get_feuille_rencontre`. See the documentation for usage.
 
 == Changelog ==
+
+= 2.2.0 =
+* Fixed: team management pages ([tt_team_planner]) are no longer listed in the WordPress sitemap
 
 = 2.1.0 =
 * Added: ping pong paddle icon (Twemoji 🏓) for the Mon Club TT admin menu
@@ -267,6 +270,9 @@ Yes. The plugin exposes six filters: `monclubtt_get_evenements`, `monclubtt_get_
 * Automatic team page generation and deletion
 
 == Upgrade Notice ==
+
+= 2.2.0 =
+The team management page no longer appears in the WordPress sitemap.
 
 = 2.1.0 =
 The Mon Club TT admin menu gets a ping pong paddle icon.
