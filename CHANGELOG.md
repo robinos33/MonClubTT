@@ -5,6 +5,13 @@ Format : [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/)
 
 ---
 
+## [Non publié]
+
+### Corrigé
+
+- Appli d'équipe depuis Samsung Internet : l'appli qu'il fabrique est bloquée par Google Play Protect (« Appli non sécurisée bloquée », conçue pour une version plus ancienne d'Android). Le bandeau propose désormais « Ouvrir dans Chrome », qui installe une appli acceptée, au lieu du bouton « Installer ».
+- Bandeau sur petit écran : le bouton passe sous le texte au lieu de l'écraser.
+
 ## [2.3.1] — 2026-11-15
 
 ### Ajouté

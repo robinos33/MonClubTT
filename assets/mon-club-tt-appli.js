@@ -1,9 +1,13 @@
 /*
  * Mon Club TT — bandeau « ajoute l'équipe à ton écran d'accueil ».
  *
- * - Android (Chrome, Edge, Samsung Internet…) : bouton « Installer » qui ouvre
- *   la fenêtre native (événement beforeinstallprompt). Sans cet événement
- *   (appli déjà installée, navigateur qui ne le propose pas), pas de bandeau.
+ * - Android (Chrome, Edge…) : bouton « Installer » qui ouvre la fenêtre native
+ *   (événement beforeinstallprompt). Sans cet événement (appli déjà installée,
+ *   navigateur qui ne le propose pas), pas de bandeau.
+ * - Samsung Internet : bouton « Ouvrir dans Chrome ». L'appli que fabrique
+ *   Samsung Internet vise une ancienne version d'Android et Google Play
+ *   Protect la bloque (« Appli non sécurisée bloquée ») ; le site n'y peut
+ *   rien, Chrome fabrique une appli acceptée.
  * - Firefox Android et iPhone/iPad : mode d'emploi en deux étapes.
  * - Jamais sur ordinateur, ni dans l'appli elle-même, ni dans le navigateur
  *   intégré de Facebook/Instagram (qui ne permet pas l'ajout).
@@ -25,6 +29,7 @@
     var ios = /iphone|ipad|ipod/i.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
     var android = /android/i.test(ua);
     var firefoxAndroid = android && /firefox\//i.test(ua);
+    var samsung = android && /SamsungBrowser\//i.test(ua);
     var navigateurIntegre = /FBAN|FBAV|FB_IAB|Instagram|Line\/|Snapchat|TikTok/i.test(ua);
     var autonome = (w.matchMedia && w.matchMedia('(display-mode: standalone)').matches) || navigator.standalone === true;
 
@@ -89,7 +94,19 @@
             + '</ol>';
     }
 
-    function construire(avecBouton) {
+    /** Ouvre la page courante dans Chrome (lien intent Android), sinon la recharge ici. */
+    function lienChrome() {
+        var l = w.location;
+        return 'intent://' + l.host + l.pathname + l.search
+            + '#Intent;scheme=' + l.protocol.replace(':', '') + ';package=com.android.chrome;'
+            + 'S.browser_fallback_url=' + encodeURIComponent(l.href) + ';end';
+    }
+
+    /**
+     * @param {string} mode 'installer' (bouton natif), 'chrome' (Samsung Internet)
+     *                      ou 'etapes' (mode d'emploi).
+     */
+    function construire(mode) {
         var nom = echapper(cfg.nom);
         var accroche = cfg.equipe
             ? 'Suis <strong>' + nom + '</strong> en un geste'
@@ -97,6 +114,16 @@
         var detail = cfg.equipe
             ? 'Ajoute l’équipe à ton écran d’accueil : résultats et classement à portée de pouce.'
             : 'Ajoute cette page à ton écran d’accueil pour la retrouver en un geste.';
+        if (mode === 'chrome') {
+            detail = 'Depuis Samsung Internet, l’appli est bloquée par Google Play Protect : '
+                + 'ouvre la page dans Chrome, puis touche « Installer ».';
+        }
+        var action = '';
+        if (mode === 'installer') {
+            action = '<button type="button" class="monclubtt-appli-installer">Installer</button>';
+        } else if (mode === 'chrome') {
+            action = '<a class="monclubtt-appli-installer" href="' + echapper(lienChrome()).replace(/"/g, '&quot;') + '">Ouvrir dans Chrome</a>';
+        }
 
         var el = d.createElement('aside');
         el.className = 'monclubtt-appli';
@@ -105,9 +132,9 @@
         el.innerHTML = ''
             + '<div class="monclubtt-appli-texte">'
             +   '<p class="monclubtt-appli-accroche">' + accroche + '</p>'
-            +   (avecBouton ? '<p class="monclubtt-appli-detail">' + detail + '</p>' : etapes())
+            +   (mode === 'etapes' ? etapes() : '<p class="monclubtt-appli-detail">' + detail + '</p>')
             + '</div>'
-            + (avecBouton ? '<button type="button" class="monclubtt-appli-installer">Installer</button>' : '')
+            + action
             + '<button type="button" class="monclubtt-appli-fermer" aria-label="Fermer">×</button>';
 
         if (cfg.icone) {
@@ -124,16 +151,16 @@
             retenirFermeture(30);
             masquer();
         });
-        var bouton = el.querySelector('.monclubtt-appli-installer');
+        var bouton = el.querySelector('button.monclubtt-appli-installer');
         if (bouton) {
             bouton.addEventListener('click', installer);
         }
         return el;
     }
 
-    function afficher(avecBouton) {
+    function afficher(mode) {
         if (bandeau) return;
-        bandeau = construire(avecBouton);
+        bandeau = construire(mode);
         d.body.appendChild(bandeau);
         // Laisse la fin de la page lisible au-dessus du bandeau.
         d.body.style.paddingBottom = bandeau.offsetHeight + 'px';
@@ -173,7 +200,14 @@
     var debut = Date.now();
 
     if (ios || firefoxAndroid) {
-        plusTard(function () { afficher(false); });
+        plusTard(function () { afficher('etapes'); });
+        return;
+    }
+
+    if (samsung) {
+        // Pas de fenêtre d'installation de Samsung Internet : elle mène au blocage.
+        w.addEventListener('beforeinstallprompt', function (e) { e.preventDefault(); });
+        plusTard(function () { afficher('chrome'); });
         return;
     }
 
@@ -181,7 +215,7 @@
     w.addEventListener('beforeinstallprompt', function (e) {
         e.preventDefault();
         invite = e;
-        plusTard(function () { afficher(true); });
+        plusTard(function () { afficher('installer'); });
     });
     w.addEventListener('appinstalled', function () {
         retenirFermeture(365);

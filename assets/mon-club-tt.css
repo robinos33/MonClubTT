@@ -1172,6 +1172,7 @@ th.headerSortUp {
     bottom: 0;
     z-index: 99990;
     display: flex;
+    flex-wrap: wrap; /* écran étroit : le bouton passe sous le texte */
     align-items: center;
     gap: 12px;
     box-sizing: border-box;
@@ -1203,7 +1204,7 @@ th.headerSortUp {
     box-shadow: 0 1px 4px rgba(0, 0, 0, .2);
 }
 .monclubtt-appli-texte{
-    flex: 1 1 auto;
+    flex: 1 1 170px;
     min-width: 0;
 }
 .monclubtt-appli p{
@@ -1239,7 +1240,13 @@ th.headerSortUp {
     cursor: pointer;
 }
 .monclubtt-appli-installer{
+    order: 3; /* après la croix : seul le bouton passe à la ligne */
     flex: 0 0 auto;
+    margin-left: auto;
+    white-space: nowrap;
+    display: inline-block;
+    text-align: center;
+    text-decoration: none;
     padding: 10px 16px;
     border: 0;
     border-radius: 999px;
@@ -1251,8 +1258,10 @@ th.headerSortUp {
 .monclubtt-appli-installer:hover,
 .monclubtt-appli-installer:focus-visible{
     background: var(--monclubtt-prim-fonce);
+    color: #fff;
 }
 .monclubtt-appli-fermer{
+    order: 2;
     flex: 0 0 auto;
     align-self: flex-start;
     width: 32px;
