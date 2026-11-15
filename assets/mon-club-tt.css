@@ -1092,6 +1092,29 @@ th.headerSortUp {
     color: #50575e;
 }
 
+.monclubtt-social-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.monclubtt-social-doublon p {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+}
+
+.monclubtt-article-categories th {
+    padding: 4px 16px 4px 0;
+    font-weight: normal;
+    text-align: left;
+}
+
+.monclubtt-article-categories td {
+    padding: 4px 0;
+}
+
 .monclubtt-social-preview {
     flex: 1 1 420px;
     max-width: 560px;

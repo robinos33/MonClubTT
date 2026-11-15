@@ -109,6 +109,9 @@ class MonClubTT_Plugin
 
         // Pages d'équipe ajoutables à l'écran d'accueil (manifest, bandeau).
         new MonClubTT_AppliWP(__FILE__);
+
+        // Articles créés depuis les visuels de la page « Réseaux sociaux ».
+        new MonClubTT_ArticleSocialWP();
     }
 
     /** Force l'initialisation FFTT au prochain appel (identifiants modifiés, synchro). */
@@ -1540,6 +1543,9 @@ class MonClubTT_Plugin
         wp_localize_script('monclubtt-social-js', 'MonClubTTSocial', array(
             'ajaxurl'     => admin_url('admin-ajax.php'),
             'nonce'       => wp_create_nonce('monclubtt_top_perfs_nonce'),
+            'articleNonce' => wp_create_nonce(MonClubTT_ArticleSocialWP::NONCE),
+            'moisCle'     => date_i18n('Y-m'),
+            'saisonCle'   => $saison . '-' . ($saison + 1),
             'players'     => $players,
             'paliers'     => $paliers,
             'moisLabel'   => $moisFr[(int) date_i18n('n') - 1] . ' ' . date_i18n('Y'),

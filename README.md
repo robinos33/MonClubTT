@@ -26,7 +26,7 @@ Menu *Mon Club TT* :
 - **Widget tableau de bord** avec bouton de synchronisation rapide
 - **Calendrier** — événements saisis à la main ou importés du tableur de la saison (CSV ou JSON), rangés par série et par catégorie
 - **Pong**, **Réglages** (nom, logo et couleurs du club)
-- **Réseaux sociaux** — visuels prêts à poster (Top Progression, nouveaux paliers de points, et pour le dernier week-end de championnat : résultats des équipes, top perfs, cartons pleins, victoires à la belle), générés dans le navigateur et téléchargeables en PNG portrait 4:5 (1080 × 1350, affiché en entier dans le fil Instagram et Facebook), avec un texte de publication pré-rempli
+- **Réseaux sociaux** — visuels prêts à poster (Top Progression, nouveaux paliers de points, et pour le dernier week-end de championnat : résultats des équipes, top perfs, cartons pleins, victoires à la belle), générés dans le navigateur et téléchargeables en PNG portrait 4:5 (1080 × 1350, affiché en entier dans le fil Instagram et Facebook), avec un texte de publication pré-rempli. « Créer un article » en fait un brouillon : visuel en image à la une (avec texte alternatif), légende et données en texte, catégorie par visuel et lien de fin réglables ; un second clic pour la même période propose l'article existant
 
 ---
 

@@ -5,6 +5,14 @@ Format : [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/)
 
 ---
 
+## [Unreleased]
+
+### Ajouté
+
+- **Réseaux sociaux › Créer un article** (#40) : le visuel (JPEG 1080 × 1350) va dans la médiathèque et devient l'image à la une d'un **brouillon**, avec un texte alternatif décrivant le visuel. Titre proposé selon le visuel (« Top Progression – novembre 2026 », « Journée 5 : les perfs du week-end »…), contenu en blocs : la légende en paragraphes, puis les données du visuel en liste (lisibles par les moteurs de recherche et les lecteurs d'écran), puis un lien de fin. Rien n'est publié sans passer par l'éditeur.
+- Réglages des articles en bas de la page *Réseaux sociaux* : page du lien de fin (Inscriptions, Séance d'essai…) et son texte, catégorie par type de visuel.
+- Un article par visuel et par période (mois, saison ou week-end, et public pour la progression) : un second clic propose d'ouvrir l'article existant ou d'en créer un autre.
+
 ## [2.3.2] — 2026-11-15
 
 ### Corrigé
