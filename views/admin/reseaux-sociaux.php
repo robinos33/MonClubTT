@@ -83,4 +83,8 @@
     <h2 id="monclubtt-articles">Articles créés depuis les visuels</h2>
     <p>« Créer un article » envoie le visuel dans la médiathèque et ouvre un <strong>brouillon</strong> : image à la une, texte de la publication et données du visuel en texte, lisibles par les moteurs de recherche et les lecteurs d'écran. Rien n'est publié avant votre relecture.</p>
     <?php $this->getForm(MonClubTT_ArticleSocialWP::GROUPE); ?>
+
+    <h2 id="monclubtt-meta">Connexion Meta (Facebook et Instagram)</h2>
+    <p>Une fois la connexion faite, un article publié sur le site se partage depuis l'éditeur : boîte « Réseaux sociaux », bouton « Publier sur les réseaux ».</p>
+    <?php $this->getForm(MonClubTT_PublicationMetaWP::GROUPE); ?>
 </div>

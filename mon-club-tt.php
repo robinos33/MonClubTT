@@ -112,6 +112,9 @@ class MonClubTT_Plugin
 
         // Articles créés depuis les visuels de la page « Réseaux sociaux ».
         new MonClubTT_ArticleSocialWP();
+
+        // Publication d'un article sur Facebook et Instagram (API Graph de Meta).
+        new MonClubTT_PublicationMetaWP();
     }
 
     /** Force l'initialisation FFTT au prochain appel (identifiants modifiés, synchro). */

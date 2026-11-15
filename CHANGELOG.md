@@ -12,6 +12,12 @@ Format : [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/)
 - **Réseaux sociaux › Créer un article** (#40) : le visuel (JPEG 1080 × 1350) va dans la médiathèque et devient l'image à la une d'un **brouillon**, avec un texte alternatif décrivant le visuel. Titre proposé selon le visuel (« Top Progression – novembre 2026 », « Journée 5 : les perfs du week-end »…), contenu en blocs : la légende en paragraphes, puis les données du visuel en liste (lisibles par les moteurs de recherche et les lecteurs d'écran), puis un lien de fin. Rien n'est publié sans passer par l'éditeur.
 - Réglages des articles en bas de la page *Réseaux sociaux* : page du lien de fin (Inscriptions, Séance d'essai…) et son texte, catégorie par type de visuel.
 - Un article par visuel et par période (mois, saison ou week-end, et public pour la progression) : un second clic propose d'ouvrir l'article existant ou d'en créer un autre.
+- **Publier un article sur Facebook et Instagram** (#41) : boîte « Réseaux sociaux » dans l'éditeur d'un article publié, bouton « Publier sur les réseaux ». Un onglet par réseau, texte pré-rempli depuis l'article et modifiable (Facebook : texte + lien vers l'article ; Instagram : mention « lien en bio » et compteur de 2 200 caractères), choix de 1 à 10 photos (image à la une et images de l'article) avec aperçu du recadrage 4:5.
+- Envoi par l'API Graph de Meta : Facebook (photos envoyées non publiées puis message avec `attached_media`), Instagram (un conteneur par image, carrousel au-delà d'une, attente du statut `FINISHED`, puis `media_publish`).
+- Historique sur l'article (réseau, lien vers la publication, date, auteur, erreur) et avertissement si l'article a déjà été publié sur ce réseau.
+- Réglages *Connexion Meta* en bas de la page *Réseaux sociaux* (mode expert : app Meta du club) : identifiant de la page, du compte Instagram pro, jeton de page longue durée (non chargé automatiquement), bouton « Tester la connexion », alerte dans l'admin quand le jeton n'est plus valide. Messages d'erreur compréhensibles (jeton expiré, ratio ou format refusé, compte non relié, site non public).
+- Taille d'image `monclubtt-instagram` (JPEG 1080 × 1350) ; une image plus ancienne, plus petite ou en PNG est recadrée et convertie à la demande.
+- `readme.txt` : section « External services » (API FFTT et API Graph de Meta).
 
 ## [2.3.2] — 2026-11-15
 
