@@ -5,6 +5,23 @@ Format : [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/)
 
 ---
 
+## [2.3.0] — 2026-11-15
+
+### Ajouté
+
+- **Appli d'équipe** : sur mobile, une page `[monclubtt_equipe]` peut être ajoutée à l'écran d'accueil. Manifest propre à chaque page (« Équipe 3 » sous l'icône, « Équipe 3 · US Talence » en nom complet, logo carré du club ou icône du site, couleur primaire). Bandeau en bas de page au tutoiement : bouton « Installer » sur Android (Chrome, Edge, Samsung Internet), mode d'emploi sur iPhone et Firefox Android ; jamais sur ordinateur ; fermé, il ne revient pas avant 30 jours.
+- Adresse stable `/?monclubtt_appli=M3` vers la page actuelle d'une équipe : l'icône installée survit au changement de phase.
+- Attributs `appli="non"`, `nom_appli` et `nom_court` du shortcode `[monclubtt_equipe]`, réglage *Réglages › Écran d'accueil* pour tout désactiver.
+- Pages d'équipe : pastille « N nouveaux résultats depuis ta dernière visite » et rencontres surlignées (mémoire du navigateur).
+
+### Modifié
+
+- Classements et résultats de poule : cache de 30 minutes du samedi midi au dimanche soir (au lieu du renouvellement de 8 h et 13 h), pour qu'un résultat saisi le samedi soir apparaisse le soir même.
+
+### Corrigé
+
+- L'icône du menu d'administration garde ses couleurs malgré le svg-painter de WordPress (#36).
+
 ## [2.0.0] — 2026-11-13
 
 ### ⚠ Changements incompatibles

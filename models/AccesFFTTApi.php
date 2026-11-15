@@ -226,7 +226,7 @@ if (!class_exists('MonClubTT_AccesFFTTApi')) {
         public function getPouleClassement($division, $poule = null)
         {
             $key = $this->buildCacheKey('poule_classement', array('D1' => $division, 'cx_poule' => $poule));
-            $lifeTime = $this->computeHalfDayTtl();
+            $lifeTime = $this->computeResultatsTtl();
             return $this->getCachedData($key, $lifeTime, function () use ($division, $poule) {
                 return MonClubTT_AccesFFTTApi::getCollection($this->getData('https://www.fftt.com/mobile/pxml/xml_result_equ.php', array('auto' => 1, 'action' => 'classement', 'D1' => $division, 'cx_poule' => $poule)), 'classement');
             });
@@ -235,7 +235,7 @@ if (!class_exists('MonClubTT_AccesFFTTApi')) {
         public function getPouleRencontres($division, $poule = null)
         {
             $key = $this->buildCacheKey('poule_rencontres', array('D1' => $division, 'cx_poule' => $poule));
-            $lifeTime = $this->computeHalfDayTtl();
+            $lifeTime = $this->computeResultatsTtl();
             return $this->getCachedData($key, $lifeTime, function () use ($division, $poule) {
                 return MonClubTT_AccesFFTTApi::getCollection($this->getData('https://www.fftt.com/mobile/pxml/xml_result_equ.php', array('auto' => 1, 'D1' => $division, 'cx_poule' => $poule)), 'tour');
             });
@@ -351,6 +351,13 @@ if (!class_exists('MonClubTT_AccesFFTTApi')) {
             }
             $ttl = max(60, $next - $now);
             return $ttl;
+        }
+
+        /** Cache des résultats de poule : plus court le week-end (voir monclubtt_ttl_resultats()). */
+        private function computeResultatsTtl()
+        {
+            $now = function_exists('current_time') ? (int) current_time('timestamp') : time();
+            return monclubtt_ttl_resultats($now, $this->computeHalfDayTtl());
         }
 
         public function computeHalfDayTtlPublic()

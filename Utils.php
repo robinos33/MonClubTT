@@ -21,6 +21,8 @@ if ( ! class_exists( 'MonClubTT_Constantes' ) ) {
         const MONCLUBTT_LOGO = 'monclubtt_logo';
         /** Nom du club affiché (gestion des équipes, e-mails, visuels) ; vide : nom du site. */
         const MONCLUBTT_NOM_CLUB = 'monclubtt_nom_club';
+        // Bandeau « ajoute l'équipe à ton écran d'accueil » sur les pages d'équipe ('1' / '0').
+        const MONCLUBTT_APPLI_EQUIPES = 'monclubtt_appli_equipes';
         const MONCLUBTT_PONG_ADVERSAIRES = 'monclubtt_pong_adversaires';
         const MONCLUBTT_PONG_SCORES = 'monclubtt_pong_scores';
         /** Musique de fond du jeu de pong : ID de média audio ou URL d'un fichier audio. */
@@ -437,6 +439,41 @@ if ( ! function_exists( 'monclubtt_api_texte' ) ) {
         $valeur = trim((string) $valeur);
 
         return '' === $valeur ? $defaut : $valeur;
+    }
+
+}
+
+if ( ! function_exists( 'monclubtt_ttl_resultats' ) ) {
+
+    /**
+     * Durée de cache des résultats d'une poule (classement et rencontres).
+     *
+     * En semaine, le cache se renouvelle à 8 h et à 13 h ($ttlNormal). Du samedi
+     * midi au dimanche soir, quand les feuilles de match sont saisies, il expire
+     * au bout de 30 minutes : un résultat saisi le samedi soir apparaît le soir
+     * même et non le dimanche matin. Le samedi matin, le cache n'est pas gardé
+     * au-delà de midi.
+     *
+     * @param int $maintenant Horodatage « local » de WordPress (current_time('timestamp')),
+     *                        lu comme une date UTC : c'est l'heure du club.
+     * @param int $ttlNormal  Durée hors week-end (secondes).
+     * @return int Durée en secondes, au moins 60.
+     */
+    function monclubtt_ttl_resultats($maintenant, $ttlNormal) {
+        $maintenant = (int) $maintenant;
+        $ttlNormal  = max(60, (int) $ttlNormal);
+        $jour  = (int) gmdate('N', $maintenant); // 6 = samedi, 7 = dimanche
+        $heure = (int) gmdate('G', $maintenant);
+
+        $weekEnd = ($jour === 6 && $heure >= 12) || $jour === 7;
+        if ($weekEnd) {
+            return max(60, min(30 * 60, $ttlNormal));
+        }
+        if ($jour === 6) {
+            $midi = gmmktime(12, 0, 0, (int) gmdate('n', $maintenant), (int) gmdate('j', $maintenant), (int) gmdate('Y', $maintenant));
+            return max(60, min($ttlNormal, $midi - $maintenant));
+        }
+        return $ttlNormal;
     }
 
 }

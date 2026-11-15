@@ -3,7 +3,7 @@ Contributors: robinos33
 Tags: table tennis, fftt, club, rankings, results
 Requires at least: 6.4
 Tested up to: 7.1
-Stable tag: 2.2.0
+Stable tag: 2.3.0
 Requires PHP: 8.4
 License: GPLv2
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -30,7 +30,7 @@ Mon Club TT is an unofficial WordPress plugin that connects to the FFTT (Fédér
 **Shortcodes:**
 
 * `[monclubtt_joueurs type="MF"]` — display club players (M, F, or MF)
-* `[monclubtt_equipe iddiv="198511" idpoule="1140384"]` — display a team's standings and results
+* `[monclubtt_equipe iddiv="198511" idpoule="1140384"]` — display a team's standings and results; on mobile, visitors are invited to add the team to their home screen (club name, logo and colours)
 * `[monclubtt_calendrier]` — club calendar for the season, with calendar subscription (Apple, Outlook, Google)
 * `[monclubtt_prochain serie="slug"]` — next date of a series; `format="texte"` returns a single field (date, round number, place, link) to use inside your own text
 * `[monclubtt_dates serie="slug"]` — dates of a series for the season, the next one highlighted; several series give a table by month
@@ -63,12 +63,19 @@ Contact the FFTT directly. An App ID and password are provided upon request.
 8 digits, e.g. `10330011`.
 
 = How often is the data updated? =
-Player data is refreshed on manual sync only. League standings and results are cached and automatically refreshed at 08:00 and 13:00 each day. Match sheets are cached for 7 days (past results do not change).
+Player data is refreshed on manual sync only. League standings and results are cached and automatically refreshed at 08:00 and 13:00 each day, and every 30 minutes from Saturday noon to Sunday night, when match sheets are entered. Match sheets are cached for 7 days (past results do not change).
 
 = Can I use the data in another plugin? =
 Yes. The plugin exposes six filters: `monclubtt_get_evenements`, `monclubtt_get_joueurs`, `monclubtt_get_equipes`, `monclubtt_get_classement_poule`, `monclubtt_get_rencontres_poule`, `monclubtt_get_feuille_rencontre`. See the documentation for usage.
 
 == Changelog ==
+
+= 2.3.0 =
+* Added: on mobile, team pages can be added to the home screen as an app named after the team ("Équipe 3"), with the club's logo and colours; a bottom banner offers it (Install button on Android, instructions on iPhone)
+* Added: the installed app opens a stable address that follows the team from one phase to the next
+* Added: results that appeared since the visitor's last visit are highlighted
+* Changed: league standings and results are refreshed every 30 minutes from Saturday noon to Sunday night
+* Fixed: the admin menu icon keeps its colours
 
 = 2.2.0 =
 * Fixed: team management pages ([tt_team_planner]) are no longer listed in the WordPress sitemap

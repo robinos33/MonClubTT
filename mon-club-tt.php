@@ -3,7 +3,7 @@
   Plugin Name: Mon Club TT
   Plugin URI: https://github.com/robinos33/MonClubTT
   Description: Display your table tennis club's players, teams, and rankings from the official FFTT Smartping API. Not affiliated with or endorsed by the FFTT.
-  Version: 2.2.0
+  Version: 2.3.0
   Author: Robin Aldasoro
   Author URI: https://github.com/robinos33
   License: GPLv2
@@ -106,6 +106,9 @@ class MonClubTT_Plugin
 
         // Calendrier du club : événements, import, flux .ics et shortcodes.
         new MonClubTT_CalendrierWP(__FILE__);
+
+        // Pages d'équipe ajoutables à l'écran d'accueil (manifest, bandeau).
+        new MonClubTT_AppliWP(__FILE__);
     }
 
     /** Force l'initialisation FFTT au prochain appel (identifiants modifiés, synchro). */
@@ -218,7 +221,7 @@ class MonClubTT_Plugin
         wp_register_style('mon-club-tt-css', plugins_url('/assets/mon-club-tt.css', __FILE__), array(), $cssVer);
         wp_enqueue_style('mon-club-tt-css');
         $couleurs = monclubtt_get_couleurs();
-        wp_add_inline_style('mon-club-tt-css', '.monclubtt-div{--monclubtt-primaire:' . $couleurs['primaire'] . ';--monclubtt-secondaire:' . $couleurs['secondaire'] . ';}');
+        wp_add_inline_style('mon-club-tt-css', '.monclubtt-div,.monclubtt-appli{--monclubtt-primaire:' . $couleurs['primaire'] . ';--monclubtt-secondaire:' . $couleurs['secondaire'] . ';}');
         // Javascript
         wp_register_script('monclubtt-js', plugins_url('/assets/mon-club-tt.js', __FILE__), array('jquery'), $jsVer, true);
         wp_register_script('table-sorter', plugins_url('/assets/tablesorter/jquery.tablesorter.min.js', __FILE__), array('jquery'), '1.0', true);
@@ -285,10 +288,12 @@ class MonClubTT_Plugin
         register_setting($groupe, MonClubTT_Constantes::MONCLUBTT_NOM_CLUB, array('sanitize_callback' => 'sanitize_text_field'));
         register_setting($groupe, MonClubTT_Constantes::MONCLUBTT_LOGO, array('sanitize_callback' => array($this, 'sanitize_logo')));
         register_setting($groupe, MonClubTT_Constantes::MONCLUBTT_COULEURS, array('sanitize_callback' => array($this, 'sanitize_couleurs')));
+        register_setting($groupe, MonClubTT_Constantes::MONCLUBTT_APPLI_EQUIPES, array('sanitize_callback' => array($this, 'sanitize_case')));
         add_settings_section('monclubtt_section_reglages', '', '__return_false', $groupe);
         add_settings_field(MonClubTT_Constantes::MONCLUBTT_NOM_CLUB, 'Nom du club', array($this, 'nom_club_html'), $groupe, 'monclubtt_section_reglages');
         add_settings_field(MonClubTT_Constantes::MONCLUBTT_LOGO, 'Logo du club', array($this, 'logo_html'), $groupe, 'monclubtt_section_reglages');
         add_settings_field(MonClubTT_Constantes::MONCLUBTT_COULEURS, 'Couleurs du club', array($this, 'couleurs_html'), $groupe, 'monclubtt_section_reglages');
+        add_settings_field(MonClubTT_Constantes::MONCLUBTT_APPLI_EQUIPES, 'Écran d\'accueil', array($this, 'appli_equipes_html'), $groupe, 'monclubtt_section_reglages');
     }
 
     /** Journal désactivé : les logs déjà enregistrés sont effacés. */
@@ -398,6 +403,23 @@ class MonClubTT_Plugin
                 });
             });
         });');
+    }
+
+    public function appli_equipes_html()
+    {
+        ?>
+        <label>
+            <input type="checkbox" name="<?php echo esc_attr(MonClubTT_Constantes::MONCLUBTT_APPLI_EQUIPES); ?>" value="1"
+                <?php checked(MonClubTT_AppliWP::active()); ?>>
+            Proposer d'ajouter les pages d'équipe à l'écran d'accueil du téléphone
+        </label>
+        <p class="description">
+            Sur mobile, un bandeau en bas des pages <code>[monclubtt_equipe]</code> propose d'installer l'équipe comme une appli,
+            avec le nom du club, son logo (carré, 192 px minimum, sinon l'icône du site) et ses couleurs.
+            À décocher si un autre plugin ou le thème fournit déjà une appli (PWA) pour le site.
+            Sur une page, <code>appli="non"</code> le désactive ; <code>nom_appli="…"</code> et <code>nom_court="…"</code> imposent les noms.
+        </p>
+        <?php
     }
 
     public function logo_html()
@@ -786,7 +808,8 @@ class MonClubTT_Plugin
         }
 
         // Normalise et valide les attributs du shortcode
-        $atts = shortcode_atts(array('iddiv' => '', 'idpoule' => ''), (array) $atts, 'monclubtt_equipe');
+        // appli, nom_appli et nom_court sont lus par MonClubTT_AppliWP (écran d'accueil).
+        $atts = shortcode_atts(array('iddiv' => '', 'idpoule' => '', 'appli' => '', 'nom_appli' => '', 'nom_court' => ''), (array) $atts, 'monclubtt_equipe');
         $atts['iddiv'] = (string) $atts['iddiv'];
         $atts['idpoule'] = (string) $atts['idpoule'];
         if ($atts['iddiv'] === '' || $atts['idpoule'] === '') {

@@ -12,6 +12,7 @@ Plugin WordPress non-officiel pour afficher les données d'un club issues de l'[
 
 - **Liste des joueurs** — tableau trié par classement, avec badges de progression mensuelle et annuelle, filtrable par sexe (H / F / mixte)
 - **Page d'équipe** — classement de poule mis en évidence + résultats de championnat organisés par journée
+- **Appli d'équipe** — sur mobile, chaque page d'équipe peut être ajoutée à l'écran d'accueil sous le nom, le logo et les couleurs du club (bandeau d'invitation en bas de page : bouton « Installer » sur Android, mode d'emploi sur iPhone) ; les résultats apparus depuis la dernière visite sont mis en avant
 - **Feuilles de match** — au clic sur un résultat, la composition des deux équipes et le détail partie par partie s'affichent (chargement AJAX, mis en cache)
 - **Calendrier du club** — agenda de la saison, prochain rendez-vous d'une série (tour du Grand Prix, stage…) qui avance tout seul, listes de dates, abonnement des adhérents dans leur agenda
 - **Application de gestion des équipes** (staff, connexion requise, installable sur mobile) — disponibilités des joueurs, compositions par journée, effectifs de phase, contrôle du brûlage, SMS pré-rédigés, liens magiques pour que chaque joueur donne ses disponibilités sans compte
@@ -62,6 +63,21 @@ Au-dessus de la liste, le podium Top Progression montre les 3 plus fortes progre
 
 Les valeurs `iddiv` et `idpoule` sont générées automatiquement dans *MonClubTT → Équipes*.  
 Copier le shortcode affiché dans le tableau et le coller dans la page WordPress souhaitée.
+
+**Écran d'accueil.** Sur mobile, un bandeau en bas de la page propose d'ajouter l'équipe à l'écran d'accueil (réglage *Mon Club TT › Réglages › Écran d'accueil*, activé par défaut). L'appli prend :
+
+- sous l'icône, le numéro de l'équipe (« Équipe 3 », « Dames 1 ») : le logo du club l'identifie déjà ; le nom complet, affiché à l'installation et dans la liste des applis, garde le club (« Équipe 3 · US Talence ») ;
+- le logo du club s'il est carré et fait au moins 192 px, sinon l'icône du site ; la couleur primaire du club.
+
+L'icône installée ouvre `/?monclubtt_appli=M3` (M ou F, puis le numéro de l'équipe), qui renvoie vers la page actuelle de l'équipe : elle reste valable quand la division, la poule ou la page changent d'une phase à l'autre. Une page qui affiche plusieurs équipes devient une appli « Résultats » de la page.
+
+| Attribut | Effet |
+|----------|-------|
+| `appli="non"` | pas d'appli ni de bandeau sur cette page |
+| `nom_appli="Les Requins"` | nom de l'appli |
+| `nom_court="Requins"` | nom sous l'icône |
+
+Les rencontres dont le score est apparu depuis la visite précédente sont surlignées, avec une pastille « 2 nouveaux résultats depuis ta dernière visite » (mémoire du navigateur, rien n'est enregistré sur le site).
 
 ### Calendrier du club
 
@@ -196,8 +212,8 @@ Les données sont mises en cache via les **transients WordPress** :
 | Données | Durée |
 |---------|-------|
 | Joueurs du club | Jusqu'à la prochaine sync |
-| Classement de poule | 8 h |
-| Résultats par journée | 8 h |
+| Classement de poule | jusqu'à 8 h ou 13 h ; 30 min du samedi midi au dimanche soir |
+| Résultats par journée | jusqu'à 8 h ou 13 h ; 30 min du samedi midi au dimanche soir |
 | Feuille de match | 7 jours (résultats passés) |
 
 ---
