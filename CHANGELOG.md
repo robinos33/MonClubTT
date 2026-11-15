@@ -9,7 +9,7 @@ Format : [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/)
 
 ### Ajouté
 
-- **Appli d'équipe** : sur mobile, une page `[monclubtt_equipe]` peut être ajoutée à l'écran d'accueil. Manifest propre à chaque page (nom du club et numéro de l'équipe, nom court de 12 caractères au plus, logo carré du club ou icône du site, couleur primaire). Bandeau en bas de page au tutoiement : bouton « Installer » sur Android (Chrome, Edge, Samsung Internet), mode d'emploi sur iPhone et Firefox Android ; jamais sur ordinateur ; fermé, il ne revient pas avant 30 jours.
+- **Appli d'équipe** : sur mobile, une page `[monclubtt_equipe]` peut être ajoutée à l'écran d'accueil. Manifest propre à chaque page (« Équipe 3 » sous l'icône, « Équipe 3 · US Talence » en nom complet, logo carré du club ou icône du site, couleur primaire). Bandeau en bas de page au tutoiement : bouton « Installer » sur Android (Chrome, Edge, Samsung Internet), mode d'emploi sur iPhone et Firefox Android ; jamais sur ordinateur ; fermé, il ne revient pas avant 30 jours.
 - Adresse stable `/?monclubtt_appli=M3` vers la page actuelle d'une équipe : l'icône installée survit au changement de phase.
 - Attributs `appli="non"`, `nom_appli` et `nom_court` du shortcode `[monclubtt_equipe]`, réglage *Réglages › Écran d'accueil* pour tout désactiver.
 - Pages d'équipe : pastille « N nouveaux résultats depuis ta dernière visite » et rencontres surlignées (mémoire du navigateur).

@@ -69,7 +69,7 @@ final class AppliTest extends TestCase
         $this->assertLessThanOrEqual(12, mb_strlen(MonClubTT_Appli::nomCourt('Saint-Médard-en-Jalles Pongistes Associés', '12')));
     }
 
-    public function test_should_name_team_app_after_club_and_number(): void
+    public function test_should_name_team_app_by_number_and_keep_club_in_full_name(): void
     {
         $identite = MonClubTT_Appli::identite(
             'US Talence',
@@ -77,18 +77,20 @@ final class AppliTest extends TestCase
             'M'
         );
 
-        $this->assertSame('US Talence 3', $identite['nom']);
-        $this->assertSame('US Talence 3', $identite['nom_court']);
+        $this->assertSame('Équipe 3 · US Talence', $identite['nom']);
+        $this->assertSame('Équipe 3', $identite['nom_court']);
+        $this->assertSame('l’équipe 3', $identite['accroche']);
         $this->assertSame('M3', $identite['cle']);
-        $this->assertSame('Résultats et classement de US Talence 3 en Pré-Régionale Messieurs Poule 2.', $identite['description']);
+        $this->assertSame('Résultats et classement de l’équipe 3 de US Talence en Pré-Régionale Messieurs Poule 2.', $identite['description']);
     }
 
     public function test_should_name_women_team_app(): void
     {
         $identite = MonClubTT_Appli::identite('ASPTT Bordeaux', array('libequipe' => 'ASPTT BORDEAUX 1', 'libdivision' => ''), 'F');
 
-        $this->assertSame('ASPTT Bordeaux Dames 1', $identite['nom']);
-        $this->assertSame('ASPTT D1', $identite['nom_court']);
+        $this->assertSame('Équipe Dames 1 · ASPTT Bordeaux', $identite['nom']);
+        $this->assertSame('Dames 1', $identite['nom_court']);
+        $this->assertSame('l’équipe Dames 1', $identite['accroche']);
         $this->assertSame('F1', $identite['cle']);
     }
 
@@ -108,6 +110,7 @@ final class AppliTest extends TestCase
         $impose = MonClubTT_Appli::identite('US Talence', $equipe, 'M', array('nom_appli' => 'Les Requins', 'nom_court' => 'Requins'));
         $this->assertSame('Les Requins', $impose['nom']);
         $this->assertSame('Requins', $impose['nom_court']);
+        $this->assertSame('Les Requins', $impose['accroche']);
         $this->assertSame('M3', $impose['cle']);
 
         $long = MonClubTT_Appli::identite('US Talence', $equipe, 'M', array('nom_appli' => 'Les Requins de Talence'));

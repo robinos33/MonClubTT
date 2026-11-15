@@ -171,7 +171,8 @@ class MonClubTT_Appli {
      *                                             (page de plusieurs équipes, poule disparue).
      * @param string                    $type      M ou F
      * @param array<string, string>     $attributs Attributs du shortcode (nom_appli, nom_court).
-     * @return array{nom: string, nom_court: string, description: string, cle: string}
+     * @return array{nom: string, nom_court: string, accroche: string, description: string, cle: string}
+     *         accroche : nom dans le bandeau (« l’équipe 3 ») ;
      *         cle : clé d'équipe (M3), '' pour une appli de page.
      */
     public static function identite($nomClub, $equipe, $type, array $attributs = array()) {
@@ -180,34 +181,40 @@ class MonClubTT_Appli {
         $division = is_array($equipe) ? trim((string) ($equipe['libdivision'] ?? '')) : '';
 
         if ($numero !== null) {
-            $dames   = $type === 'F';
-            $nom     = $nomClub . ($dames ? ' Dames ' : ' ') . $numero;
-            $court   = self::nomCourt($nomClub, ($dames ? 'D' : '') . $numero);
-            $desc    = 'Résultats et classement de ' . $nom . ($division !== '' ? ' en ' . $division : '') . '.';
-            $cle     = self::cleEquipe($type, $numero);
+            // Sous l'icône, le logo du club suffit à l'identifier : « Équipe 3 ».
+            // Le nom complet (fenêtre d'installation, liste des applis) garde le club.
+            $equipeLib = ($type === 'F' ? 'Équipe Dames ' : 'Équipe ') . $numero;
+            $nom       = $equipeLib . ' · ' . $nomClub;
+            $court     = $type === 'F' ? 'Dames ' . $numero : $equipeLib;
+            $accroche  = 'l’' . mb_strtolower(mb_substr($equipeLib, 0, 1)) . mb_substr($equipeLib, 1);
+            $desc      = 'Résultats et classement de ' . $accroche . ' de ' . $nomClub . ($division !== '' ? ' en ' . $division : '') . '.';
+            $cle       = self::cleEquipe($type, $numero);
         } elseif (is_array($equipe) && trim((string) ($equipe['libequipe'] ?? '')) !== '') {
-            $nom     = self::libelleSansPhase((string) $equipe['libequipe']);
-            $court   = self::nomCourt($nom, '');
-            $desc    = 'Résultats et classement de ' . $nom . ($division !== '' ? ' en ' . $division : '') . '.';
-            $cle     = '';
+            $nom      = self::libelleSansPhase((string) $equipe['libequipe']);
+            $court    = self::nomCourt($nom, '');
+            $accroche = $nom;
+            $desc     = 'Résultats et classement de ' . $nom . ($division !== '' ? ' en ' . $division : '') . '.';
+            $cle      = '';
         } else {
-            $nom     = $nomClub . ' · Résultats';
-            $court   = self::nomCourt($nomClub, '');
-            $desc    = 'Résultats et classements des équipes de ' . $nomClub . '.';
-            $cle     = '';
+            $nom      = $nomClub . ' · Résultats';
+            $court    = self::nomCourt($nomClub, '');
+            $accroche = $nomClub;
+            $desc     = 'Résultats et classements des équipes de ' . $nomClub . '.';
+            $cle      = '';
         }
 
         $nomImpose   = trim((string) ($attributs['nom_appli'] ?? ''));
         $courtImpose = trim((string) ($attributs['nom_court'] ?? ''));
         if ($nomImpose !== '') {
-            $nom   = $nomImpose;
-            $court = mb_strlen($nomImpose) <= self::NOM_COURT_MAX ? $nomImpose : self::nomCourt($nomImpose, '');
+            $nom      = $nomImpose;
+            $accroche = $nomImpose;
+            $court    = mb_strlen($nomImpose) <= self::NOM_COURT_MAX ? $nomImpose : self::nomCourt($nomImpose, '');
         }
         if ($courtImpose !== '') {
             $court = $courtImpose;
         }
 
-        return array('nom' => $nom, 'nom_court' => $court, 'description' => $desc, 'cle' => $cle);
+        return array('nom' => $nom, 'nom_court' => $court, 'accroche' => $accroche, 'description' => $desc, 'cle' => $cle);
     }
 
     /**

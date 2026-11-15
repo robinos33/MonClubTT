@@ -66,7 +66,7 @@ Copier le shortcode affiché dans le tableau et le coller dans la page WordPress
 
 **Écran d'accueil.** Sur mobile, un bandeau en bas de la page propose d'ajouter l'équipe à l'écran d'accueil (réglage *Mon Club TT › Réglages › Écran d'accueil*, activé par défaut). L'appli prend :
 
-- le nom du club et le numéro de l'équipe (« US Talence 3 », « US Talence Dames 1 ») ; sous l'icône, un nom de 12 caractères au plus (« Talence D1 », « SBTT 2 ») ;
+- sous l'icône, le numéro de l'équipe (« Équipe 3 », « Dames 1 ») : le logo du club l'identifie déjà ; le nom complet, affiché à l'installation et dans la liste des applis, garde le club (« Équipe 3 · US Talence ») ;
 - le logo du club s'il est carré et fait au moins 192 px, sinon l'icône du site ; la couleur primaire du club.
 
 L'icône installée ouvre `/?monclubtt_appli=M3` (M ou F, puis le numéro de l'équipe), qui renvoie vers la page actuelle de l'équipe : elle reste valable quand la division, la poule ou la page changent d'une phase à l'autre. Une page qui affiche plusieurs équipes devient une appli « Résultats » de la page.

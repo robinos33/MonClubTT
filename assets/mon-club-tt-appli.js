@@ -9,7 +9,7 @@
  *   intégré de Facebook/Instagram (qui ne permet pas l'ajout).
  * - Fermé : plus affiché pendant 30 jours pour cette équipe.
  *
- * Configuration (PHP) : MonClubTTAppli = { cle, nom, equipe, icone, stable }.
+ * Configuration (PHP) : MonClubTTAppli = { cle, nom (« l’équipe 3 »), equipe, icone, stable }.
  */
 (function (w, d) {
     'use strict';

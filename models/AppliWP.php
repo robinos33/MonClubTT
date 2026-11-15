@@ -355,7 +355,7 @@ class MonClubTT_AppliWP {
         wp_localize_script('monclubtt-appli-js', 'MonClubTTAppli', array(
             // Bandeau fermé : mémorisé par équipe (ou par page).
             'cle'      => $identite['cle'] !== '' ? $identite['cle'] : 'p' . (int) $contexte['page']->ID,
-            'nom'      => $identite['nom'],
+            'nom'      => $identite['accroche'],
             'equipe'   => $identite['cle'] !== '',
             'icone'    => $this->iconeTactile(),
             // Sur iPhone, l'écran d'accueil garde l'adresse affichée : on y met
