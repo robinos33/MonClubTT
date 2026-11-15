@@ -5,7 +5,7 @@ Format : [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/)
 
 ---
 
-## [Non publié]
+## [2.3.0] — 2026-11-15
 
 ### Ajouté
 
@@ -17,6 +17,10 @@ Format : [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/)
 ### Modifié
 
 - Classements et résultats de poule : cache de 30 minutes du samedi midi au dimanche soir (au lieu du renouvellement de 8 h et 13 h), pour qu'un résultat saisi le samedi soir apparaisse le soir même.
+
+### Corrigé
+
+- L'icône du menu d'administration garde ses couleurs malgré le svg-painter de WordPress (#36).
 
 ## [2.0.0] — 2026-11-13
 
