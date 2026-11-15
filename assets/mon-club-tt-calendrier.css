@@ -590,3 +590,32 @@
 .monclubtt-dates--vide {
     color: var(--mct-discret);
 }
+
+/* [monclubtt_dates format="cartes"] : styles par défaut de spécificité nulle
+   (:where), pour que les classes du thème passées via classe="…" l'emportent. */
+:where(.monclubtt-cartes) {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 24px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 12px;
+}
+:where(.monclubtt-cartes) > li {
+    margin: 0;
+    padding: 14px;
+    border: 1px solid #d9dfdb;
+    border-radius: 6px;
+    color: #5f6964;
+}
+:where(.monclubtt-cartes) > li > strong {
+    display: block;
+    font-size: 1.25em;
+    color: #252b28;
+}
+:where(.monclubtt-cartes) > li.is-prochain {
+    border: 2px solid var(--monclubtt-primaire, #2b7cb5);
+}
+:where(.monclubtt-cartes) > li.is-passe {
+    opacity: .55;
+}

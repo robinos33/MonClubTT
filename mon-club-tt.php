@@ -3,7 +3,7 @@
   Plugin Name: Mon Club TT
   Plugin URI: https://github.com/robinos33/MonClubTT
   Description: Display your table tennis club's players, teams, and rankings from the official FFTT Smartping API. Not affiliated with or endorsed by the FFTT.
-  Version: 2.3.0
+  Version: 2.3.1
   Author: Robin Aldasoro
   Author URI: https://github.com/robinos33
   License: GPLv2
@@ -221,7 +221,7 @@ class MonClubTT_Plugin
         wp_register_style('mon-club-tt-css', plugins_url('/assets/mon-club-tt.css', __FILE__), array(), $cssVer);
         wp_enqueue_style('mon-club-tt-css');
         $couleurs = monclubtt_get_couleurs();
-        wp_add_inline_style('mon-club-tt-css', '.monclubtt-div,.monclubtt-appli{--monclubtt-primaire:' . $couleurs['primaire'] . ';--monclubtt-secondaire:' . $couleurs['secondaire'] . ';}');
+        wp_add_inline_style('mon-club-tt-css', '.monclubtt-div,.monclubtt-appli,.monclubtt-cartes{--monclubtt-primaire:' . $couleurs['primaire'] . ';--monclubtt-secondaire:' . $couleurs['secondaire'] . ';}');
         // Javascript
         wp_register_script('monclubtt-js', plugins_url('/assets/mon-club-tt.js', __FILE__), array('jquery'), $jsVer, true);
         wp_register_script('table-sorter', plugins_url('/assets/tablesorter/jquery.tablesorter.min.js', __FILE__), array('jquery'), '1.0', true);

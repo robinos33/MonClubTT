@@ -56,6 +56,18 @@ final class CalendrierTest extends TestCase
         $this->assertSame('du 28 décembre 2026 au 2 janvier 2027', C::periode('2026-12-28', '2027-01-02'));
     }
 
+    public function test_should_split_periods_for_date_cards(): void
+    {
+        $this->assertSame(['jours' => "19\u{00A0}– 23", 'mois' => 'octobre'], C::carte('2026-10-19', '2026-10-23'));
+        $this->assertSame(['jours' => '28', 'mois' => 'novembre'], C::carte('2026-11-28', '2026-11-28'));
+        $this->assertSame(['jours' => "1er\u{00A0}– 2", 'mois' => 'mai 2027'], C::carte('2027-05-01', '2027-05-02', true));
+        $this->assertSame(['jours' => "30\u{00A0}– 2", 'mois' => "avril\u{00A0}– mai"], C::carte('2027-04-30', '2027-05-02'));
+        $this->assertSame(
+            ['jours' => "28\u{00A0}– 2", 'mois' => "décembre 2026\u{00A0}– janvier 2027"],
+            C::carte('2026-12-28', '2027-01-02')
+        );
+    }
+
     public function test_should_use_fftt_season_starting_in_july(): void
     {
         $this->assertSame(2026, C::saisonDe('2026-07-01'));

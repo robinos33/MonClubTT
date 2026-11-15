@@ -128,6 +128,7 @@ Horaires du [monclubtt_prochain serie="grand-prix-du-conseil-departemental" form
 ```
 [monclubtt_dates serie="grand-prix-du-conseil-departemental" libelle="Tour %n"]
 [monclubtt_dates serie="stage-multisports,stage-perfectionnement" titres="Multisports,Perfectionnements"]
+[monclubtt_dates serie="stage-multisports" format="cartes" classe="ust-dates" passes="masquer"]
 ```
 
 Dates de la saison d'une série : cartes avec la prochaine mise en avant et les passées grisées. Avec plusieurs séries, tableau par mois (une colonne par série), le prochain rendez-vous de chaque série en avant.
@@ -141,6 +142,8 @@ Dates de la saison d'une série : cartes avec la prochaine mise en avant et les 
 | `titres` | textes séparés par des virgules | noms des séries | En-têtes des colonnes du tableau |
 | `grouper` | `auto`, `liste`, `mois` | `auto` | Cartes, ou tableau par mois (auto : tableau dès deux séries) |
 | `passes` | `afficher`, `masquer` | `afficher` | Dates passées grisées ou masquées |
+| `format` | `cartes` | — | Une carte par date : `<li><strong>19 – 23</strong> octobre</li>`, la prochaine marquée `is-prochain` (en tête avec `passes="masquer"`) |
+| `classe` | classes CSS | — | Classes ajoutées à la liste en `format="cartes"`, pour reprendre le style du thème |
 | `annee` | `0`, `1` | `0` | Ajouter l'année aux dates |
 
 **Flux d'abonnement** : `https://votre-site/?monclubtt_calendrier=ics` (paramètres facultatifs `saison`, `categorie`, `serie`, `du`, `au`, `evenement`, `telecharger=1`).

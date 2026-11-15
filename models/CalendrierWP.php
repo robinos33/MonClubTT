@@ -1010,7 +1010,9 @@ class MonClubTT_CalendrierWP {
      *
      * Attributs : serie, categorie, saison, libelle, titres (en-têtes des
      * colonnes, séparés par des virgules), grouper (auto | liste | mois),
-     * annee (0 | 1), passes (afficher | masquer), vide.
+     * format (cartes : une carte par date, jours en gros et mois dessous),
+     * classe (classes CSS ajoutées, ex. celles du thème), annee (0 | 1),
+     * passes (afficher | masquer), vide.
      */
     public function shortcode_dates($atts)
     {
@@ -1023,6 +1025,8 @@ class MonClubTT_CalendrierWP {
             'grouper'   => 'auto',
             'annee'     => '0',
             'passes'    => 'afficher',
+            'format'    => '',
+            'classe'    => '',
             'vide'      => 'Les dates de la saison seront bientôt annoncées.',
         ), (array) $atts, 'monclubtt_dates');
 
@@ -1049,6 +1053,10 @@ class MonClubTT_CalendrierWP {
         }
         if (!$evenements) {
             return '<div class="monclubtt-div monclubtt-dates monclubtt-dates--vide"><p>' . esc_html($atts['vide']) . '</p></div>';
+        }
+
+        if ($atts['format'] === 'cartes') {
+            return $this->cartes($evenements, $prochains, $annee, $atts['classe']);
         }
 
         $series = array_map('sanitize_title', $this->liste($atts['serie']));
@@ -1136,6 +1144,31 @@ class MonClubTT_CalendrierWP {
             <?php
         }
         return (string) ob_get_clean();
+    }
+
+    /**
+     * Dates en cartes : <ul><li><strong>19 – 23</strong> octobre</li>…</ul>,
+     * le prochain rendez-vous marqué is-prochain (en premier avec passes="masquer").
+     *
+     * @param array  $evenements
+     * @param int[]  $prochains Identifiants des prochains rendez-vous.
+     * @param bool   $annee
+     * @param string $classe    Classes CSS ajoutées à la liste.
+     * @return string
+     */
+    private function cartes(array $evenements, array $prochains, $annee, $classe)
+    {
+        $classes = array_merge(array('monclubtt-cartes'), array_map('sanitize_html_class', preg_split('/\s+/', trim((string) $classe), -1, PREG_SPLIT_NO_EMPTY)));
+        $html    = '<ul class="' . esc_attr(implode(' ', $classes)) . '">';
+        foreach ($evenements as $e) {
+            $carte   = MonClubTT_Calendrier::carte($e['debut'], $e['fin'], $annee);
+            $etat    = array('is-' . $this->statut($e));
+            if (in_array($e['id'], $prochains, true)) {
+                $etat[] = 'is-prochain';
+            }
+            $html .= '<li class="' . esc_attr(implode(' ', $etat)) . '"><strong>' . esc_html($carte['jours']) . '</strong> ' . esc_html($carte['mois']) . '</li>';
+        }
+        return $html . '</ul>';
     }
 
     /**
