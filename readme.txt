@@ -3,7 +3,7 @@ Contributors: robinos33
 Tags: table tennis, fftt, club, rankings, results
 Requires at least: 6.4
 Tested up to: 7.1
-Stable tag: 2.3.1
+Stable tag: 2.3.2
 Requires PHP: 8.4
 License: GPLv2
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -69,6 +69,10 @@ Player data is refreshed on manual sync only. League standings and results are c
 Yes. The plugin exposes six filters: `monclubtt_get_evenements`, `monclubtt_get_joueurs`, `monclubtt_get_equipes`, `monclubtt_get_classement_poule`, `monclubtt_get_rencontres_poule`, `monclubtt_get_feuille_rencontre`. See the documentation for usage.
 
 == Changelog ==
+
+= 2.3.2 =
+* Fixed: on Samsung Internet, the team app banner now offers to open the page in Chrome; the app built by Samsung Internet is blocked by Google Play Protect
+* Fixed: on narrow screens, the banner button moves below the text instead of squeezing it
 
 = 2.3.1 =
 * Added: [monclubtt_dates format="cartes"] shows one card per date (days in large type, month below), the next one highlighted, with a "classe" attribute to reuse the theme's styles
