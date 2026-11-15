@@ -2,7 +2,7 @@
 if ( ! defined( 'ABSPATH' ) ) exit;
 // phpcs:disable WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 require_once(__DIR__ . '/header.php'); ?>
-<div class="monclubtt-div">
+<div class="monclubtt-div" data-monclubtt-poule="<?php echo esc_attr($atts['iddiv'] . '-' . $atts['idpoule']); ?>">
     <?php
     foreach ($listeEquipes as $equipe) {
         if ($atts['iddiv'] === $equipe['iddiv'] && $atts['idpoule'] === $equipe['idpoule']) {
@@ -87,6 +87,10 @@ require_once(__DIR__ . '/header.php'); ?>
                 }
                 ?>
                 <tr class="monclubtt-rencontre-row<?php echo $hasDetail ? ' monclubtt-expandable' : ''; ?>"
+                    <?php if ($hasScore): ?>
+                        data-resultat="<?php echo esc_attr($journee . '|' . $equipeA . '|' . $equipeB); ?>"
+                        data-score="<?php echo esc_attr($scoreA . '-' . $scoreB); ?>"
+                    <?php endif; ?>
                     <?php if ($hasDetail): ?>
                         data-iddiv="<?php echo esc_attr($equipe['iddiv']); ?>"
                         data-idpoule="<?php echo esc_attr($equipe['idpoule']); ?>"

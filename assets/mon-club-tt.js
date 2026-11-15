@@ -57,6 +57,76 @@ jQuery(document).ready(function ($) {
         document.dispatchEvent(new CustomEvent('monclubtt:filtre', { detail: { sexe: filtre } }));
     });
 
+    // ===== Nouveaux résultats depuis la dernière visite =====
+    // Le navigateur garde les scores vus à la visite précédente (par poule).
+    // Les rencontres dont le score est apparu ou a changé depuis sont mises en
+    // avant, et le restent pendant la session (rechargement de la page).
+    // Première visite ou stockage indisponible : rien n'est signalé.
+    function stockage(type) {
+        try {
+            var s = window[type], test = '__monclubtt__';
+            s.setItem(test, test);
+            s.removeItem(test);
+            return s;
+        } catch (e) {
+            return null;
+        }
+    }
+    var memoire = stockage('localStorage'), session = stockage('sessionStorage');
+
+    function lireJSON(s, cle) {
+        if (!s) return null;
+        try { return JSON.parse(s.getItem(cle)); } catch (e) { return null; }
+    }
+    function ecrireJSON(s, cle, valeur) {
+        if (!s) return;
+        try { s.setItem(cle, JSON.stringify(valeur)); } catch (e) { /* quota */ }
+    }
+
+    $('.monclubtt-div[data-monclubtt-poule]').each(function () {
+        var $div = $(this);
+        var $lignes = $div.find('tr[data-resultat]');
+        if (!memoire || !$lignes.length) return;
+
+        var poule = $div.attr('data-monclubtt-poule');
+        var cleVus = 'monclubtt_vus_' + poule, cleNouveaux = 'monclubtt_nouveaux_' + poule;
+        var vus = lireJSON(memoire, cleVus);
+        var dejaSignales = lireJSON(session, cleNouveaux) || [];
+        var actuels = {}, nouveaux = [];
+
+        $lignes.each(function () {
+            var cle = $(this).attr('data-resultat'), score = $(this).attr('data-score');
+            actuels[cle] = score;
+            var nouveau = (vus && vus.scores && vus.scores[cle] !== score) || $.inArray(cle, dejaSignales) !== -1;
+            if (nouveau) {
+                nouveaux.push(cle);
+                $(this).addClass('monclubtt-nouveau');
+            }
+        });
+
+        ecrireJSON(memoire, cleVus, { scores: actuels, le: Date.now() });
+        ecrireJSON(session, cleNouveaux, nouveaux);
+        if (!nouveaux.length) return;
+
+        var texte = nouveaux.length === 1
+            ? '1 nouveau résultat depuis ta dernière visite'
+            : nouveaux.length + ' nouveaux résultats depuis ta dernière visite';
+        var $pastille = $('<button type="button" class="monclubtt-nouveaux"></button>')
+            .append($('<span aria-hidden="true">●</span>'), document.createTextNode(texte));
+        $pastille.on('click', function () {
+            var premiere = $div.find('tr.monclubtt-nouveau').get(0);
+            if (premiere && premiere.scrollIntoView) {
+                premiere.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        });
+        var $titre = $div.find('.monclubtt-equipe-titre').first();
+        if ($titre.length) {
+            $titre.after($pastille);
+        } else {
+            $div.prepend($pastille);
+        }
+    });
+
     // ===== Feuilles de match =====
 
     // Clic sur une ligne de rencontre expandable
