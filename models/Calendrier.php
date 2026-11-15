@@ -253,6 +253,32 @@ class MonClubTT_Calendrier {
             . self::jour($fin) . ' ' . self::mois($fin) . $suffixe;
     }
 
+    /**
+     * Période en deux parties pour une carte de date : les jours en gros, le
+     * mois en dessous. « 19 – 23 » / « octobre », « 28 » / « novembre »,
+     * « 30 – 2 » / « avril – mai », « 28 – 2 » / « décembre 2026 – janvier 2027 ».
+     *
+     * @param string $debut AAAA-MM-JJ
+     * @param string $fin   AAAA-MM-JJ
+     * @param bool   $annee Ajouter l'année (toujours ajoutée si la période change d'année).
+     * @return array [ 'jours' => string, 'mois' => string ]
+     */
+    public static function carte($debut, $fin, $annee = false) {
+        $fin   = $fin !== '' && $fin >= $debut ? $fin : $debut;
+        $tiret = "\u{00A0}– ";
+        $aD    = substr($debut, 0, 4);
+        $aF    = substr($fin, 0, 4);
+        $jours = $debut === $fin ? self::jour($debut) : self::jour($debut) . $tiret . self::jour($fin);
+        if ($aD !== $aF) {
+            $mois = self::mois($debut) . ' ' . $aD . $tiret . self::mois($fin) . ' ' . $aF;
+        } elseif (substr($debut, 0, 7) === substr($fin, 0, 7)) {
+            $mois = self::mois($debut) . ($annee ? ' ' . $aF : '');
+        } else {
+            $mois = self::mois($debut) . $tiret . self::mois($fin) . ($annee ? ' ' . $aF : '');
+        }
+        return array('jours' => $jours, 'mois' => $mois);
+    }
+
     /** « 19 h 30 », « 9 h ». */
     public static function heureLisible($heure) {
         if ($heure === '') {

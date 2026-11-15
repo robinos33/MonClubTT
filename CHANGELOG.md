@@ -5,6 +5,12 @@ Format : [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/)
 
 ---
 
+## [2.3.1] — 2026-11-15
+
+### Ajouté
+
+- `[monclubtt_dates format="cartes"]` : une carte par date (jours en gros, mois dessous), la prochaine marquée `is-prochain`, et attribut `classe` pour reprendre le style du thème.
+
 ## [2.3.0] — 2026-11-15
 
 ### Ajouté
