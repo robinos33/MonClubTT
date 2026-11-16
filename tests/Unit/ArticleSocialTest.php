@@ -67,6 +67,21 @@ final class ArticleSocialTest extends TestCase
         $this->assertStringNotContainsString('wp:image', A::contenu('Bravo', [], '', '', '', ['id' => 42, 'url' => 'javascript:x']));
     }
 
+    public function test_should_skip_list_already_in_caption(): void
+    {
+        $legende = "🏓 Top Progression — novembre 2026\n\n🥇 Raphael BODIN : +42,1 pts\n🥈 Octave FRANCOIS : +34 pts\n\nBravo à eux ! 👏";
+        $lignes = ['Raphael BODIN : +42,1 pts', 'Octave  FRANCOIS : +34 pts'];
+
+        $this->assertTrue(A::dejaDansLegende($lignes, $legende));
+        $this->assertStringNotContainsString('En détail', A::contenu($legende, $lignes, 'En détail'));
+
+        // Une ligne absente (légende retouchée, ou liste plus riche) : liste gardée en entier.
+        $lignes[] = 'Victor BERNON : +20 pts';
+        $this->assertFalse(A::dejaDansLegende($lignes, $legende));
+        $this->assertSame(3, substr_count(A::contenu($legende, $lignes, 'En détail'), '<li>'));
+        $this->assertFalse(A::dejaDansLegende(['x'], ''));
+    }
+
     public function test_should_skip_empty_list_and_unsafe_link(): void
     {
         $contenu = A::contenu('Texte', [], 'Le détail', 'javascript:alert(1)', 'Clic');

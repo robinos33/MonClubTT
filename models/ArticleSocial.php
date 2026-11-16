@@ -183,7 +183,8 @@ class MonClubTT_ArticleSocial {
      * (une ligne vide sépare deux paragraphes, un retour à la ligne simple
      * reste dans le paragraphe), puis les données du visuel en liste — le
      * texte d'une image n'est lu ni par les moteurs de recherche ni par les
-     * lecteurs d'écran —, puis le lien de fin.
+     * lecteurs d'écran ; omise si la légende les contient déjà toutes —,
+     * puis le lien de fin.
      *
      * @param string   $legende   Texte de la publication (page « Réseaux sociaux »).
      * @param string[] $lignes    Données du visuel, une ligne par joueur ou équipe.
@@ -207,7 +208,7 @@ class MonClubTT_ArticleSocial {
         }
 
         $lignes = array_values(array_filter(array_map('trim', array_map('strval', $lignes)), 'strlen'));
-        if ($lignes) {
+        if ($lignes && !self::dejaDansLegende($lignes, $legende)) {
             if (trim((string) $titreListe) !== '') {
                 $blocs[] = "<!-- wp:heading -->\n<h2 class=\"wp-block-heading\">" . self::echapper(trim($titreListe)) . "</h2>\n<!-- /wp:heading -->";
             }
@@ -244,6 +245,31 @@ class MonClubTT_ArticleSocial {
             }
         }
         return $paragraphes;
+    }
+
+    /**
+     * Toutes les lignes de données figurent-elles déjà mot pour mot dans la
+     * légende ? (Top Progression, paliers, cartons pleins : la liste ne
+     * ferait que la répéter.) Espaces et casse ignorés.
+     *
+     * @param string[] $lignes
+     * @param string   $legende
+     * @return bool
+     */
+    public static function dejaDansLegende(array $lignes, $legende) {
+        $normaliser = function ($texte) {
+            return mb_strtolower(preg_replace('/\s+/u', ' ', trim((string) $texte)));
+        };
+        $legende = $normaliser($legende);
+        if ($legende === '') {
+            return false;
+        }
+        foreach ($lignes as $ligne) {
+            if (mb_strpos($legende, $normaliser($ligne)) === false) {
+                return false;
+            }
+        }
+        return true;
     }
 
     private static function blocParagraphe($html) {
