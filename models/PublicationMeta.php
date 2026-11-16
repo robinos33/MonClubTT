@@ -28,6 +28,59 @@ class MonClubTT_PublicationMeta {
     /** Mention ajoutée au texte Instagram (pas de lien cliquable dans une publication). */
     const MENTION_BIO = 'Lien en bio 🔗';
 
+    /** Modes de partage d'un réseau. */
+    const MODE_AUTO   = 'auto';
+    const MODE_MANUEL = 'manuel';
+
+    /* ---------------------------------------------------------------- modes */
+
+    /**
+     * Mode de partage d'un réseau. Publication automatique seulement si la
+     * connexion Meta est renseignée pour ce réseau ET qu'un test (ou une
+     * publication) l'a validée ; sinon — compte non compatible, connexion
+     * jamais testée ou jeton expiré — partage manuel (copier-coller).
+     *
+     * @param string     $reseau facebook ou instagram.
+     * @param array      $config ['page' => id, 'instagram' => id, 'jeton' => bool (jeton enregistré)].
+     * @param array|null $etat   État de la connexion : ['ok', 'jeton_invalide', 'reseaux' => [reseau => bool]].
+     * @return string MODE_AUTO ou MODE_MANUEL.
+     */
+    public static function modeReseau($reseau, array $config, $etat) {
+        $identifiant = $reseau === 'instagram' ? ($config['instagram'] ?? '') : ($config['page'] ?? '');
+        if (empty($config['jeton']) || (string) $identifiant === '' || !is_array($etat)) {
+            return self::MODE_MANUEL;
+        }
+        if (empty($etat['ok']) || !empty($etat['jeton_invalide']) || empty($etat['reseaux'][$reseau])) {
+            return self::MODE_MANUEL;
+        }
+        return self::MODE_AUTO;
+    }
+
+    /** Fenêtre de partage Facebook d'un lien (profil, page ou groupe, au choix de l'utilisateur). */
+    public static function lienPartageFacebook($url) {
+        return 'https://www.facebook.com/sharer/sharer.php?u=' . rawurlencode((string) $url);
+    }
+
+    /**
+     * Début d'un texte, coupé à un espace (description des aperçus de lien).
+     *
+     * @param string $texte
+     * @param int    $max Nombre de caractères au plus, points de suspension compris.
+     * @return string
+     */
+    public static function extrait($texte, $max = 200) {
+        $texte = trim(preg_replace('/\s+/u', ' ', (string) $texte));
+        if (mb_strlen($texte) <= $max) {
+            return $texte;
+        }
+        $coupe = mb_substr($texte, 0, $max - 1);
+        $espace = mb_strrpos($coupe, ' ');
+        if ($espace !== false && $espace > $max / 2) {
+            $coupe = mb_substr($coupe, 0, $espace);
+        }
+        return rtrim($coupe, " ,;:.–—") . '…';
+    }
+
     /* ------------------------------------------------------------ requêtes */
 
     /**
@@ -246,12 +299,13 @@ class MonClubTT_PublicationMeta {
      * Ajoute une entrée à l'historique (les 50 dernières sont gardées).
      *
      * @param array $historique
-     * @param array $entree ['reseau', 'lien', 'date', 'auteur', 'erreur'].
+     * @param array $entree ['reseau', 'lien', 'date', 'auteur', 'erreur', 'mode' (auto par défaut)].
      * @return array
      */
     public static function ajouterHistorique(array $historique, array $entree) {
         $historique[] = array(
             'reseau' => (string) ($entree['reseau'] ?? ''),
+            'mode'   => ($entree['mode'] ?? '') === self::MODE_MANUEL ? self::MODE_MANUEL : self::MODE_AUTO,
             'lien'   => (string) ($entree['lien'] ?? ''),
             'date'   => (string) ($entree['date'] ?? ''),
             'auteur' => (int) ($entree['auteur'] ?? 0),

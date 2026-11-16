@@ -45,6 +45,28 @@ class MonClubTT_PublicationMetaWP {
         add_action('wp_ajax_monclubtt_meta_tester', array($this, 'ajax_tester'));
         add_action('wp_ajax_monclubtt_meta_preparer', array($this, 'ajax_preparer'));
         add_action('wp_ajax_monclubtt_meta_publier', array($this, 'ajax_publier'));
+        add_action('wp_ajax_monclubtt_meta_fichiers', array($this, 'ajax_fichiers'));
+        add_action('wp_ajax_monclubtt_meta_marquer', array($this, 'ajax_marquer'));
+        add_action('wp_head', array($this, 'open_graph'), 5);
+    }
+
+    /**
+     * Mode de partage de chaque réseau (voir MonClubTT_PublicationMeta::modeReseau()).
+     *
+     * @return array<string, string> reseau => auto|manuel
+     */
+    public static function modes()
+    {
+        $config = array(
+            'page'      => (string) get_option(self::OPT_PAGE, ''),
+            'instagram' => (string) get_option(self::OPT_IG, ''),
+            'jeton'     => (string) get_option(self::OPT_JETON, '') !== '',
+        );
+        $modes = array();
+        foreach (array_keys(MonClubTT_PublicationMeta::RESEAUX) as $reseau) {
+            $modes[$reseau] = MonClubTT_PublicationMeta::modeReseau($reseau, $config, self::etat());
+        }
+        return $modes;
     }
 
     /**
@@ -97,12 +119,39 @@ class MonClubTT_PublicationMetaWP {
         return $valeur;
     }
 
+    /** « Facebook : partage manuel · Instagram : … » (réglages, après un test). */
+    public static function modesTexte()
+    {
+        $libelles = array(
+            MonClubTT_PublicationMeta::MODE_AUTO   => 'publication automatique',
+            MonClubTT_PublicationMeta::MODE_MANUEL => 'partage manuel',
+        );
+        $morceaux = array();
+        foreach (self::modes() as $reseau => $mode) {
+            $morceaux[] = MonClubTT_PublicationMeta::RESEAUX[$reseau] . ' : ' . $libelles[$mode];
+        }
+        return implode(' · ', $morceaux);
+    }
+
     public function section_html()
     {
-        echo '<p>Pour publier un article sur la page Facebook et le compte Instagram professionnel du club, créez une app Meta (developers.facebook.com, type « Entreprise »), '
-            . 'reliez le compte Instagram à la page, puis générez un <strong>jeton de page longue durée</strong> avec les permissions '
-            . '<code>pages_manage_posts</code>, <code>pages_read_engagement</code>, <code>instagram_basic</code> et <code>instagram_content_publish</code>.</p>'
-            . '<p>Les appels à Meta ne partent que lorsque vous publiez un article ou testez la connexion.</p>';
+        ?>
+        <div class="monclubtt-modes">
+            <p><strong>Deux façons de partager un article depuis l'éditeur</strong> (boîte « Réseaux sociaux », bouton « Publier sur les réseaux »), choisies réseau par réseau :</p>
+            <ul>
+                <li><strong>Partage manuel</strong>, par défaut, sans rien configurer : texte prêt à copier, photos prêtes à poster (format 4:5 pour Instagram), partage du lien sur Facebook et, sur téléphone, envoi direct vers l'appli Facebook ou Instagram. Convient à tous les comptes, y compris un profil Facebook personnel ou un compte Instagram personnel.</li>
+                <li><strong>Publication automatique</strong> par l'API de Meta, en un clic : il faut une <strong>Page</strong> Facebook (pas un profil), un compte Instagram <strong>professionnel</strong> (Entreprise ou Créateur) relié à cette Page, et une app Meta du club. Renseignez la connexion ci-dessous puis cliquez sur « Tester la connexion » : chaque réseau validé passe en automatique. Si le jeton expire, le réseau repasse en partage manuel.</li>
+            </ul>
+            <p class="monclubtt-modes-actuels"><strong>Mode actuel :</strong>
+                <span id="monclubtt-modes-texte"><?php echo esc_html(self::modesTexte()); ?></span>
+            </p>
+        </div>
+        <h3>Connexion Meta (facultative, pour la publication automatique)</h3>
+        <p>Créez une app Meta (developers.facebook.com, type « Entreprise »), reliez le compte Instagram professionnel à la Page, puis générez un
+            <strong>jeton de page longue durée</strong> avec les permissions <code>pages_manage_posts</code>, <code>pages_read_engagement</code>,
+            <code>instagram_basic</code> et <code>instagram_content_publish</code>.
+            Les appels à Meta ne partent que lorsque vous publiez un article ou testez la connexion.</p>
+        <?php
     }
 
     public function page_html()
@@ -138,7 +187,10 @@ class MonClubTT_PublicationMetaWP {
             $("#monclubtt-meta-tester").on("click", function() {
                 var $b = $(this).prop("disabled", true), $r = $("#monclubtt-meta-test-resultat").text("Test en cours…");
                 $.post(ajaxurl, { action: "monclubtt_meta_tester", nonce: ' . wp_json_encode(wp_create_nonce(self::NONCE)) . ' })
-                    .done(function(res) { $r.text((res.success ? "✓ " : "⚠ ") + (res.data && res.data.message ? res.data.message : "Erreur.")); })
+                    .done(function(res) {
+                        $r.text((res.success ? "✓ " : "⚠ ") + (res.data && res.data.message ? res.data.message : "Erreur."));
+                        if (res.data && res.data.modes) { $("#monclubtt-modes-texte").text(res.data.modes); }
+                    })
                     .fail(function() { $r.text("⚠ Test impossible : erreur réseau."); })
                     .always(function() { $b.prop("disabled", false); });
             });
@@ -152,13 +204,21 @@ class MonClubTT_PublicationMetaWP {
         return is_array($etat) ? $etat : null;
     }
 
-    private static function enregistrerEtat($ok, $message, $jetonInvalide = false)
+    /**
+     * @param bool   $ok
+     * @param string $message
+     * @param bool   $jetonInvalide
+     * @param array  $reseaux reseau => bool (validé). Vide : réseaux de l'état précédent conservés.
+     */
+    private static function enregistrerEtat($ok, $message, $jetonInvalide = false, array $reseaux = array())
     {
+        $precedent = self::etat();
         update_option(self::OPT_ETAT, array(
             'ok'             => (bool) $ok,
             'jeton_invalide' => (bool) $jetonInvalide,
             'message'        => (string) $message,
             'date'           => current_time('mysql'),
+            'reseaux'        => $reseaux ? $reseaux : (array) ($precedent['reseaux'] ?? array()),
         ), false);
     }
 
@@ -174,7 +234,7 @@ class MonClubTT_PublicationMetaWP {
         if (!$etat || empty($etat['jeton_invalide']) || !current_user_can(self::capacite())) {
             return;
         }
-        printf('<div class="notice notice-error"><p><strong>Mon Club TT › Connexion Meta :</strong> %s <a href="%s">Mettre à jour le jeton</a></p></div>',
+        printf('<div class="notice notice-error"><p><strong>Mon Club TT › Connexion Meta :</strong> %s En attendant, le partage sur les réseaux se fait en mode manuel. <a href="%s">Mettre à jour le jeton</a></p></div>',
             esc_html($etat['message']),
             esc_url(admin_url('admin.php?page=monclubtt_reseaux_sociaux#monclubtt-meta')));
     }
@@ -234,11 +294,12 @@ class MonClubTT_PublicationMetaWP {
             $date   = mysql2date('j M Y à H:i', $entree['date']);
             $auteur = get_the_author_meta('display_name', (int) $entree['auteur']);
             $html  .= '<li>';
-            if ($entree['erreur'] !== '') {
+            $verbe  = ($entree['mode'] ?? '') === MonClubTT_PublicationMeta::MODE_MANUEL ? 'partagé à la main le ' : 'publié le ';
+            if (($entree['erreur'] ?? '') !== '') {
                 $html .= '<strong>' . esc_html($reseau) . '</strong> : échec le ' . esc_html($date) . ' — ' . esc_html($entree['erreur']);
             } else {
                 $html .= '<strong>' . esc_html($reseau) . '</strong> : '
-                    . ($entree['lien'] !== '' ? '<a href="' . esc_url($entree['lien']) . '" target="_blank" rel="noopener">publié le ' . esc_html($date) . '</a>' : 'publié le ' . esc_html($date));
+                    . ($entree['lien'] !== '' ? '<a href="' . esc_url($entree['lien']) . '" target="_blank" rel="noopener">' . esc_html($verbe . $date) . '</a>' : esc_html($verbe . $date));
             }
             $html .= $auteur ? ' (' . esc_html($auteur) . ')' : '';
             $html .= '</li>';
@@ -271,13 +332,19 @@ class MonClubTT_PublicationMetaWP {
         $this->verifier(false);
         try {
             $resultat = self::client()->tester();
-            $message  = 'Connecté à la page « ' . $resultat['page'] . ' »'
-                . ($resultat['instagram'] !== '' ? ' et au compte Instagram @' . $resultat['instagram'] : ' (pas de compte Instagram renseigné)') . '.';
-            self::enregistrerEtat(true, $message);
-            wp_send_json_success(array('message' => $message));
+            $message  = 'Facebook : connecté à la page « ' . $resultat['page'] . ' », publication automatique. ';
+            if ($resultat['instagram'] !== '') {
+                $message .= 'Instagram : connecté au compte @' . $resultat['instagram'] . ', publication automatique.';
+            } elseif ($resultat['erreur_instagram'] !== '') {
+                $message .= 'Instagram : ' . $resultat['erreur_instagram'] . ' Le partage Instagram reste manuel.';
+            } else {
+                $message .= 'Instagram : pas de compte renseigné, partage manuel.';
+            }
+            self::enregistrerEtat(true, $message, false, array('facebook' => true, 'instagram' => $resultat['instagram'] !== ''));
+            wp_send_json_success(array('message' => $message, 'modes' => self::modesTexte()));
         } catch (MonClubTT_ErreurMeta $e) {
-            self::enregistrerEtat(false, $e->getMessage(), $e->jetonInvalide);
-            wp_send_json_error(array('message' => $e->getMessage()));
+            self::enregistrerEtat(false, $e->getMessage(), $e->jetonInvalide, array('facebook' => false, 'instagram' => false));
+            wp_send_json_error(array('message' => $e->getMessage() . ' Le partage reste manuel.', 'modes' => self::modesTexte()));
         }
     }
 
@@ -309,17 +376,18 @@ class MonClubTT_PublicationMetaWP {
             $deja[$reseau] = $derniere ? array('date' => mysql2date('j F Y à H:i', $derniere['date']), 'lien' => $derniere['lien']) : null;
         }
 
-        $configure = (string) get_option(self::OPT_JETON, '') !== '';
+        $lien = get_permalink($post);
         wp_send_json_success(array(
             'textes' => array(
                 'facebook'  => $texte,
                 'instagram' => MonClubTT_PublicationMeta::texteInstagram($texte),
             ),
-            'lien'    => get_permalink($post),
+            'lien'    => $lien,
             'photos'  => $photos,
-            'reseaux' => array(
-                'facebook'  => $configure && get_option(self::OPT_PAGE, '') !== '',
-                'instagram' => $configure && get_option(self::OPT_IG, '') !== '',
+            'modes'   => self::modes(),
+            'partage' => array(
+                'facebook'  => MonClubTT_PublicationMeta::lienPartageFacebook($lien),
+                'instagram' => 'https://www.instagram.com/',
             ),
             'deja'    => $deja,
             'public'  => MonClubTT_PublicationMeta::urlPublique(home_url('/')),
@@ -336,6 +404,9 @@ class MonClubTT_PublicationMetaWP {
         // phpcs:enable
         if ($post->post_status !== 'publish') {
             wp_send_json_error(array('message' => 'Publiez d\'abord l\'article sur le site.'));
+        }
+        if ((self::modes()[$reseau] ?? '') !== MonClubTT_PublicationMeta::MODE_AUTO) {
+            wp_send_json_error(array('message' => 'Publication automatique indisponible pour ce réseau : utilisez le partage manuel.'));
         }
 
         // Seules les photos proposées pour cet article sont acceptées.
@@ -362,10 +433,6 @@ class MonClubTT_PublicationMetaWP {
                 ? $client->publierFacebook($texte, get_permalink($post), $urls)
                 : $client->publierInstagram($texte, $urls);
             $entree = array('reseau' => $reseau, 'lien' => $resultat['lien'], 'erreur' => '');
-            $etat = self::etat();
-            if ($etat && !$etat['ok']) {
-                self::enregistrerEtat(true, 'Dernière publication réussie.');
-            }
         } catch (MonClubTT_ErreurMeta $e) {
             $entree = array('reseau' => $reseau, 'lien' => '', 'erreur' => $e->getMessage());
             if ($e->jetonInvalide) {
@@ -384,6 +451,122 @@ class MonClubTT_PublicationMetaWP {
             wp_send_json_error($reponse + array('message' => $entree['erreur']));
         }
         wp_send_json_success($reponse + array('message' => 'Publié sur ' . MonClubTT_PublicationMeta::RESEAUX[$reseau] . '.'));
+    }
+
+    /**
+     * Partage manuel : adresses des photos choisies, prêtes à poster
+     * (Instagram : JPEG 4:5 1080 × 1350 ; Facebook : image d'origine).
+     */
+    public function ajax_fichiers()
+    {
+        $post = $this->verifier();
+        // phpcs:disable WordPress.Security.NonceVerification.Missing -- vérifié dans verifier().
+        $reseau = isset($_POST['reseau']) ? sanitize_key(wp_unslash($_POST['reseau'])) : '';
+        $ids    = isset($_POST['images']) ? array_map('absint', (array) wp_unslash($_POST['images'])) : array();
+        // phpcs:enable
+        if (!isset(MonClubTT_PublicationMeta::RESEAUX[$reseau])) {
+            wp_send_json_error(array('message' => 'Réseau inconnu.'));
+        }
+        $ids = array_slice(array_values(array_intersect(array_unique(array_filter($ids)), self::imagesArticle($post))), 0, MonClubTT_PublicationMeta::MAX_PHOTOS);
+        $fichiers = array();
+        try {
+            foreach ($ids as $i => $id) {
+                $url = $reseau === 'instagram' ? self::urlInstagram($id) : wp_get_attachment_image_url($id, 'full');
+                if (!$url) {
+                    continue;
+                }
+                $extension = strtolower(pathinfo((string) wp_parse_url($url, PHP_URL_PATH), PATHINFO_EXTENSION));
+                $fichiers[] = array(
+                    'url' => $url,
+                    'nom' => sanitize_file_name($post->post_name . '-' . $reseau . '-' . ($i + 1) . '.' . ($extension ? $extension : 'jpg')),
+                );
+            }
+        } catch (MonClubTT_ErreurMeta $e) {
+            wp_send_json_error(array('message' => $e->getMessage()));
+        }
+        wp_send_json_success(array('fichiers' => $fichiers));
+    }
+
+    /** Partage manuel : « Marquer comme publié », avec le lien de la publication s'il est donné. */
+    public function ajax_marquer()
+    {
+        $post = $this->verifier();
+        // phpcs:disable WordPress.Security.NonceVerification.Missing -- vérifié dans verifier().
+        $reseau = isset($_POST['reseau']) ? sanitize_key(wp_unslash($_POST['reseau'])) : '';
+        $lien   = isset($_POST['lien']) ? sanitize_url(trim(wp_unslash($_POST['lien'])), array('https', 'http')) : '';
+        // phpcs:enable
+        if (!isset(MonClubTT_PublicationMeta::RESEAUX[$reseau])) {
+            wp_send_json_error(array('message' => 'Réseau inconnu.'));
+        }
+        $historique = MonClubTT_PublicationMeta::ajouterHistorique(self::historique($post->ID), array(
+            'reseau' => $reseau,
+            'mode'   => MonClubTT_PublicationMeta::MODE_MANUEL,
+            'lien'   => (string) $lien,
+            'date'   => current_time('mysql'),
+            'auteur' => get_current_user_id(),
+        ));
+        update_post_meta($post->ID, self::META_HISTORIQUE, $historique);
+        wp_send_json_success(array(
+            'historique' => self::historiqueHtml($historique),
+            'message'    => 'Partage sur ' . MonClubTT_PublicationMeta::RESEAUX[$reseau] . ' noté dans l\'historique.',
+        ));
+    }
+
+    /* --------------------------------------------------------- Open Graph */
+
+    /**
+     * Balises Open Graph d'un article (titre, extrait, image à la une) : le
+     * lien partagé à la main sur Facebook affiche le bon aperçu. Rien si une
+     * extension SEO ou Jetpack les fournit déjà ; filtre monclubtt_open_graph
+     * pour les désactiver.
+     */
+    public function open_graph()
+    {
+        if (!is_singular('post') || !apply_filters('monclubtt_open_graph', !self::extensionOpenGraph())) {
+            return;
+        }
+        $post = get_queried_object();
+        if (!$post instanceof WP_Post || post_password_required($post)) {
+            return;
+        }
+        $titre = wp_strip_all_tags(get_the_title($post));
+        $texte = has_excerpt($post) ? get_the_excerpt($post) : MonClubTT_PublicationMeta::texteArticle('', $post->post_content);
+        $balises = array(
+            'og:type'        => 'article',
+            'og:site_name'   => get_bloginfo('name'),
+            'og:title'       => $titre,
+            'og:description' => MonClubTT_PublicationMeta::extrait($texte, 200),
+            'og:url'         => get_permalink($post),
+            'twitter:card'   => 'summary',
+        );
+        $image = (int) get_post_thumbnail_id($post);
+        $source = $image ? wp_get_attachment_image_src($image, 'full') : false;
+        if ($source) {
+            $balises['og:image']        = $source[0];
+            $balises['og:image:width']  = (string) $source[1];
+            $balises['og:image:height'] = (string) $source[2];
+            $balises['og:image:alt']    = (string) get_post_meta($image, '_wp_attachment_image_alt', true);
+            $balises['twitter:card']    = 'summary_large_image';
+        }
+        foreach ($balises as $propriete => $valeur) {
+            if ((string) $valeur === '') {
+                continue;
+            }
+            $attribut = strpos($propriete, 'twitter:') === 0 ? 'name' : 'property';
+            printf("<meta %s=\"%s\" content=\"%s\">\n", esc_attr($attribut), esc_attr($propriete), esc_attr($valeur));
+        }
+    }
+
+    /** Une extension active fournit-elle déjà les balises Open Graph ? */
+    private static function extensionOpenGraph()
+    {
+        return defined('WPSEO_VERSION')            // Yoast SEO
+            || defined('RANK_MATH_VERSION')        // Rank Math
+            || defined('SEOPRESS_VERSION')         // SEOPress
+            || defined('AIOSEO_VERSION')           // All in One SEO
+            || defined('THE_SEO_FRAMEWORK_VERSION')
+            || defined('SQ_VERSION')               // Squirrly
+            || (function_exists('jetpack_og_tags') && apply_filters('jetpack_enable_open_graph', false));
     }
 
     /* -------------------------------------------------------------- images */

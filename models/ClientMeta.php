@@ -112,19 +112,29 @@ class MonClubTT_ClientMeta {
 
     /**
      * Test de connexion : page, puis compte Instagram s'il est renseigné.
+     * Une erreur sur le compte Instagram n'empêche pas de valider la page
+     * (Facebook en automatique, Instagram en partage manuel).
      *
-     * @return array{page: string, instagram: string}
-     * @throws MonClubTT_ErreurMeta
+     * @return array{page: string, instagram: string, erreur_instagram: string}
+     * @throws MonClubTT_ErreurMeta Page inaccessible ou jeton invalide.
      */
     public function tester() {
         $this->exiger($this->pageId, 'Renseignez l\'identifiant de la page Facebook.');
         $page = $this->appel(MonClubTT_PublicationMeta::requeteTestPage($this->pageId, $this->jeton));
         $instagram = '';
+        $erreurInstagram = '';
         if ($this->igId !== '') {
-            $compte    = $this->appel(MonClubTT_PublicationMeta::requeteTestInstagram($this->igId, $this->jeton));
-            $instagram = (string) ($compte['username'] ?? $compte['id'] ?? '');
+            try {
+                $compte    = $this->appel(MonClubTT_PublicationMeta::requeteTestInstagram($this->igId, $this->jeton));
+                $instagram = (string) ($compte['username'] ?? $compte['id'] ?? '');
+            } catch (MonClubTT_ErreurMeta $e) {
+                if ($e->jetonInvalide) {
+                    throw $e;
+                }
+                $erreurInstagram = $e->getMessage();
+            }
         }
-        return array('page' => (string) ($page['name'] ?? $page['id'] ?? ''), 'instagram' => $instagram);
+        return array('page' => (string) ($page['name'] ?? $page['id'] ?? ''), 'instagram' => $instagram, 'erreur_instagram' => $erreurInstagram);
     }
 
     /** @throws MonClubTT_ErreurMeta */
