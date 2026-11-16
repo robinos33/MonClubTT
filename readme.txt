@@ -3,7 +3,7 @@ Contributors: robinos33
 Tags: table tennis, fftt, club, rankings, results
 Requires at least: 6.4
 Tested up to: 7.1
-Stable tag: 2.4.0
+Stable tag: 2.5.0
 Requires PHP: 8.4
 License: GPLv2
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -83,7 +83,7 @@ Yes. The plugin exposes six filters: `monclubtt_get_evenements`, `monclubtt_get_
 
 == Changelog ==
 
-= Unreleased =
+= 2.5.0 =
 * Added: two sharing modes per network in the "Publish to social media" window. Manual sharing (default, works with any account, including a personal Facebook profile or Instagram account): text ready to copy, photos downloaded ready to post (4:5 JPEG for Instagram), phone share button sending the photos to the Facebook or Instagram app, Facebook link sharing, and "Mark as published" to keep the history. Automatic publishing through the Meta API, for a Facebook Page and a linked Instagram professional account, once validated by "Test connection"; back to manual sharing if the token expires
 * Added: the Social media settings explain both modes and show the current mode of each network
 * Added: Open Graph tags on posts (title, excerpt, featured image) for a proper Facebook link preview, unless an SEO plugin or Jetpack already outputs them (filter `monclubtt_open_graph`)
