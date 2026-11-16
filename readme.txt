@@ -3,7 +3,7 @@ Contributors: robinos33
 Tags: table tennis, fftt, club, rankings, results
 Requires at least: 6.4
 Tested up to: 7.1
-Stable tag: 2.3.2
+Stable tag: 2.4.0
 Requires PHP: 8.4
 License: GPLv2
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -83,7 +83,7 @@ Yes. The plugin exposes six filters: `monclubtt_get_evenements`, `monclubtt_get_
 
 == Changelog ==
 
-= Unreleased =
+= 2.4.0 =
 * Added: Social media page, "Create a post" turns the image into a draft post: the image goes to the media library as the featured image (with alt text), the caption becomes paragraphs followed by the data as a list, with a suggested title, a category per image type and a closing link (settings). A second click for the same image and period offers to open the existing post
 * Added: "Publish to social media" box in the post editor: one tab per network with editable text (Facebook: text + link to the post; Instagram: "link in bio" and 2,200-character counter), choice of up to 10 photos with a 4:5 crop preview, publication history with links on the post and a warning if already published
 * Added: Meta connection settings (Facebook page ID, Instagram professional account ID, long-lived page token, not autoloaded), "Test connection" button and an admin notice when the token has expired
