@@ -177,7 +177,9 @@ class MonClubTT_ArticleSocial {
     }
 
     /**
-     * Contenu de l'article en blocs Gutenberg : la légende en paragraphes
+     * Contenu de l'article en blocs Gutenberg : le visuel en entier (bloc
+     * Image, sans le recadrage que les thèmes appliquent souvent à l'image à
+     * la une), la légende en paragraphes
      * (une ligne vide sépare deux paragraphes, un retour à la ligne simple
      * reste dans le paragraphe), puis les données du visuel en liste — le
      * texte d'une image n'est lu ni par les moteurs de recherche ni par les
@@ -188,10 +190,18 @@ class MonClubTT_ArticleSocial {
      * @param string   $titreListe Intertitre de la liste (vide : pas d'intertitre).
      * @param string   $lienUrl   Lien de fin (vide : pas de lien).
      * @param string   $lienTexte Texte du lien de fin.
+     * @param array    $image     Visuel : ['id', 'url', 'alt'] (vide : pas d'image).
      * @return string
      */
-    public static function contenu($legende, array $lignes = array(), $titreListe = '', $lienUrl = '', $lienTexte = '') {
+    public static function contenu($legende, array $lignes = array(), $titreListe = '', $lienUrl = '', $lienTexte = '', array $image = array()) {
         $blocs = array();
+        $id = (int) ($image['id'] ?? 0);
+        $url = trim((string) ($image['url'] ?? ''));
+        if ($id > 0 && preg_match('#^https?://#i', $url)) {
+            $blocs[] = '<!-- wp:image {"id":' . $id . ',"sizeSlug":"full","linkDestination":"none"} -->' . "\n"
+                . '<figure class="wp-block-image size-full"><img src="' . self::echapper($url, true) . '" alt="' . self::echapper((string) ($image['alt'] ?? ''), true) . '" class="wp-image-' . $id . '"/></figure>' . "\n"
+                . '<!-- /wp:image -->';
+        }
         foreach (self::paragraphes($legende) as $paragraphe) {
             $blocs[] = self::blocParagraphe(implode('<br>', array_map(array(__CLASS__, 'echapper'), $paragraphe)));
         }

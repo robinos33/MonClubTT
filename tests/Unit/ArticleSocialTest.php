@@ -57,6 +57,16 @@ final class ArticleSocialTest extends TestCase
         $this->assertLessThan(strpos($contenu, '<a href'), strpos($contenu, '</ul>'));
     }
 
+    public function test_should_put_full_visual_first_as_image_block(): void
+    {
+        $contenu = A::contenu('Bravo', [], '', '', '', ['id' => 42, 'url' => 'https://club.fr/visuel.jpg', 'alt' => 'Podium "novembre"']);
+
+        $this->assertStringStartsWith('<!-- wp:image {"id":42,"sizeSlug":"full","linkDestination":"none"} -->', $contenu);
+        $this->assertStringContainsString('<img src="https://club.fr/visuel.jpg" alt="Podium &quot;novembre&quot;" class="wp-image-42"/>', $contenu);
+        $this->assertLessThan(strpos($contenu, 'Bravo'), strpos($contenu, 'wp-image-42'));
+        $this->assertStringNotContainsString('wp:image', A::contenu('Bravo', [], '', '', '', ['id' => 42, 'url' => 'javascript:x']));
+    }
+
     public function test_should_skip_empty_list_and_unsafe_link(): void
     {
         $contenu = A::contenu('Texte', [], 'Le détail', 'javascript:alert(1)', 'Clic');

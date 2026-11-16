@@ -37,6 +37,42 @@ class MonClubTT_ArticleSocialWP {
     {
         add_action('wp_ajax_' . self::ACTION, array($this, 'creer'));
         add_action('admin_init', array($this, 'reglages'));
+        add_filter('render_block_core/post-featured-image', array($this, 'masquer_une_bloc'), 10, 3);
+        add_filter('post_thumbnail_html', array($this, 'masquer_une_classique'), 10, 3);
+    }
+
+    /* ------------------------------------------- image à la une sur l'article */
+
+    /**
+     * Sur la page de l'article, l'image à la une est masquée quand le même
+     * visuel est déjà en entier dans le contenu : les thèmes la recadrent
+     * souvent en paysage, ce qui coupe le visuel 4:5. Elle reste affichée
+     * dans les listes d'articles, l'accueil et les aperçus de partage.
+     *
+     * @param int $postId
+     * @return bool
+     */
+    public static function visuelDansContenu($postId)
+    {
+        $postId = (int) $postId;
+        if (!$postId || !is_singular('post') || $postId !== (int) get_queried_object_id() || !get_post_meta($postId, self::META_VISUEL, true)) {
+            return false;
+        }
+        $une = (int) get_post_thumbnail_id($postId);
+        return $une && strpos((string) get_post_field('post_content', $postId), 'wp-image-' . $une . '"') !== false;
+    }
+
+    /** Thèmes à blocs : bloc « Image mise en avant » du modèle. */
+    public function masquer_une_bloc($html, $block, $instance = null)
+    {
+        $postId = is_object($instance) && isset($instance->context['postId']) ? $instance->context['postId'] : get_the_ID();
+        return self::visuelDansContenu($postId) ? '' : $html;
+    }
+
+    /** Thèmes classiques : the_post_thumbnail(). */
+    public function masquer_une_classique($html, $postId, $thumbId)
+    {
+        return self::visuelDansContenu($postId) ? '' : $html;
     }
 
     /* ------------------------------------------------------------ réglages */
@@ -191,7 +227,7 @@ class MonClubTT_ArticleSocialWP {
             'post_status'  => 'draft',
             'post_author'  => get_current_user_id(),
             'post_title'   => MonClubTT_ArticleSocial::titre($visuel, $label, $tour ?: null, $sexe),
-            'post_content' => MonClubTT_ArticleSocial::contenu($legende, $lignes, $titreListe, $lien ? $lien : '', self::lienTexte()),
+            'post_content' => '',
             'meta_input'   => array(
                 self::META_VISUEL  => $visuel,
                 self::META_PERIODE => $periode,
@@ -208,12 +244,21 @@ class MonClubTT_ArticleSocialWP {
             wp_send_json_error(array('message' => 'Création de l\'article impossible : ' . $id->get_error_message()), 500);
         }
 
-        $image = $this->enregistrerImage($id, MonClubTT_ArticleSocial::texteAlternatif($visuel, $label, $lignes, $tour ?: null));
+        $alt   = MonClubTT_ArticleSocial::texteAlternatif($visuel, $label, $lignes, $tour ?: null);
+        $image = $this->enregistrerImage($id, $alt);
         if (is_wp_error($image)) {
             wp_delete_post($id, true);
             wp_send_json_error(array('message' => 'Envoi de l\'image impossible : ' . $image->get_error_message()), 500);
         }
         set_post_thumbnail($id, $image);
+
+        // Contenu écrit une fois l'image dans la médiathèque : le visuel y figure en entier.
+        $contenu = MonClubTT_ArticleSocial::contenu($legende, $lignes, $titreListe, $lien ? $lien : '', self::lienTexte(), array(
+            'id'  => $image,
+            'url' => wp_get_attachment_url($image),
+            'alt' => $alt,
+        ));
+        wp_update_post(wp_slash(array('ID' => $id, 'post_content' => $contenu)));
 
         wp_send_json_success(array(
             'id'      => $id,
