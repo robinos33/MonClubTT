@@ -3,7 +3,7 @@ Contributors: robinos33
 Tags: table tennis, fftt, club, rankings, results
 Requires at least: 6.4
 Tested up to: 7.1
-Stable tag: 2.4.0
+Stable tag: 2.5.0
 Requires PHP: 8.4
 License: GPLv2
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -25,7 +25,7 @@ Mon Club TT is an unofficial WordPress plugin that connects to the FFTT (Fédér
 * **Team management** — automatically create or trash WordPress pages per team
 * **Club calendar** — season agenda (month or list view, category filters), next date of a series (tournament round, holiday camp…) that moves on by itself, date lists, `.ics` download and calendar subscription. Events are entered in the admin or imported from the season spreadsheet (CSV or JSON)
 * **Team management app** — staff web app (installable on phones) for player availability, round-by-round team line-ups, phase squads, FFTT eligibility rules ("brûlage"), pre-written SMS and magic links so players can answer without an account. Imports data from the former TT Team Planner plugin (JSON export or its tables on the same site)
-* **Social media** — ready-to-post images (Top Progression, new rating milestones, last championship weekend), turned into a draft post in one click (image as featured image with alt text, caption and data as text), then shared from the editor to the club's Facebook page and Instagram professional account (text per network, up to 10 photos, publication history on the post)
+* **Social media** — ready-to-post images (Top Progression, new rating milestones, last championship weekend), turned into a draft post in one click (image as featured image with alt text, caption and data as text), then shared from the editor to Facebook and Instagram (text per network, up to 10 photos, publication history on the post): manual sharing for any account, or automatic publishing through the Meta API for a Facebook Page and an Instagram professional account
 * **Developer hooks** — expose cached data to other plugins via `apply_filters`
 
 **Shortcodes:**
@@ -58,7 +58,7 @@ Used to fetch the club's players, teams, standings, results and match sheets. Re
 
 = Meta Graph API (Facebook and Instagram) =
 
-Optional, used only to share a post on the club's Facebook page and Instagram professional account. Nothing is sent until an administrator clicks "Test connection" or "Publish to Facebook / Instagram" in the post editor. Requests go to `https://graph.facebook.com/` and contain the page access token, the Facebook page ID and Instagram account ID entered in *Social media › Meta connection*, the text written for the network, the post's link and the public URLs of the chosen images (Meta downloads the images from the site). Service provided by Meta Platforms: [Meta Platform Terms](https://developers.facebook.com/terms/), [Privacy Policy](https://www.facebook.com/privacy/policy/).
+Optional, used only by the automatic publishing mode (the default manual mode sends nothing to Meta: the administrator posts on Facebook or Instagram themselves), to share a post on the club's Facebook page and Instagram professional account. Nothing is sent until an administrator clicks "Test connection" or "Publish to Facebook / Instagram" in the post editor. Requests go to `https://graph.facebook.com/` and contain the page access token, the Facebook page ID and Instagram account ID entered in *Social media › Meta connection*, the text written for the network, the post's link and the public URLs of the chosen images (Meta downloads the images from the site). Service provided by Meta Platforms: [Meta Platform Terms](https://developers.facebook.com/terms/), [Privacy Policy](https://www.facebook.com/privacy/policy/).
 
 == Installation ==
 
@@ -82,6 +82,11 @@ Player data is refreshed on manual sync only. League standings and results are c
 Yes. The plugin exposes six filters: `monclubtt_get_evenements`, `monclubtt_get_joueurs`, `monclubtt_get_equipes`, `monclubtt_get_classement_poule`, `monclubtt_get_rencontres_poule`, `monclubtt_get_feuille_rencontre`. See the documentation for usage.
 
 == Changelog ==
+
+= 2.5.0 =
+* Added: two sharing modes per network in the "Publish to social media" window. Manual sharing (default, works with any account, including a personal Facebook profile or Instagram account): text ready to copy, photos downloaded ready to post (4:5 JPEG for Instagram), phone share button sending the photos to the Facebook or Instagram app, Facebook link sharing, and "Mark as published" to keep the history. Automatic publishing through the Meta API, for a Facebook Page and a linked Instagram professional account, once validated by "Test connection"; back to manual sharing if the token expires
+* Added: the Social media settings explain both modes and show the current mode of each network
+* Added: Open Graph tags on posts (title, excerpt, featured image) for a proper Facebook link preview, unless an SEO plugin or Jetpack already outputs them (filter `monclubtt_open_graph`)
 
 = 2.4.0 =
 * Added: Social media page, "Create a post" turns the image into a draft post: the image goes to the media library as the featured image (with alt text), the caption becomes paragraphs followed by the data as a list, with a suggested title, a category per image type and a closing link (settings). A second click for the same image and period offers to open the existing post

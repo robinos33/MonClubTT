@@ -5,6 +5,16 @@ Format : [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/)
 
 ---
 
+## [2.5.0] — 2026-11-16
+
+### Ajouté
+
+- **Deux modes de partage**, choisis réseau par réseau dans la fenêtre « Publier sur les réseaux » :
+  - **Partage manuel** (par défaut, pour tous les comptes, y compris un profil Facebook ou un compte Instagram personnels) : texte prêt à copier (avec le lien de l'article pour Facebook), photos téléchargées prêtes à poster (JPEG 4:5 pour Instagram), bouton « Partager… » du téléphone qui envoie les photos à l'appli Facebook ou Instagram après avoir copié le texte, lien de partage Facebook, ouverture d'Instagram, et « Marquer comme publié » (lien facultatif) pour garder l'historique.
+  - **Publication automatique** par l'API de Meta, réservée à une Page Facebook et un compte Instagram professionnel relié : un réseau n'y passe qu'une fois validé par « Tester la connexion » et revient au partage manuel si le jeton expire.
+- Réglages *Réseaux sociaux* : les deux modes expliqués, conditions de la publication automatique, mode actuel de chaque réseau (mis à jour après le test). Un compte Instagram inutilisable n'empêche plus de valider la Page Facebook.
+- Balises Open Graph sur les articles (titre, extrait, image à la une), pour un bon aperçu du lien partagé sur Facebook ; rien si Yoast, Rank Math, SEOPress, All in One SEO, The SEO Framework, Squirrly ou Jetpack les fournit déjà (filtre `monclubtt_open_graph`).
+
 ## [2.4.0] — 2026-11-16
 
 ### Ajouté

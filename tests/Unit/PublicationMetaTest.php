@@ -130,6 +130,43 @@ final class PublicationMetaTest extends TestCase
         $this->assertCount(50, $h);
     }
 
+    public function test_should_choose_mode_per_network(): void
+    {
+        $config = ['page' => '111', 'instagram' => '222', 'jeton' => true];
+        $ok = ['ok' => true, 'jeton_invalide' => false, 'reseaux' => ['facebook' => true, 'instagram' => true]];
+
+        $this->assertSame(M::MODE_AUTO, M::modeReseau('facebook', $config, $ok));
+        $this->assertSame(M::MODE_AUTO, M::modeReseau('instagram', $config, $ok));
+        // Rien de configuré, ou jamais testé : manuel.
+        $this->assertSame(M::MODE_MANUEL, M::modeReseau('facebook', [], null));
+        $this->assertSame(M::MODE_MANUEL, M::modeReseau('facebook', $config, null));
+        // Compte Instagram non renseigné ou non validé : Facebook auto, Instagram manuel.
+        $this->assertSame(M::MODE_MANUEL, M::modeReseau('instagram', ['instagram' => ''] + $config, $ok));
+        $this->assertSame(M::MODE_MANUEL, M::modeReseau('instagram', $config, ['reseaux' => ['facebook' => true, 'instagram' => false]] + $ok));
+        $this->assertSame(M::MODE_AUTO, M::modeReseau('facebook', $config, ['reseaux' => ['facebook' => true, 'instagram' => false]] + $ok));
+        // Jeton expiré : retour au manuel.
+        $this->assertSame(M::MODE_MANUEL, M::modeReseau('facebook', $config, ['ok' => false, 'jeton_invalide' => true] + $ok));
+        $this->assertSame(M::MODE_MANUEL, M::modeReseau('facebook', ['jeton' => false] + $config, $ok));
+    }
+
+    public function test_should_build_facebook_share_link_and_excerpt(): void
+    {
+        $this->assertSame('https://www.facebook.com/sharer/sharer.php?u=https%3A%2F%2Fclub.fr%2F%3Fp%3D12', M::lienPartageFacebook('https://club.fr/?p=12'));
+        $this->assertSame('Court', M::extrait("  Court \n"));
+        $extrait = M::extrait(str_repeat('mot ', 100), 50);
+        $this->assertLessThanOrEqual(50, mb_strlen($extrait));
+        $this->assertStringEndsWith('mot…', $extrait);
+    }
+
+    public function test_should_record_mode_in_history(): void
+    {
+        $h = M::ajouterHistorique([], ['reseau' => 'instagram', 'mode' => 'manuel', 'date' => '2026-11-16 10:00:00']);
+        $h = M::ajouterHistorique($h, ['reseau' => 'facebook', 'date' => '2026-11-16 11:00:00']);
+        $this->assertSame('manuel', $h[0]['mode']);
+        $this->assertSame('auto', $h[1]['mode']);
+        $this->assertSame('2026-11-16 10:00:00', M::dernierePublication($h, 'instagram')['date']);
+    }
+
     public function test_should_detect_public_urls(): void
     {
         $this->assertTrue(M::urlPublique('https://www.club-tt.fr/wp-content/uploads/a.jpg'));

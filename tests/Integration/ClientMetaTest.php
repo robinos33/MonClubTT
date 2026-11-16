@@ -153,7 +153,20 @@ final class ClientMetaTest extends TestCase
             'GET 222' => '{"id":"222","username":"ustalence_tt"}',
         ]);
 
-        $this->assertSame(['page' => 'US Talence TT', 'instagram' => 'ustalence_tt'], $this->client()->tester());
+        $this->assertSame(['page' => 'US Talence TT', 'instagram' => 'ustalence_tt', 'erreur_instagram' => ''], $this->client()->tester());
         $this->assertStringContainsString('access_token=TOK', $this->appels[0]['url']);
+    }
+
+    public function test_should_validate_page_even_if_instagram_account_is_not_usable(): void
+    {
+        $this->simuler([
+            'GET 111' => '{"id":"111","name":"US Talence TT"}',
+            'GET 222' => '{"error":{"code":100,"message":"Object with ID 222 does not exist"}}',
+        ]);
+
+        $r = $this->client()->tester();
+        $this->assertSame('US Talence TT', $r['page']);
+        $this->assertSame('', $r['instagram']);
+        $this->assertStringContainsString('introuvable', $r['erreur_instagram']);
     }
 }
