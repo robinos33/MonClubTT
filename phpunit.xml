@@ -20,6 +20,9 @@
         <include>
             <file>models/TopPerfs.php</file>
             <file>models/StatsReseaux.php</file>
+            <file>models/ArticleSocial.php</file>
+            <file>models/PublicationMeta.php</file>
+            <file>models/ClientMeta.php</file>
             <file>Utils.php</file>
         </include>
     </source>

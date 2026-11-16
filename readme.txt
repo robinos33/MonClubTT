@@ -3,7 +3,7 @@ Contributors: robinos33
 Tags: table tennis, fftt, club, rankings, results
 Requires at least: 6.4
 Tested up to: 7.1
-Stable tag: 2.3.2
+Stable tag: 2.4.0
 Requires PHP: 8.4
 License: GPLv2
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -25,6 +25,7 @@ Mon Club TT is an unofficial WordPress plugin that connects to the FFTT (Fédér
 * **Team management** — automatically create or trash WordPress pages per team
 * **Club calendar** — season agenda (month or list view, category filters), next date of a series (tournament round, holiday camp…) that moves on by itself, date lists, `.ics` download and calendar subscription. Events are entered in the admin or imported from the season spreadsheet (CSV or JSON)
 * **Team management app** — staff web app (installable on phones) for player availability, round-by-round team line-ups, phase squads, FFTT eligibility rules ("brûlage"), pre-written SMS and magic links so players can answer without an account. Imports data from the former TT Team Planner plugin (JSON export or its tables on the same site)
+* **Social media** — ready-to-post images (Top Progression, new rating milestones, last championship weekend), turned into a draft post in one click (image as featured image with alt text, caption and data as text), then shared from the editor to the club's Facebook page and Instagram professional account (text per network, up to 10 photos, publication history on the post)
 * **Developer hooks** — expose cached data to other plugins via `apply_filters`
 
 **Shortcodes:**
@@ -46,6 +47,18 @@ This plugin is not affiliated with or endorsed by the FFTT or the Smartping plat
 = Credits =
 
 Admin menu icon: "Ping pong" emoji from [Twemoji](https://github.com/jdecked/twemoji), © Twitter, Inc. and other contributors, licensed under [CC-BY 4.0](https://creativecommons.org/licenses/by/4.0/).
+
+== External services ==
+
+This plugin connects to the following third-party services.
+
+= FFTT Smartping API =
+
+Used to fetch the club's players, teams, standings, results and match sheets. Requests are sent to `https://www.fftt.com/mobile/pxml/` with the App ID, a hashed password and the club number entered in the settings, during manual synchronisation and when cached data expires. Service provided by the Fédération Française de Tennis de Table: [terms and legal notice](https://www.fftt.com/site/mentions-legales).
+
+= Meta Graph API (Facebook and Instagram) =
+
+Optional, used only to share a post on the club's Facebook page and Instagram professional account. Nothing is sent until an administrator clicks "Test connection" or "Publish to Facebook / Instagram" in the post editor. Requests go to `https://graph.facebook.com/` and contain the page access token, the Facebook page ID and Instagram account ID entered in *Social media › Meta connection*, the text written for the network, the post's link and the public URLs of the chosen images (Meta downloads the images from the site). Service provided by Meta Platforms: [Meta Platform Terms](https://developers.facebook.com/terms/), [Privacy Policy](https://www.facebook.com/privacy/policy/).
 
 == Installation ==
 
@@ -69,6 +82,12 @@ Player data is refreshed on manual sync only. League standings and results are c
 Yes. The plugin exposes six filters: `monclubtt_get_evenements`, `monclubtt_get_joueurs`, `monclubtt_get_equipes`, `monclubtt_get_classement_poule`, `monclubtt_get_rencontres_poule`, `monclubtt_get_feuille_rencontre`. See the documentation for usage.
 
 == Changelog ==
+
+= 2.4.0 =
+* Added: Social media page, "Create a post" turns the image into a draft post: the image goes to the media library as the featured image (with alt text), the caption becomes paragraphs followed by the data as a list, with a suggested title, a category per image type and a closing link (settings). A second click for the same image and period offers to open the existing post
+* Added: "Publish to social media" box in the post editor: one tab per network with editable text (Facebook: text + link to the post; Instagram: "link in bio" and 2,200-character counter), choice of up to 10 photos with a 4:5 crop preview, publication history with links on the post and a warning if already published
+* Added: Meta connection settings (Facebook page ID, Instagram professional account ID, long-lived page token, not autoloaded), "Test connection" button and an admin notice when the token has expired
+* Added: "monclubtt-instagram" image size (JPEG 1080 × 1350); older, smaller or PNG images are cropped and converted on demand
 
 = 2.3.2 =
 * Fixed: on Samsung Internet, the team app banner now offers to open the page in Chrome; the app built by Samsung Internet is blocked by Google Play Protect

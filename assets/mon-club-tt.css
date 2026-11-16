@@ -1092,6 +1092,29 @@ th.headerSortUp {
     color: #50575e;
 }
 
+.monclubtt-social-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.monclubtt-social-doublon p {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+}
+
+.monclubtt-article-categories th {
+    padding: 4px 16px 4px 0;
+    font-weight: normal;
+    text-align: left;
+}
+
+.monclubtt-article-categories td {
+    padding: 4px 0;
+}
+
 .monclubtt-social-preview {
     flex: 1 1 420px;
     max-width: 560px;
@@ -1297,4 +1320,140 @@ th.headerSortUp {
 .monclubtt-div tr.monclubtt-nouveau .monclubtt-score{
     color: var(--monclubtt-secondaire);
     font-weight: 700;
+}
+
+/* ------- Publier un article sur les réseaux (éditeur, boîte « Réseaux sociaux ») ------- */
+
+.monclubtt-publications {
+    margin: 0;
+}
+
+.monclubtt-publications li {
+    margin-bottom: 6px;
+}
+
+.monclubtt-pub-dialog {
+    width: min(720px, calc(100vw - 32px));
+    max-height: calc(100vh - 64px);
+    padding: 0;
+    border: 0;
+    border-radius: 8px;
+    box-shadow: 0 20px 50px -12px rgba(0, 0, 0, 0.45);
+}
+
+.monclubtt-pub-dialog::backdrop {
+    background: rgba(0, 0, 0, 0.45);
+}
+
+.monclubtt-pub-entete {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 20px;
+    border-bottom: 1px solid #dcdcde;
+    background: #fff;
+}
+
+.monclubtt-pub-entete h2 {
+    margin: 0;
+    font-size: 1.2em;
+}
+
+.monclubtt-pub-fermer {
+    font-size: 24px;
+    line-height: 1;
+    text-decoration: none;
+}
+
+.monclubtt-pub-corps {
+    padding: 16px 20px 20px;
+}
+
+.monclubtt-pub-onglets {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 16px;
+    border-bottom: 1px solid #dcdcde;
+}
+
+.monclubtt-pub-onglet {
+    margin-bottom: -1px;
+    padding: 8px 14px;
+    border: 1px solid transparent;
+    border-radius: 4px 4px 0 0;
+    background: none;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.monclubtt-pub-onglet[aria-selected="true"] {
+    border-color: #dcdcde;
+    border-bottom-color: #fff;
+    background: #fff;
+    font-weight: 600;
+}
+
+.monclubtt-pub-label {
+    display: block;
+    margin-bottom: 4px;
+    font-weight: 600;
+}
+
+.monclubtt-pub-trop {
+    color: #b32d2e;
+    font-weight: 600;
+}
+
+.monclubtt-pub-photos {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+    gap: 8px;
+    margin: 16px 0;
+}
+
+.monclubtt-pub-photos legend {
+    margin-bottom: 8px;
+    font-weight: 600;
+}
+
+.monclubtt-pub-photo {
+    position: relative;
+    display: block;
+    cursor: pointer;
+}
+
+.monclubtt-pub-photo input {
+    position: absolute;
+    top: 6px;
+    left: 6px;
+    margin: 0;
+}
+
+.monclubtt-pub-photo img {
+    display: block;
+    width: 100%;
+    aspect-ratio: 1;
+    object-fit: cover;
+    border-radius: 4px;
+    outline: 2px solid transparent;
+    outline-offset: 2px;
+}
+
+.monclubtt-pub-photos.is-portrait .monclubtt-pub-photo img {
+    aspect-ratio: 4 / 5; /* aperçu du recadrage Instagram */
+}
+
+.monclubtt-pub-photo input:checked + img {
+    outline-color: #2271b1;
+}
+
+.monclubtt-pub-photo input:disabled + img {
+    opacity: 0.5;
+}
+
+.monclubtt-pub-statut {
+    min-height: 1.5em;
 }

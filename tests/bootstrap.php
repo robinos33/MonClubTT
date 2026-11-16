@@ -25,3 +25,10 @@ if (!function_exists('wp_strip_all_tags')) {
         return trim($text);
     }
 }
+
+if (!function_exists('wp_parse_url')) {
+    function wp_parse_url($url, $component = -1)
+    {
+        return parse_url((string) $url, $component);
+    }
+}

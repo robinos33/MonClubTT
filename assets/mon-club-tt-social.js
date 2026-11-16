@@ -1,7 +1,8 @@
 /* ===================== VISUELS RÉSEAUX SOCIAUX (admin) =====================
  * Rendu côté navigateur dans un <canvas> : aucune dépendance à GD / Imagick,
  * donc fonctionne sur hébergement mutualisé. L'admin télécharge le PNG puis
- * le publie lui-même sur Facebook / Instagram.
+ * le publie lui-même sur Facebook / Instagram, ou crée un brouillon d'article
+ * (visuel en image à la une, légende et données en texte).
  *
  * Palette : les couleurs du club (réglages du plugin : primaire, secondaire,
  * fond) ; les couleurs de texte et les teintes en sont déduites (contraste).
@@ -31,6 +32,8 @@
     var btn       = document.getElementById('monclubtt-social-download');
     var legendeEl = document.getElementById('monclubtt-social-message');
     var statusEl  = document.getElementById('monclubtt-social-status');
+    var btnArticle = document.getElementById('monclubtt-social-article');
+    var doublonEl  = document.getElementById('monclubtt-social-doublon');
     if (!canvas || !form || !canvas.getContext) return;
     var ctx = canvas.getContext('2d');
 
@@ -40,6 +43,8 @@
     var imageCache   = {};
     var legendeModifiee = false; // texte retouché à la main : ne plus l'écraser
     var P = {};                  // palette courante (voir palette())
+    var courant = null;          // dernier visuel dessiné : { st, donnees }
+    var MSG_CORS = 'Export bloqué : une photo est servie depuis un autre domaine sans autorisation CORS.';
 
     /* ---------------------------------------------------------------- état */
 
@@ -1000,6 +1005,9 @@
 
         form.querySelectorAll('[data-visuel="prog"]').forEach(function (el) { el.hidden = !(podium || st.visuel === 'paliers'); });
         btn.disabled = true;
+        if (btnArticle) btnArticle.disabled = true;
+        courant = null;
+        if (doublonEl) doublonEl.hidden = true;
 
         var contenu = weekend ? preparerWeekend(L, st.visuel) : (podium ? preparerPodium(st) : preparerPaliers(L, st));
         Promise.all([contenu, chargerImage(DATA.logo)]).then(function (res) {
@@ -1056,6 +1064,8 @@
             }
             pied(L, st.club);
             btn.disabled = !donnees.length;
+            if (btnArticle) btnArticle.disabled = !donnees.length;
+            courant = donnees.length ? { st: st, donnees: donnees } : null;
         });
     }
 
@@ -1091,8 +1101,132 @@
             }, 'image/png');
         } catch (e) {
             // Canvas « souillé » par une image d'un autre domaine sans en-têtes CORS.
-            setStatus('Export bloqué : une photo est servie depuis un autre domaine sans autorisation CORS.');
+            setStatus(MSG_CORS);
         }
+    }
+
+    /* ------------------------------------------------------------ article */
+
+    function rangPoule(r) {
+        return r === 1 ? '1re' : r + 'e';
+    }
+
+    /* Données du visuel en texte, une ligne par joueur ou équipe, reprises
+       dans l'article (le texte d'une image n'est lu ni par Google ni par les
+       lecteurs d'écran). Les visuels du week-end reprennent la liste complète,
+       pas seulement les lignes qui tiennent dans l'image. */
+    function lignesTexte(st, donnees) {
+        var v = st.visuel;
+        if (v === 'prog-mens' || v === 'prog-ann') {
+            return donnees.map(function (g) { return nomComplet(g.p) + ' : ' + signe(g.val) + ' pts'; });
+        }
+        if (v === 'paliers') {
+            return donnees.map(function (l) {
+                var p = l.p;
+                return nomComplet(p) + ' passe la barre des ' + p.palier + ' pts (' + Math.floor(p.mens) + ' pts, ' + signe(p.dm) + ' ce mois)';
+            });
+        }
+        var liste = (perfsData && perfsData[CLE_WEEKEND[v]]) || [];
+        if (v === 'resultats') {
+            return liste.map(function (e) {
+                if (estExempte(e)) return e.equipe + ' : exempt';
+                var res = { V: 'victoire', N: 'match nul', D: 'défaite' }[e.resultat];
+                return e.equipe + ' : ' + res + ' ' + e.score + '-' + e.score_adversaire + ' ' +
+                    (e.domicile ? 'contre ' : 'chez ') + e.adversaire + (e.rang ? ' (' + rangPoule(e.rang) + ' de sa poule)' : '');
+            });
+        }
+        if (v === 'perfs') {
+            return liste.map(function (p) {
+                return nomComplet(p) + ' (' + p.equipe + ') : ' + signe(p.gain) + ' pts, ' +
+                    (p.nb_perfs > 1 ? p.nb_perfs + ' perfs, la meilleure contre un ' + p.adversaire_points + ' pts' : 'perf contre un ' + p.adversaire_points + ' pts');
+            });
+        }
+        if (v === 'cartons') {
+            return liste.map(function (p) {
+                return nomComplet(p) + ' (' + p.equipe + ') : ' + p.victoires + ' victoire' + (p.victoires > 1 ? 's' : '') + ' sur ' + p.victoires;
+            });
+        }
+        return liste.map(function (p) {
+            return nomComplet(p) + ' (' + p.equipe + ') : ' + p.sets.map(function (s) { return s[0] + '-' + s[1]; }).join(' ') +
+                (p.remontada ? ', remontada après avoir été mené 0-2' : '') + ' contre un ' + p.adversaire_points + ' pts';
+        });
+    }
+
+    /* Période du visuel : clé (doublons) et libellé (titre, texte alternatif). */
+    function periode(st) {
+        if (st.visuel === 'prog-ann') return { cle: DATA.saisonCle, label: DATA.saisonLabel, tour: '' };
+        if (CLE_WEEKEND.hasOwnProperty(st.visuel)) {
+            return {
+                cle: perfsData.date_fin,
+                label: libelleWeekend(perfsData.date_debut, perfsData.date_fin),
+                tour: perfsData.tour || ''
+            };
+        }
+        return { cle: DATA.moisCle, label: DATA.moisLabel, tour: '' };
+    }
+
+    function creerArticle(forcer) {
+        if (!courant || !btnArticle) return;
+        var st = courant.st;
+        var per = periode(st);
+        var lignes = lignesTexte(st, courant.donnees);
+        btnArticle.disabled = true;
+        if (doublonEl) doublonEl.hidden = true;
+        var fin = function (msg) {
+            btnArticle.disabled = !courant;
+            setStatus(msg);
+        };
+
+        var envoyer = function (blob) {
+            if (!blob) {
+                fin('Export impossible dans ce navigateur.');
+                return;
+            }
+            setStatus('Création du brouillon…');
+            var fd = new FormData();
+            fd.append('action', 'monclubtt_creer_article');
+            fd.append('nonce', DATA.articleNonce);
+            fd.append('visuel', st.visuel);
+            fd.append('sexe', st.sexe);
+            fd.append('periode', per.cle);
+            fd.append('periode_label', per.label);
+            fd.append('tour', per.tour);
+            fd.append('legende', legendeEl ? legendeEl.value : '');
+            fd.append('lignes', JSON.stringify(lignes));
+            if (forcer) fd.append('forcer', '1');
+            fd.append('image', blob, nomFichier().replace(/\.png$/, '.jpg'));
+            fetch(DATA.ajaxurl, { method: 'POST', credentials: 'same-origin', body: fd })
+                .then(function (r) { return r.json(); })
+                .then(function (res) {
+                    if (!res || !res.success) {
+                        fin((res && res.data && res.data.message) || 'Création de l\'article impossible.');
+                        return;
+                    }
+                    if (res.data.doublon) {
+                        fin('');
+                        afficherDoublon(res.data);
+                        return;
+                    }
+                    setStatus('Brouillon créé, ouverture de l\'éditeur…');
+                    window.location.href = res.data.edition;
+                })
+                .catch(function () { fin('Création de l\'article impossible : erreur réseau.'); });
+        };
+
+        try {
+            // JPEG : plus léger que le PNG et accepté par Instagram.
+            canvas.toBlob(envoyer, 'image/jpeg', 0.92);
+        } catch (e) {
+            fin(MSG_CORS);
+        }
+    }
+
+    function afficherDoublon(d) {
+        if (!doublonEl) return;
+        doublonEl.querySelector('p').textContent = 'Un article existe déjà pour ce visuel : « ' + d.titre + ' » (' + String(d.statut).toLowerCase() + ').';
+        doublonEl.querySelector('a').href = d.edition;
+        doublonEl.hidden = false;
+        doublonEl.querySelector('a').focus();
     }
 
     function copierLegende() {
@@ -1131,6 +1265,8 @@
         attente = setTimeout(render, 250);
     });
     btn.addEventListener('click', telecharger);
+    if (btnArticle) btnArticle.addEventListener('click', function () { creerArticle(false); });
+    if (doublonEl) doublonEl.querySelector('button').addEventListener('click', function () { creerArticle(true); });
 
     render();
 }());

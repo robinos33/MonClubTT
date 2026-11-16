@@ -49,13 +49,21 @@
             <fieldset>
                 <legend><label for="monclubtt-social-message">Texte de la publication</label></legend>
                 <textarea id="monclubtt-social-message" name="message" rows="7" class="large-text"></textarea>
-                <p class="description">Pré-rempli d'après le visuel et modifiable, à copier avec l'image dans Facebook ou Instagram.</p>
+                <p class="description">Pré-rempli d'après le visuel et modifiable : à copier avec l'image dans Facebook ou Instagram, ou repris dans l'article.</p>
                 <p><button type="button" class="button" id="monclubtt-social-copier">Copier le texte</button></p>
             </fieldset>
 
-            <p>
+            <p class="monclubtt-social-actions">
                 <button type="button" class="button button-primary button-large" id="monclubtt-social-download" disabled>Télécharger le PNG</button>
+                <button type="button" class="button button-large" id="monclubtt-social-article" disabled>Créer un article</button>
             </p>
+            <div class="monclubtt-social-doublon notice notice-info inline" id="monclubtt-social-doublon" hidden>
+                <p></p>
+                <p>
+                    <a class="button button-primary" href="#">Ouvrir l'article existant</a>
+                    <button type="button" class="button">Créer un autre article</button>
+                </p>
+            </div>
             <p class="monclubtt-social-status" id="monclubtt-social-status" role="status" aria-live="polite"></p>
             <p class="description">
                 <?php if (monclubtt_photos_affichees()): ?>
@@ -71,4 +79,12 @@
             <canvas id="monclubtt-social-canvas" width="1080" height="1350" aria-label="Aperçu du visuel"></canvas>
         </div>
     </div>
+
+    <h2 id="monclubtt-articles">Articles créés depuis les visuels</h2>
+    <p>« Créer un article » envoie le visuel dans la médiathèque et ouvre un <strong>brouillon</strong> : image à la une, texte de la publication et données du visuel en texte, lisibles par les moteurs de recherche et les lecteurs d'écran. Rien n'est publié avant votre relecture.</p>
+    <?php $this->getForm(MonClubTT_ArticleSocialWP::GROUPE); ?>
+
+    <h2 id="monclubtt-meta">Connexion Meta (Facebook et Instagram)</h2>
+    <p>Une fois la connexion faite, un article publié sur le site se partage depuis l'éditeur : boîte « Réseaux sociaux », bouton « Publier sur les réseaux ».</p>
+    <?php $this->getForm(MonClubTT_PublicationMetaWP::GROUPE); ?>
 </div>
