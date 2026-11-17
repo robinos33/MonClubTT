@@ -3,7 +3,7 @@ Contributors: robinos33
 Tags: table tennis, fftt, club, rankings, results
 Requires at least: 6.4
 Tested up to: 7.1
-Stable tag: 2.5.0
+Stable tag: 2.6.0
 Requires PHP: 8.4
 License: GPLv2
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -85,6 +85,11 @@ Player data is refreshed on manual sync only. League standings and results are c
 Yes. The plugin exposes six filters: `monclubtt_get_evenements`, `monclubtt_get_joueurs`, `monclubtt_get_equipes`, `monclubtt_get_classement_poule`, `monclubtt_get_rencontres_poule`, `monclubtt_get_feuille_rencontre`. See the documentation for usage.
 
 == Changelog ==
+
+= 2.6.0 =
+* Added: management committee (Mon Club TT menu): one entry per member with photo, first and last name, board role, commissions (checkboxes) and display order
+* Added: `[monclubtt_comite]` shortcode: the board with each member's role, then the other members with their commissions ("Commission Communication / Équipes"), as cards with photo or initials in the club colours; `partie`, `commission`, titles, `niveau`, `photos`, `classe`, `vide` attributes
+* Added: Shortcodes page in the admin, listing every shortcode of the plugin with copy-ready examples, attributes and the slugs available on the site
 
 = 2.5.0 =
 * Added: two sharing modes per network in the "Publish to social media" window. Manual sharing (default, works with any account, including a personal Facebook profile or Instagram account): text ready to copy, photos downloaded ready to post (4:5 JPEG for Instagram), phone share button sending the photos to the Facebook or Instagram app, Facebook link sharing, and "Mark as published" to keep the history. Automatic publishing through the Meta API, for a Facebook Page and a linked Instagram professional account, once validated by "Test connection"; back to manual sharing if the token expires
