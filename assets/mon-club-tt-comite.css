@@ -1,0 +1,123 @@
+/* COMITÉ DIRECTEUR DU CLUB : [monclubtt_comite] */
+
+.monclubtt-comite {
+    --mcb-accent: var(--monclubtt-primaire);
+    --mcb-accent-fonce: var(--monclubtt-prim-fonce);
+    --mcb-encre: #1d2b27;
+    --mcb-discret: #5f6964;
+    --mcb-trait: #e3e8e6;
+    --mcb-pastille: color-mix(in srgb, var(--mcb-accent) 11%, #fff);
+    --mcb-photo: 84px;
+    text-align: left;
+    color: var(--mcb-encre);
+    line-height: 1.4;
+}
+.monclubtt-comite * {
+    box-sizing: border-box;
+}
+
+/* ---------- Parties : le bureau, les autres membres ---------- */
+
+.monclubtt-comite__partie + .monclubtt-comite__partie {
+    margin-top: 48px;
+}
+.monclubtt-comite__entete {
+    margin-bottom: 24px;
+}
+.monclubtt-comite .monclubtt-comite__surtitre {
+    margin: 0 0 4px;
+    color: var(--mcb-accent-fonce);
+    font-size: 0.8125rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+.monclubtt-comite .monclubtt-comite__titre {
+    margin: 0;
+    padding: 0;
+    border: 0;
+}
+
+/* ---------- Cartes ---------- */
+
+.monclubtt-comite .monclubtt-comite__membres {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 20px;
+}
+.monclubtt-comite .monclubtt-comite__membre {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+    margin: 0;
+    padding: 24px 16px;
+    border: 1px solid var(--mcb-trait);
+    border-radius: 6px;
+    background: #fff;
+    text-align: center;
+}
+.monclubtt-comite .monclubtt-comite__membre::before {
+    content: none;
+}
+.monclubtt-comite .monclubtt-comite__nom {
+    /* Deux lignes réservées : les photos restent alignées d'une carte à l'autre. */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 2.6em;
+    margin: 0;
+    padding: 0;
+    color: var(--mcb-encre);
+    font-size: 1rem;
+    font-weight: 700;
+    line-height: 1.3;
+    text-transform: none;
+    letter-spacing: normal;
+}
+
+.monclubtt-comite .monclubtt-comite__photo {
+    display: block;
+    flex: none;
+    width: var(--mcb-photo);
+    height: var(--mcb-photo);
+    margin: 0;
+    border-radius: 50%;
+    object-fit: cover;
+    object-position: 50% 30%;
+    background: var(--mcb-pastille);
+}
+.monclubtt-comite .monclubtt-comite__photo--initiales {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--mcb-accent-fonce);
+    font-size: 1.6rem;
+    font-weight: 700;
+}
+
+.monclubtt-comite .monclubtt-comite__poste {
+    display: inline-block;
+    max-width: 100%;
+    margin: 0;
+    padding: 4px 12px;
+    border-radius: 999px;
+    background: var(--mcb-pastille);
+    color: var(--mcb-accent-fonce);
+    font-size: 0.75rem;
+    font-weight: 700;
+    line-height: 1.3;
+}
+
+@media (max-width: 480px) {
+    .monclubtt-comite .monclubtt-comite__membres {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+    }
+    .monclubtt-comite .monclubtt-comite__membre {
+        padding: 20px 10px;
+    }
+}

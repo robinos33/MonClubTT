@@ -24,6 +24,8 @@ Mon Club TT is an unofficial WordPress plugin that connects to the FFTT (Fédér
 * **Dashboard widget** — quick sync button on the WordPress dashboard
 * **Team management** — automatically create or trash WordPress pages per team
 * **Club calendar** — season agenda (month or list view, category filters), next date of a series (tournament round, holiday camp…) that moves on by itself, date lists, `.ics` download and calendar subscription. Events are entered in the admin or imported from the season spreadsheet (CSV or JSON)
+* **Management committee** — club committee page: the board with each member's role, then the other members with their commissions (photo, name), entered in the admin
+* **Shortcode reference** — every shortcode of the plugin listed in the admin, with copy-ready examples and attributes
 * **Team management app** — staff web app (installable on phones) for player availability, round-by-round team line-ups, phase squads, FFTT eligibility rules ("brûlage"), pre-written SMS and magic links so players can answer without an account. Imports data from the former TT Team Planner plugin (JSON export or its tables on the same site)
 * **Social media** — ready-to-post images (Top Progression, new rating milestones, last championship weekend), turned into a draft post in one click (image as featured image with alt text, caption and data as text), then shared from the editor to Facebook and Instagram (text per network, up to 10 photos, publication history on the post): manual sharing for any account, or automatic publishing through the Meta API for a Facebook Page and an Instagram professional account
 * **Developer hooks** — expose cached data to other plugins via `apply_filters`
@@ -35,6 +37,7 @@ Mon Club TT is an unofficial WordPress plugin that connects to the FFTT (Fédér
 * `[monclubtt_calendrier]` — club calendar for the season, with calendar subscription (Apple, Outlook, Google)
 * `[monclubtt_prochain serie="slug"]` — next date of a series; `format="texte"` returns a single field (date, round number, place, link) to use inside your own text
 * `[monclubtt_dates serie="slug"]` — dates of a series for the season, the next one highlighted; several series give a table by month
+* `[monclubtt_comite]` — management committee: the board (roles), then the other members (commissions); `partie="bureau"` for the board only
 * `[monclubtt_pong]` — table tennis pong game: pick a club player, then pick an opponent from the world top 10 (men or women, editable in the settings) or from the club, with touch, mouse or keyboard; high score table and match sharing (Facebook, Instagram, X, WhatsApp) with a generated Open Graph image
 
 **Requirements:**
