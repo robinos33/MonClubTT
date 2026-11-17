@@ -5,6 +5,16 @@ Format : [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/)
 
 ---
 
+## [2.6.0] — 2026-11-17
+
+### Ajouté
+
+- **Comité directeur** (menu *Mon Club TT*) : fiche par membre avec prénom, nom, photo (médiathèque, recadrée en rond), poste au bureau (postes courants proposés, champ libre), commissions à cocher et ordre d'affichage. Liste de l'admin avec photo, poste et commissions, filtrable par commission.
+- **Commissions** (Communication, Matériel, Équipes…) avec un ordre, pour la pastille des membres qui en ont plusieurs.
+- Shortcode **`[monclubtt_comite]`** : le bureau (chacun avec son poste), puis les autres membres (« Commission Communication / Équipes »), en cartes avec nom, photo ronde ou initiales aux couleurs du club ; attributs `partie`, `commission`, `surtitre_bureau`, `titre_bureau`, `surtitre_comite`, `titre_comite`, `niveau`, `photos`, `classe`, `vide`.
+- **Shortcodes** (menu *Mon Club TT*) : tous les shortcodes du plugin, avec exemples à copier en un clic, attributs, lien vers les données et slugs disponibles sur le site (séries, catégories, commissions).
+- Filtre `monclubtt_get_comite` pour le thème et les autres plugins.
+
 ## [2.5.0] — 2026-11-16
 
 ### Ajouté

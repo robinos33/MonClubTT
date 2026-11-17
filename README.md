@@ -14,6 +14,7 @@ Plugin WordPress non-officiel pour afficher les données d'un club issues de l'[
 - **Page d'équipe** — classement de poule mis en évidence + résultats de championnat organisés par journée
 - **Appli d'équipe** — sur mobile, chaque page d'équipe peut être ajoutée à l'écran d'accueil sous le nom, le logo et les couleurs du club (bandeau d'invitation en bas de page : bouton « Installer » sur Android, mode d'emploi sur iPhone) ; les résultats apparus depuis la dernière visite sont mis en avant
 - **Feuilles de match** — au clic sur un résultat, la composition des deux équipes et le détail partie par partie s'affichent (chargement AJAX, mis en cache)
+- **Comité directeur** — le bureau (photo, nom, poste) puis les autres membres du comité avec leurs commissions
 - **Calendrier du club** — agenda de la saison, prochain rendez-vous d'une série (tour du Grand Prix, stage…) qui avance tout seul, listes de dates, abonnement des adhérents dans leur agenda
 - **Application de gestion des équipes** (staff, connexion requise, installable sur mobile) — disponibilités des joueurs, compositions par journée, effectifs de phase, contrôle du brûlage, SMS pré-rédigés, liens magiques pour que chaque joueur donne ses disponibilités sans compte
 
@@ -25,6 +26,8 @@ Menu *Mon Club TT* :
 - **Gestion des équipes** — réglages de l'application du staff : PWA, SMS, équipes et dates des journées, joueurs et rencontres jouées (importées des feuilles de match FFTT), règles de brûlage, import / export
 - **Widget tableau de bord** avec bouton de synchronisation rapide
 - **Calendrier** — événements saisis à la main ou importés du tableur de la saison (CSV ou JSON), rangés par série et par catégorie
+- **Comité directeur** — fiche par membre (photo, prénom, nom, poste au bureau, commissions cochées, ordre) ; commissions dans *Comité directeur › Commissions*
+- **Shortcodes** — tous les shortcodes du plugin, avec exemples à copier en un clic, attributs et slugs disponibles sur le site
 - **Pong**, **Réglages** (nom, logo et couleurs du club)
 - **Réseaux sociaux** — visuels prêts à poster (Top Progression, nouveaux paliers de points, et pour le dernier week-end de championnat : résultats des équipes, top perfs, cartons pleins, victoires à la belle), générés dans le navigateur et téléchargeables en PNG portrait 4:5 (1080 × 1350, affiché en entier dans le fil Instagram et Facebook), avec un texte de publication pré-rempli. « Créer un article » en fait un brouillon : visuel en image à la une (avec texte alternatif), légende et données en texte, catégorie par visuel et lien de fin réglables ; un second clic pour la même période propose l'article existant. Depuis l'éditeur d'un article publié, « Publier sur les réseaux » le partage sur Facebook et Instagram avec un texte par réseau, jusqu'à 10 photos et l'historique des publications, en deux modes choisis réseau par réseau : **partage manuel** pour tous les comptes (texte à copier, photos prêtes à poster, partage du téléphone vers l'appli) ou **publication automatique** par l'API Graph de Meta pour une Page Facebook et un compte Instagram professionnel (app Meta du club, réglages *Réseaux sociaux*). Balises Open Graph sur les articles si aucune extension SEO ne les fournit
 
@@ -148,6 +151,32 @@ Dates de la saison d'une série : cartes avec la prochaine mise en avant et les 
 
 **Flux d'abonnement** : `https://votre-site/?monclubtt_calendrier=ics` (paramètres facultatifs `saison`, `categorie`, `serie`, `du`, `au`, `evenement`, `telecharger=1`).
 
+### Comité directeur
+
+```
+[monclubtt_comite]
+```
+
+Les membres de *Mon Club TT › Comité directeur* en deux parties, dans l'ordre choisi puis par nom :
+
+- **le bureau** : les membres qui ont un *poste au bureau* (Président, Trésorière…), affiché en pastille ;
+- **les autres membres** : les autres, avec en pastille les commissions cochées dans leur fiche (« Commission Communication / Équipes », dans l'ordre des commissions).
+
+Chaque membre est une carte : nom, photo ronde (ou initiales aux couleurs du club), pastille. La liste de tous les shortcodes, avec exemples à copier, est aussi dans *Mon Club TT › Shortcodes*.
+
+| Attribut | Valeurs | Défaut | Rôle |
+|---|---|---|---|
+| `partie` | `tout`, `bureau`, `comite` | `tout` | Parties affichées |
+| `commission` | slugs séparés par des virgules | — | Ne garder que les membres de ces commissions |
+| `surtitre_bureau` | texte (vide : aucun) | `Le bureau` | Petit texte au-dessus du titre du bureau |
+| `titre_bureau` | texte (vide : aucun) | `Qui fait quoi ?` | Titre du bureau |
+| `surtitre_comite` | texte (vide : aucun) | `Le comité` | Petit texte au-dessus du titre des autres membres |
+| `titre_comite` | texte (vide : aucun) | `Les autres membres` | Titre des autres membres |
+| `niveau` | `2` à `5` | `2` | Niveau des titres (`h2`…`h5`), les noms des membres un niveau en dessous |
+| `photos` | `1`, `0` | `1` | Photos (ou initiales) |
+| `classe` | classes CSS | — | Classes ajoutées au bloc |
+| `vide` | texte | — | Texte affiché s'il n'y a aucun membre |
+
 ### Jeu de pong
 
 > **Démo** : [ouvrir dans WordPress Playground](https://playground.wordpress.net/?blueprint-url=https://raw.githubusercontent.com/robinos33/MonClubTT/master/demo/playground/blueprint.json) — WordPress complet dans le navigateur, club fictif, photos et réglages (dossier `demo/playground/`, exclu du ZIP).
@@ -257,6 +286,10 @@ $stages = apply_filters('monclubtt_get_evenements', [], [
     'serie'  => 'stage-multisports', // slugs séparés par des virgules
     'saison' => '2026',              // défaut : toutes
 ]);
+
+// Comité directeur : [ 'bureau' => [...], 'comite' => [...] ], chaque membre avec
+// prenom, nom, photo, posteBureau, commissions, libelleCommissions
+$comite = apply_filters('monclubtt_get_comite', [], 'communication'); // vide : tous
 ```
 
 ---

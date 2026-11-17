@@ -3,7 +3,7 @@ Contributors: robinos33
 Tags: table tennis, fftt, club, rankings, results
 Requires at least: 6.4
 Tested up to: 7.1
-Stable tag: 2.5.0
+Stable tag: 2.6.0
 Requires PHP: 8.4
 License: GPLv2
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -24,6 +24,8 @@ Mon Club TT is an unofficial WordPress plugin that connects to the FFTT (Fédér
 * **Dashboard widget** — quick sync button on the WordPress dashboard
 * **Team management** — automatically create or trash WordPress pages per team
 * **Club calendar** — season agenda (month or list view, category filters), next date of a series (tournament round, holiday camp…) that moves on by itself, date lists, `.ics` download and calendar subscription. Events are entered in the admin or imported from the season spreadsheet (CSV or JSON)
+* **Management committee** — club committee page: the board with each member's role, then the other members with their commissions (photo, name), entered in the admin
+* **Shortcode reference** — every shortcode of the plugin listed in the admin, with copy-ready examples and attributes
 * **Team management app** — staff web app (installable on phones) for player availability, round-by-round team line-ups, phase squads, FFTT eligibility rules ("brûlage"), pre-written SMS and magic links so players can answer without an account. Imports data from the former TT Team Planner plugin (JSON export or its tables on the same site)
 * **Social media** — ready-to-post images (Top Progression, new rating milestones, last championship weekend), turned into a draft post in one click (image as featured image with alt text, caption and data as text), then shared from the editor to Facebook and Instagram (text per network, up to 10 photos, publication history on the post): manual sharing for any account, or automatic publishing through the Meta API for a Facebook Page and an Instagram professional account
 * **Developer hooks** — expose cached data to other plugins via `apply_filters`
@@ -35,6 +37,7 @@ Mon Club TT is an unofficial WordPress plugin that connects to the FFTT (Fédér
 * `[monclubtt_calendrier]` — club calendar for the season, with calendar subscription (Apple, Outlook, Google)
 * `[monclubtt_prochain serie="slug"]` — next date of a series; `format="texte"` returns a single field (date, round number, place, link) to use inside your own text
 * `[monclubtt_dates serie="slug"]` — dates of a series for the season, the next one highlighted; several series give a table by month
+* `[monclubtt_comite]` — management committee: the board (roles), then the other members (commissions); `partie="bureau"` for the board only
 * `[monclubtt_pong]` — table tennis pong game: pick a club player, then pick an opponent from the world top 10 (men or women, editable in the settings) or from the club, with touch, mouse or keyboard; high score table and match sharing (Facebook, Instagram, X, WhatsApp) with a generated Open Graph image
 
 **Requirements:**
@@ -82,6 +85,11 @@ Player data is refreshed on manual sync only. League standings and results are c
 Yes. The plugin exposes six filters: `monclubtt_get_evenements`, `monclubtt_get_joueurs`, `monclubtt_get_equipes`, `monclubtt_get_classement_poule`, `monclubtt_get_rencontres_poule`, `monclubtt_get_feuille_rencontre`. See the documentation for usage.
 
 == Changelog ==
+
+= 2.6.0 =
+* Added: management committee (Mon Club TT menu): one entry per member with photo, first and last name, board role, commissions (checkboxes) and display order
+* Added: `[monclubtt_comite]` shortcode: the board with each member's role, then the other members with their commissions ("Commission Communication / Équipes"), as cards with photo or initials in the club colours; `partie`, `commission`, titles, `niveau`, `photos`, `classe`, `vide` attributes
+* Added: Shortcodes page in the admin, listing every shortcode of the plugin with copy-ready examples, attributes and the slugs available on the site
 
 = 2.5.0 =
 * Added: two sharing modes per network in the "Publish to social media" window. Manual sharing (default, works with any account, including a personal Facebook profile or Instagram account): text ready to copy, photos downloaded ready to post (4:5 JPEG for Instagram), phone share button sending the photos to the Facebook or Instagram app, Facebook link sharing, and "Mark as published" to keep the history. Automatic publishing through the Meta API, for a Facebook Page and a linked Instagram professional account, once validated by "Test connection"; back to manual sharing if the token expires

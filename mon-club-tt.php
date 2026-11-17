@@ -3,7 +3,7 @@
   Plugin Name: Mon Club TT
   Plugin URI: https://github.com/robinos33/MonClubTT
   Description: Display your table tennis club's players, teams, and rankings from the official FFTT Smartping API. Not affiliated with or endorsed by the FFTT.
-  Version: 2.5.0
+  Version: 2.6.0
   Author: Robin Aldasoro
   Author URI: https://github.com/robinos33
   License: GPLv2
@@ -107,6 +107,9 @@ class MonClubTT_Plugin
         // Calendrier du club : événements, import, flux .ics et shortcodes.
         new MonClubTT_CalendrierWP(__FILE__);
 
+        // Comité directeur du club : membres, commissions et shortcode [monclubtt_comite].
+        new MonClubTT_ComiteWP(__FILE__);
+
         // Pages d'équipe ajoutables à l'écran d'accueil (manifest, bandeau).
         new MonClubTT_AppliWP(__FILE__);
 
@@ -166,6 +169,7 @@ class MonClubTT_Plugin
         $parent = MonClubTT_Constantes::MENU_PARENT;
         $this->reseaux_sociaux_page_hook = add_submenu_page($parent, 'Réseaux sociaux', 'Réseaux sociaux', 'manage_options', 'monclubtt_reseaux_sociaux', array($this, 'reseaux_sociaux_admin'));
         $this->media_page_hooks[] = add_submenu_page($parent, 'Jeu de pong', 'Pong', 'manage_options', 'monclubtt_pong', array($this, 'pong_admin'));
+        add_submenu_page($parent, 'Shortcodes', 'Shortcodes', 'edit_posts', 'monclubtt_shortcodes', array($this, 'shortcodes_admin'));
         $this->media_page_hooks[] = add_submenu_page($parent, 'Réglages', 'Réglages', 'manage_options', 'monclubtt_parametres', array($this, 'admin_module'));
     }
 
@@ -208,6 +212,12 @@ class MonClubTT_Plugin
     public function pong_admin()
     {
         $this->_getLayout('pong');
+    }
+
+    /** Liste des shortcodes du plugin, avec exemples à copier. */
+    public function shortcodes_admin()
+    {
+        $this->_getLayout('shortcodes');
     }
 
     public static function getPluginData()
