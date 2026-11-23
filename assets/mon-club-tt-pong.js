@@ -87,8 +87,10 @@
         { cle: 'glace', nom: 'Glace', couleur: '150,220,255', desc: "Fige l'adversaire dans un glaçon" }
     ];
     /* Remplissage de la jauge : frappe d'un échange long (à partir de la
-     * 4e), lifté ou coupé marqué, point gagné. */
-    var JAUGE = { echange: 0.08, apresFrappes: 4, effet: 0.1, point: 0.2 };
+     * 4e), point gagné, et surtout les effets : lifté ou coupé marqué, balle
+     * courbée (effet latéral à plus de la moitié du maximum). Cumulables :
+     * quatre frappes liftées suffisent. */
+    var JAUGE = { echange: 0.08, apresFrappes: 4, effet: 0.25, courbe: 0.2, point: 0.2 };
     var GEL_CUTIN = 0.65;  // arrêt sur image du déclenchement (s)
     var SONNE = 0.7;       // durée où le receveur d'une balle de feu titube (s)
     var GLACE = 0.5;       // durée où la Glace fige l'adversaire dans un glaçon (s)
@@ -1121,7 +1123,7 @@
                 x.setAttribute('aria-pressed', String(x.dataset.mode === etat.mode));
             });
             aideMode.textContent = etat.mode === 'arcade'
-                ? 'Coups spéciaux : remplis ta jauge, puis ' + (tactile ? 'touche l\'écran' : 'appuie sur Espace') + ' pour lâcher ton coup. Hors tableau des scores.'
+                ? 'Coups spéciaux : remplis ta jauge (les effets la remplissent vite), puis ' + (tactile ? 'touche l\'écran' : 'appuie sur Espace') + ' pour lâcher ton coup. Hors tableau des scores.'
                 : 'Les règles du ping, et le tableau des meilleurs scores.';
         }
         modes.addEventListener('click', function (e) {
@@ -1775,6 +1777,7 @@
             if (modeArcade()) {
                 if (balle.frappes >= JAUGE.apresFrappes) remplirJauge(cote, JAUGE.echange);
                 if (Math.abs(balle.rot) >= 0.5) remplirJauge(cote, JAUGE.effet);
+                if (Math.abs(balle.ax) >= EFFET_MAX * 0.5) remplirJauge(cote, JAUGE.courbe);
                 var iaTire = cote === 'adversaire' && arcade.jauge.adversaire >= 1 && Math.random() < n.special;
                 if (arcade.arme[cote] || iaTire) lancerSpecial(fig, sens, cote);
             }
