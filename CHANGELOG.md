@@ -10,6 +10,7 @@ Format : [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/)
 ### Ajouté
 
 - **Pong** : effets à l'impact (étincelles et onde, plus fournies à grande vitesse), secousse de l'écran sur un smash ou un service rapide gagnant, ralenti quand la balle de match passe la raquette, traînée de la balle à grande vitesse. Ni secousse ni ralenti quand l'appareil demande de réduire les animations (#47).
+- **Pong › mode Arcade** (#47) : coup spécial attitré à chaque joueur selon son nom (balle de feu, zigzag, balle fantôme, boomerang), jauge remplie par les échanges longs, les liftés et coupés et les points gagnés, coup armé par Espace ou un appui sur l'écran, arrêt sur image avec le joueur et le nom du coup en grand. L'adversaire a sa jauge ; tous les coups restent renvoyables. Mode choisi à côté du niveau et gardé sur l'appareil ; hors tableau des meilleurs scores et hors défi du jour ; mentionné dans le texte de partage, et un lien partagé rejoue dans le même mode.
 
 ## [2.9.0] — 2026-11-23
 
