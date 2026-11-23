@@ -75,16 +75,16 @@
     };
 
     /* ---- Mode Arcade ----
-     * Chaque joueur a un coup spécial attitré (coup signature), tiré de son
-     * nom. La jauge se remplit au fil du jeu ; pleine, une touche (ou un
+     * Le joueur choisit son coup spécial avant le match ; l'adversaire a un
+     * coup attitré (coup signature) tiré de son nom, le même à chaque match. La jauge se remplit au fil du jeu ; pleine, une touche (ou un
      * appui sur l'écran) arme le coup, qui part à la frappe suivante.
      * Tous les coups restent renvoyables. */
     var COUPS = [
-        { cle: 'feu', nom: 'Balle de feu', couleur: '255,110,30' },
-        { cle: 'zigzag', nom: 'Zigzag', couleur: '255,214,0' },
-        { cle: 'fantome', nom: 'Balle fantôme', couleur: '190,200,255' },
-        { cle: 'boomerang', nom: 'Boomerang', couleur: '90,230,140' },
-        { cle: 'glace', nom: 'Glace', couleur: '150,220,255' }
+        { cle: 'feu', nom: 'Balle de feu', couleur: '255,110,30', desc: "Très rapide, sonne celui qui la renvoie" },
+        { cle: 'zigzag', nom: 'Zigzag', couleur: '255,214,0', desc: "Zigzague jusqu'au rebond" },
+        { cle: 'fantome', nom: 'Balle fantôme', couleur: '190,200,255', desc: "Disparaît au milieu du trajet" },
+        { cle: 'boomerang', nom: 'Boomerang', couleur: '90,230,140', desc: "Part sur le côté et revient" },
+        { cle: 'glace', nom: 'Glace', couleur: '150,220,255', desc: "Fige l'adversaire dans un glaçon" }
     ];
     /* Remplissage de la jauge : frappe d'un échange long (à partir de la
      * 4e), lifté ou coupé marqué, point gagné. */
@@ -95,6 +95,10 @@
     var FEU = { gain: 1.45, plafond: 1.3 }; // vitesse ×1,45, au plus 1,3 × vMax
     var ZIGZAG = { amplitude: 22, pulsation: 15 };
     var FANTOME = { de: 0.22, a: 0.68 }; // part du trajet où la balle disparaît
+
+    function coupParCle(cle) {
+        return COUPS.filter(function (c) { return c.cle === cle; })[0] || null;
+    }
 
     function coupSignature(p) {
         var t = String((p && p.prenom) || '') + String((p && p.nom) || ''), h = 0;
@@ -780,6 +784,7 @@
             etat.joueur = p;
             clubAdv.masquer(p);
             sousTitreAdv.textContent = 'Tu joues avec ' + nomAffiche(p);
+            majCoups();
             if (etat.defiJour && defiJour && defiJour.advObj !== p) jouerContre(defiJour.advObj);
             else if (etat.defiActif && defi.adv && defi.adv !== p) jouerContre(defi.adv);
             else if (impose) jouerContre(impose);
@@ -1116,7 +1121,7 @@
                 x.setAttribute('aria-pressed', String(x.dataset.mode === etat.mode));
             });
             aideMode.textContent = etat.mode === 'arcade'
-                ? 'Coups spéciaux : remplis ta jauge, puis ' + (tactile ? 'touche l\'écran' : 'appuie sur Espace') + ' pour lâcher ton coup signature. Hors tableau des scores.'
+                ? 'Coups spéciaux : remplis ta jauge, puis ' + (tactile ? 'touche l\'écran' : 'appuie sur Espace') + ' pour lâcher ton coup. Hors tableau des scores.'
                 : 'Les règles du ping, et le tableau des meilleurs scores.';
         }
         modes.addEventListener('click', function (e) {
@@ -1125,10 +1130,47 @@
             etat.mode = b.dataset.mode;
             ecrirePref('arcade', etat.mode === 'arcade');
             majModes();
+            majCoups();
         });
         majModes();
         ecranAdv.appendChild(modes);
         ecranAdv.appendChild(aideMode);
+
+        /* Choix du coup spécial (mode Arcade), gardé sur l'appareil ; à
+         * défaut, le coup signature du joueur choisi. */
+        etat.coup = coupParCle(lireLocal('coup')) ? lireLocal('coup') : null;
+        function coupJoueur() { return coupParCle(etat.coup) || coupSignature(etat.joueur); }
+        var blocCoups = el('div', 'pong-coups-bloc');
+        blocCoups.appendChild(el('p', 'pong-coups-titre', 'Ton coup spécial'));
+        var choixCoups = el('div', 'pong-coups');
+        choixCoups.setAttribute('role', 'group');
+        choixCoups.setAttribute('aria-label', 'Ton coup spécial');
+        COUPS.forEach(function (c) {
+            var b = el('button', 'pong-coup');
+            b.type = 'button';
+            b.dataset.coup = c.cle;
+            b.style.setProperty('--pong-coup', 'rgb(' + c.couleur + ')');
+            b.appendChild(el('strong', 'pong-coup-nom', c.nom));
+            b.appendChild(el('span', 'pong-coup-desc', c.desc));
+            choixCoups.appendChild(b);
+        });
+        choixCoups.addEventListener('click', function (e) {
+            var b = e.target.closest('.pong-coup');
+            if (!b) return;
+            etat.coup = b.dataset.coup;
+            ecrireLocal('coup', etat.coup);
+            majCoups();
+        });
+        blocCoups.appendChild(choixCoups);
+        ecranAdv.appendChild(blocCoups);
+        function majCoups() {
+            blocCoups.hidden = etat.mode !== 'arcade';
+            var choisi = etat.joueur ? coupJoueur().cle : etat.coup;
+            choixCoups.querySelectorAll('.pong-coup').forEach(function (x) {
+                x.setAttribute('aria-pressed', String(x.dataset.coup === choisi));
+            });
+        }
+        majCoups();
 
         var hasard = el('button', 'pong-bouton pong-hasard', 'Au hasard');
         hasard.type = 'button';
@@ -1461,7 +1503,7 @@
         function armerSpecial() {
             if (!modeArcade() || phase !== 'jeu' || arcade.jauge.joueur < 1 || arcade.arme.joueur) return false;
             arcade.arme.joueur = true;
-            montrerToast('Coup spécial prêt : ' + coupSignature(etat.joueur).nom, 0.9);
+            montrerToast('Coup spécial prêt : ' + coupJoueur().nom, 0.9);
             tock(980, etat.son);
             majJauges();
             return true;
@@ -1470,7 +1512,7 @@
          * le jeu se fige le temps du cut-in. */
         function lancerSpecial(fig, sens, cote) {
             var n = NIVEAUX[etat.niveau];
-            var coup = coupSignature(cote === 'joueur' ? etat.joueur : adv);
+            var coup = cote === 'joueur' ? coupJoueur() : coupSignature(adv);
             arcade.jauge[cote] = 0;
             arcade.arme[cote] = false;
             if (cote === 'joueur') arcade.speciaux++;
@@ -1652,7 +1694,7 @@
             figJ.gele = figA.gele = 0;
             var hauteurMarqueur = marqueur.el.offsetHeight;
             marqueur.el.classList.toggle('pong-marqueur--arcade', modeArcade());
-            marqueur.coups(coupSignature(etat.joueur).nom, coupSignature(adv).nom);
+            marqueur.coups(coupJoueur().nom, coupSignature(adv).nom);
             majJauges();
             // Jauges affichées ou retirées : la table se recale sur la hauteur restante.
             if (marqueur.el.offsetHeight !== hauteurMarqueur) dimensionner();

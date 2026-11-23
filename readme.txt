@@ -88,7 +88,7 @@ Yes. The plugin exposes six filters: `monclubtt_get_evenements`, `monclubtt_get_
 
 = Unreleased =
 * Added: pong hit sparks, screen shake on smashes and winning fast serves, slow motion on match point, speed trail; no shake or slow motion with reduced motion
-* Added: pong Arcade mode: a signature special shot per player (fire ball, zigzag, ghost ball, boomerang, ice freezing the opponent in an ice cube), charged by long rallies, spin shots and points won, with a freeze-frame cut-in; kept out of the high scores and the daily challenge
+* Added: pong Arcade mode: the player picks one of five special shots (fire ball, zigzag, ghost ball, boomerang, ice freezing the opponent in an ice cube), the opponent has a signature shot, charged by long rallies, spin shots and points won, with a freeze-frame cut-in; kept out of the high scores and the daily challenge
 
 = 2.9.0 =
 * Added: pong daily challenge: the same opponent for everyone each day, one counted attempt per player and device, daily ranking by point margin then match duration, with yesterday's winner
