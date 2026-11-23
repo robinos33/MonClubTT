@@ -5,6 +5,14 @@ wp_enqueue_style('monclubtt-pong-css');
 wp_enqueue_script('monclubtt-pong-js');
 
 $couleurs = monclubtt_get_couleurs();
+// Logos des séparations : partenaires du club (Réglages), sinon logo du club.
+$partenaires = array();
+foreach (monclubtt_get_partenaires() as $partenaire) {
+    $logo = wp_get_attachment_image_url($partenaire['logo'], 'medium');
+    if ($logo) {
+        $partenaires[] = array('logo' => $logo, 'nom' => $partenaire['nom']);
+    }
+}
 $config   = array(
     'joueurs'    => $joueurs->getDonneesPong(),
     'adversaires' => $adversaires,
@@ -17,6 +25,8 @@ $config   = array(
     'page'        => (int) get_the_ID(),
     'manches'    => $manches,
     'couleurs'   => $couleurs,
+    'partenaires' => $partenaires,
+    'club'        => array('nom' => monclubtt_nom_club(), 'logo' => monclubtt_get_logo_url(256)),
 );
 // Couleurs normalisées en « #rrggbb » par monclubtt_get_couleurs().
 $style = '--pong-primaire:' . $couleurs['primaire'] . ';--pong-secondaire:' . $couleurs['secondaire'] . ';--pong-fond:' . $couleurs['fond'] . ';';

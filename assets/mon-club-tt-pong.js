@@ -59,6 +59,13 @@
      * VUE.relief : part de la hauteur z visible à l'écran. */
     var VUE = { yAdversaire: 96, relief: 0.7 };
     var FILET = 14; // hauteur du filet
+    /* Séparations : rangée de panneaux au fond, derrière l'adversaire, sur
+     * toute la largeur de l'écran, avec les logos des partenaires. Bleu
+     * marine du marqueur, un peu plus clair. */
+    var SEPA = {
+        y: -4, h: 42, panneaux: 4, marge: 0.14,
+        haut: '#3b5274', bas: '#2e4260', arete: 'rgba(255,255,255,0.28)', joint: '#1f2e42'
+    };
 
     var NIVEAUX = {
         normal:  { libelle: 'Normal',         vIa: 270, erreur: 42, reaction: 0.65, lecture: 0.5,  v0: 300, vMax: 640, rot: 0.3, rapide: 0.12 },
@@ -82,6 +89,39 @@
     function proj(x, y, z) {
         var k = (HIT_J - VUE.yAdversaire) / (HIT_J - HIT_A);
         return { x: x, y: HIT_J - (HIT_J - y) * k - (z || 0) * VUE.relief, s: 1 };
+    }
+
+    /* Rangée des séparations à l'écran : pied à la profondeur SEPA.y,
+     * hauteur à l'échelle de cette profondeur, toute la largeur. */
+    function rangeeSepa() {
+        var pied = proj(W / 2, SEPA.y, 0);
+        var h = SEPA.h * pied.s;
+        return { y: pied.y - h, h: h, l: W / SEPA.panneaux, pied: pied.y };
+    }
+
+    /* Logo recoloré en blanc (silhouette) : les pixels opaques deviennent
+     * blancs, la transparence est gardée. Un logo sans transparence devient
+     * donc un rectangle blanc. Taille en pixels réels. */
+    function logoBlanc(img, largeur, hauteur) {
+        var sw = img.naturalWidth || img.width, sh = img.naturalHeight || img.height;
+        var r = Math.min(largeur / sw, hauteur / sh);
+        var c = document.createElement('canvas');
+        c.width = Math.max(1, Math.round(sw * r));
+        c.height = Math.max(1, Math.round(sh * r));
+        var o = c.getContext('2d');
+        o.drawImage(img, 0, 0, c.width, c.height);
+        o.globalCompositeOperation = 'source-in';
+        o.fillStyle = '#fff';
+        o.fillRect(0, 0, c.width, c.height);
+        return { canvas: c, largeur: c.width, hauteur: c.height };
+    }
+
+    /* Indices des panneaux qui portent un partenaire quand ils sont moins
+     * nombreux que les panneaux : répartis sur la rangée. */
+    function placesPartenaires(nbPartenaires, nbPanneaux) {
+        var places = [];
+        for (var k = 0; k < nbPartenaires; k++) places.push(Math.min(nbPanneaux - 1, Math.floor((k + 0.5) * nbPanneaux / nbPartenaires)));
+        return places;
     }
 
     function rgb(hex) {
@@ -1068,6 +1108,40 @@
             });
         }
 
+        /* ---- Séparations : logos des partenaires, sinon du club ----
+         * Images chargées une fois, recolorées en blanc à la taille d'affichage
+         * à chaque redimensionnement. Plus de partenaires que de panneaux : la
+         * rangée avance d'un cran à chaque match. */
+        var partenaires = (cfg.partenaires || []).map(function (p) { return { url: p.logo, nom: p.nom || '' }; });
+        var club = { url: cfg.club && cfg.club.logo || '', nom: cfg.club && cfg.club.nom || '' };
+        var panneaux = [], tourSepa = 0;
+        partenaires.concat([club]).forEach(function (p) {
+            chargerImage(p.url).then(function (img) {
+                p.img = img;
+                construireSeparations();
+            });
+        });
+        function construireSeparations() {
+            var n = SEPA.panneaux, r = rangeeSepa();
+            var bw = r.l * (1 - 2 * SEPA.marge) * echelle * dpr, bh = r.h * (1 - 2 * SEPA.marge) * echelle * dpr;
+            function contenu(p) {
+                if (!p) return null;
+                if (p.img && (!p.blanc || p.taille !== bw + 'x' + bh)) {
+                    p.blanc = logoBlanc(p.img, bw, bh);
+                    p.taille = bw + 'x' + bh;
+                }
+                return p.img ? p : { nom: p.nom };
+            }
+            panneaux = [];
+            var places = partenaires.length < n ? placesPartenaires(partenaires.length, n) : null;
+            for (var i = 0; i < n; i++) {
+                var p;
+                if (!places) p = partenaires[(tourSepa * n + i) % partenaires.length];
+                else p = places.indexOf(i) >= 0 ? partenaires[places.indexOf(i)] : club;
+                panneaux.push(contenu(p));
+            }
+        }
+
         function construireTetes() {
             ['joueur', 'adversaire'].forEach(function (cote) {
                 var s = sprites[cote];
@@ -1097,6 +1171,7 @@
             canvas.height = Math.round(largeur * H / W * dpr);
             echelle = largeur / W;
             construireTetes();
+            construireSeparations();
             // Une passe de plus si la mise en page autour a changé (retour à la ligne…).
             if (!passe && canvas.style.width !== avant) dimensionner(true);
         }
@@ -1147,6 +1222,8 @@
             // Compteur des parties jouées (réglages du plugin) ; sans réponse attendue.
             appelAjax('monclubtt_pong_debut', { nonce: cfg.nonce || '' }).catch(function () {});
             match = new Match(nbManches);
+            tourSepa++;
+            construireSeparations();
             marqueur.maj(match);
             figJ.x = W / 2; figA.x = W / 2;
             figJ.tCoup = figA.tCoup = 0;
@@ -1487,6 +1564,55 @@
             var fond = couleurs.fond || '#f4f1ea';
             ctx.fillStyle = fond;
             ctx.fillRect(0, 0, W, H);
+            // Mur du fond, au-dessus des séparations.
+            ctx.fillStyle = teinte(fond, -0.1);
+            ctx.fillRect(0, 0, W, rangeeSepa().pied);
+        }
+
+        /* Séparations bleu marine : n panneaux de face, au fond, de bord à bord. */
+        function dessinerSeparations() {
+            var r = rangeeSepa();
+            ctx.fillStyle = 'rgba(15,20,26,0.18)'; // ombre au sol
+            ctx.fillRect(0, r.pied, W, 5 * proj(W / 2, SEPA.y, 0).s);
+            var g = ctx.createLinearGradient(0, r.y, 0, r.pied);
+            g.addColorStop(0, SEPA.haut);
+            g.addColorStop(1, SEPA.bas);
+            for (var i = 0; i < SEPA.panneaux; i++) {
+                var x0 = i * r.l;
+                ctx.fillStyle = g;
+                ctx.fillRect(x0, r.y, r.l, r.h);
+                ctx.fillStyle = SEPA.arete;
+                ctx.fillRect(x0, r.y, r.l, 2);
+                ctx.fillStyle = SEPA.joint;
+                if (i) ctx.fillRect(x0, r.y, 1, r.h);
+                dessinerPanneau(panneaux[i], x0, r.y, r.l, r.h);
+            }
+        }
+
+        /* Contenu d'un panneau : logo blanc centré, sinon le nom en blanc. */
+        function dessinerPanneau(contenu, x, y, l, h) {
+            if (!contenu) return;
+            var mx = l * SEPA.marge, my = h * SEPA.marge;
+            var bw = l - 2 * mx, bh = h - 2 * my;
+            if (contenu.blanc) {
+                var c = contenu.blanc, r = Math.min(bw / c.largeur, bh / c.hauteur);
+                var w = c.largeur * r, hh = c.hauteur * r;
+                ctx.drawImage(c.canvas, x + (l - w) / 2, y + (h - hh) / 2, w, hh);
+            } else if (contenu.nom) {
+                ctx.save();
+                ctx.fillStyle = '#fff';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                var taille = bh * 0.62;
+                ctx.font = '800 ' + taille.toFixed(1) + 'px system-ui, -apple-system, "Segoe UI", Roboto, sans-serif';
+                var mesure = ctx.measureText(contenu.nom).width;
+                if (mesure > bw) {
+                    taille *= bw / mesure;
+                    ctx.font = '800 ' + taille.toFixed(1) + 'px system-ui, -apple-system, "Segoe UI", Roboto, sans-serif';
+                }
+                ctx.fillText(contenu.nom, x + l / 2, y + h / 2 + 1);
+                ctx.restore();
+            }
         }
 
         function dessinerTable() {
@@ -1649,6 +1775,7 @@
             ctx.setTransform(s, 0, 0, s, 0, 0);
             var filet = TABLE.y + TABLE.h / 2;
             dessinerFond();
+            dessinerSeparations();
             dessinerFigure(sprites.adversaire, figA, FIG_A);
             dessinerTable();
             if (balle.y < filet) dessinerBalle();
