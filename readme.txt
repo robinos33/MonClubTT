@@ -90,6 +90,7 @@ Yes. The plugin exposes six filters: `monclubtt_get_evenements`, `monclubtt_get_
 * Added: club partners in Settings (logo from the media library, name, optional link, display order), with a preview of each logo in white on navy
 * Changed: pong table seen slightly tilted, with depth (table edge, net, shadows); still rectangular, ball physics and controls unchanged
 * Added: a row of navy barriers behind the pong opponent, with the club partners' logos in white (club logo or name when there are no partners)
+* Changed: the pong pause button moves to the middle of the scoreboard
 
 = 2.7.0 =
 * Changed: pong ball speeds up a little faster during a rally (+10% per hit instead of +8%), reaching top speed in about 8 hits

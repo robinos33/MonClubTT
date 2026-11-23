@@ -16,6 +16,8 @@ Format : [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/)
 
 - **Pong** : table vue légèrement inclinée, en relief (bord avant du plateau, filet tendu entre ses poteaux, ombres). La table reste rectangulaire : trajectoires, rebonds sur les bords, effets et commandes inchangés ; la profondeur est seulement tassée pour libérer le haut de l'écran (#45).
 
+- **Pong** : la roue crantée (pause et réglages) passe au milieu du marqueur, entre les deux scores : elle ne cache plus rien sur la table ni sur les séparations (#45).
+
 ## [2.7.0] — 2026-11-23
 
 ### Modifié

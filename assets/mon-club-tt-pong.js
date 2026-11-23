@@ -879,9 +879,10 @@
         scene.appendChild(message);
         ecranJeu.appendChild(scene);
 
-        /* Roue crantée posée dans le coin de la table : ouvre le panneau
-         * « Pause » (le match est figé) avec les réglages et le retour au
-         * choix de l'adversaire. Touche P ou Échap aussi. */
+        /* Roue crantée au milieu du marqueur, entre les deux scores (hors de
+         * la table, qui reste dégagée) : ouvre le panneau « Pause » (le match
+         * est figé) avec les réglages et le retour au choix de l'adversaire.
+         * Touche P ou Échap aussi. */
         var btnMenu = el('button', 'pong-menu-bouton');
         btnMenu.type = 'button';
         btnMenu.innerHTML = '<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" focusable="false">' +
@@ -890,7 +891,7 @@
         btnMenu.setAttribute('aria-label', 'Pause et réglages');
         btnMenu.setAttribute('aria-haspopup', 'dialog');
         btnMenu.title = 'Pause et réglages (P)';
-        scene.appendChild(btnMenu);
+        marqueur.el.insertBefore(btnMenu, marqueur.camps.adversaire.el);
 
         var menu = el('div', 'pong-menu');
         menu.hidden = true;
