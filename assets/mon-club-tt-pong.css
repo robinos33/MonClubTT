@@ -601,6 +601,71 @@
     box-shadow: inset 0 0 0 2px rgba(35, 52, 74, 0.25);
 }
 
+/* Mode Arcade : jauge sous les fiches, nom du coup signature. */
+.monclubtt-pong .pong-jauge,
+.monclubtt-pong .pong-jauge-coup { display: none; }
+
+.monclubtt-pong .pong-marqueur--arcade .pong-jauge {
+    display: block;
+    width: 100%;
+    max-width: 120px;
+    height: 7px;
+    overflow: hidden;
+    border-radius: 4px;
+    background: rgba(255, 255, 255, 0.16);
+}
+
+.monclubtt-pong .pong-jauge-niveau {
+    display: block;
+    width: 0;
+    height: 100%;
+    border-radius: inherit;
+    background: #f2a24a;
+    transition: width 0.2s ease-out;
+}
+
+.monclubtt-pong .pong-jauge--pleine .pong-jauge-niveau { background: #ffd600; animation: pongJauge 0.5s ease-in-out infinite alternate; }
+.monclubtt-pong .pong-jauge--arme .pong-jauge-niveau { background: #fff; animation: none; }
+
+@keyframes pongJauge {
+    to { opacity: 0.45; }
+}
+
+.monclubtt-pong .pong-marqueur--arcade .pong-jauge-coup {
+    display: block;
+    font-size: 0.62rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.75);
+    white-space: nowrap;
+}
+
+.monclubtt-pong .pong-mode-aide { max-width: 420px; margin: -4px auto 14px; text-align: center; font-size: 0.8rem; color: rgba(35, 52, 74, 0.75); }
+
+/* Choix du coup spécial : une carte par coup, liseré à sa couleur. */
+.monclubtt-pong .pong-coups-bloc { max-width: 480px; margin: 0 auto 16px; }
+.monclubtt-pong .pong-coups-titre { margin: 0 0 6px; text-align: center; font-size: 0.85rem; font-weight: 900; }
+.monclubtt-pong .pong-coups { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 6px; }
+
+.monclubtt-pong .pong-coup {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 8px 10px;
+    border: 2px solid transparent;
+    border-left: 6px solid var(--pong-coup, var(--pong-primaire));
+    border-radius: 6px;
+    background: #fff;
+    color: var(--pong-encre);
+    text-align: left;
+    box-shadow: 0 1px 3px rgba(15, 20, 26, 0.12);
+}
+
+.monclubtt-pong .pong-coup[aria-pressed="true"] { border-color: var(--pong-primaire); border-left-color: var(--pong-coup, var(--pong-primaire)); background: #f4f9fd; }
+.monclubtt-pong .pong-coup-nom { font-size: 0.9rem; font-weight: 900; }
+.monclubtt-pong .pong-coup-desc { font-size: 0.72rem; color: rgba(35, 52, 74, 0.75); }
+
 /* Roue crantée (au milieu du marqueur) et panneau « Pause ». */
 .monclubtt-pong .pong-menu-bouton {
     align-self: center;
@@ -723,5 +788,6 @@ html.monclubtt-pong-verrou body { overflow: hidden; }
 @media (prefers-reduced-motion: reduce) {
     .monclubtt-pong .pong-message,
     .monclubtt-pong .pong-carte,
-    .monclubtt-pong .pong-defi-carte { animation: none; transition: none; }
+    .monclubtt-pong .pong-defi-carte,
+    .monclubtt-pong .pong-jauge-niveau { animation: none; transition: none; }
 }

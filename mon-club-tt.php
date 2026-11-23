@@ -3,7 +3,7 @@
   Plugin Name: Mon Club TT
   Plugin URI: https://github.com/robinos33/MonClubTT
   Description: Display your table tennis club's players, teams, and rankings from the official FFTT Smartping API. Not affiliated with or endorsed by the FFTT.
-  Version: 2.9.0
+  Version: 2.10.0
   Author: Robin Aldasoro
   Author URI: https://github.com/robinos33
   License: GPLv2
@@ -1128,6 +1128,7 @@ class MonClubTT_Plugin
                 'adv_type'   => $match['adv_type'] ?? '',
                 'adv_nom'    => $match['adv_nom'] ?? '',
                 'adv_prenom' => $match['adv_prenom'] ?? '',
+                'mode'       => ($match['mode'] ?? '') === 'arcade' ? 'arcade' : 'classique',
             );
         }
 
@@ -1294,6 +1295,9 @@ class MonClubTT_Plugin
         $niveau  = $champ('niveau');
         $advType = $champ('adv_type');
         $postId  = (int) $champ('page');
+        // Mode Arcade (coups spéciaux) : partagé, mais hors tableau et hors défi du jour.
+        $mode     = $champ('mode') === 'arcade' ? 'arcade' : 'classique';
+        $speciaux = max(0, min(99, (int) $champ('speciaux')));
 
         $cle = 'monclubtt_pong_' . $this->cleIpPong();
         if (get_transient($cle)) {
@@ -1329,7 +1333,7 @@ class MonClubTT_Plugin
         $reponse = array('classement' => null, 'rang' => null, 'partage' => null);
 
         // Visiteurs hors club compris, signalés comme tels au tableau.
-        if ($victoire && $advType !== 'invite') {
+        if ($victoire && $advType !== 'invite' && $mode === 'classique') {
             $resultat = MonClubTT_PongScores::ajouter(
                 (array) get_option(MonClubTT_Constantes::MONCLUBTT_PONG_SCORES, array()),
                 array(
@@ -1348,7 +1352,7 @@ class MonClubTT_Plugin
         }
 
         // Défi du jour : première tentative du joueur, contre l'adversaire du jour.
-        if ($champ('defi_jour') === '1') {
+        if ($champ('defi_jour') === '1' && $mode === 'classique') {
             $reponse['defi'] = $this->enregistrerDefiPong(
                 $champ('defi_date'), $advType, $champ('adv_nom'), $champ('adv_prenom'), $niveau,
                 $joueur['affiche'], $visiteur, $pj, $pa, $champ('duree')
@@ -1370,16 +1374,21 @@ class MonClubTT_Plugin
                 'adv_type'    => $advType,
                 'adv_nom'     => $champ('adv_nom'),
                 'adv_prenom'  => $champ('adv_prenom'),
+                'mode'        => $mode,
                 'post'        => $postId,
                 'date'        => time(),
             ));
             $club = get_bloginfo('name');
+            /* translators: %d: nombre de coups spéciaux */
+            $arcade = $mode === 'arcade'
+                ? ' (mode Arcade' . ($speciaux ? ', ' . sprintf(_n('%d coup spécial', '%d coups spéciaux', $speciaux, 'mon-club-tt'), $speciaux) : '') . ')'
+                : '';
             $reponse['partage'] = array(
                 'url'   => add_query_arg('pong', $id, get_permalink($postId)),
                 'image' => add_query_arg('monclubtt_pong_image', $id, home_url('/')),
                 'texte' => $victoire
-                    ? sprintf('J\'ai battu %s %d–%d au Pong du club %s. Tu fais mieux ?', $adversaire['affiche'], $pj, $pa, $club)
-                    : sprintf('%s m\'a battu %d–%d au Pong du club %s. Qui me venge ?', $adversaire['affiche'], $pa, $pj, $club),
+                    ? sprintf('J\'ai battu %s %d–%d au Pong du club %s%s. Tu fais mieux ?', $adversaire['affiche'], $pj, $pa, $club, $arcade)
+                    : sprintf('%s m\'a battu %d–%d au Pong du club %s%s. Qui me venge ?', $adversaire['affiche'], $pa, $pj, $club, $arcade),
             );
         }
 

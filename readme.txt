@@ -3,7 +3,7 @@ Contributors: robinos33
 Tags: table tennis, fftt, club, rankings, results
 Requires at least: 6.4
 Tested up to: 7.1
-Stable tag: 2.9.0
+Stable tag: 2.10.0
 Requires PHP: 8.4
 License: GPLv2
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -85,6 +85,10 @@ Player data is refreshed on manual sync only. League standings and results are c
 Yes. The plugin exposes six filters: `monclubtt_get_evenements`, `monclubtt_get_joueurs`, `monclubtt_get_equipes`, `monclubtt_get_classement_poule`, `monclubtt_get_rencontres_poule`, `monclubtt_get_feuille_rencontre`. See the documentation for usage.
 
 == Changelog ==
+
+= 2.10.0 =
+* Added: pong hit sparks, screen shake on smashes and winning fast serves, slow motion on match point, speed trail; no shake or slow motion with reduced motion
+* Added: pong Arcade mode: the player picks one of five special shots (fire ball, zigzag, ghost ball, boomerang, ice freezing the opponent in an ice cube), the opponent has a signature shot, charged mostly by spin and curve shots, also by long rallies and points won, with a freeze-frame cut-in; kept out of the high scores and the daily challenge
 
 = 2.9.0 =
 * Added: pong daily challenge: the same opponent for everyone each day, one counted attempt per player and device, daily ranking by point margin then match duration, with yesterday's winner

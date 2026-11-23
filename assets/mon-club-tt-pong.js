@@ -67,10 +67,50 @@
         haut: '#3b5274', bas: '#2e4260', arete: 'rgba(255,255,255,0.28)', joint: '#1f2e42'
     };
 
+    /* special : probabilité que l'adversaire lâche son coup spécial quand
+     * sa jauge est pleine, à chacune de ses frappes (mode Arcade). */
     var NIVEAUX = {
-        normal:  { libelle: 'Normal',         vIa: 270, erreur: 42, reaction: 0.65, lecture: 0.5,  v0: 300, vMax: 640, rot: 0.3, rapide: 0.12 },
-        mondial: { libelle: 'Expert',         vIa: 350, erreur: 34, reaction: 0.85, lecture: 0.7,  v0: 330, vMax: 720, rot: 0.5, rapide: 0.2 }
+        normal:  { libelle: 'Normal',         vIa: 270, erreur: 42, reaction: 0.65, lecture: 0.5,  v0: 300, vMax: 640, rot: 0.3, rapide: 0.12, special: 0.5 },
+        mondial: { libelle: 'Expert',         vIa: 350, erreur: 34, reaction: 0.85, lecture: 0.7,  v0: 330, vMax: 720, rot: 0.5, rapide: 0.2,  special: 0.8 }
     };
+
+    /* ---- Mode Arcade ----
+     * Le joueur choisit son coup spécial avant le match ; l'adversaire a un
+     * coup attitré (coup signature) tiré de son nom, le même à chaque match. La jauge se remplit au fil du jeu ; pleine, une touche (ou un
+     * appui sur l'écran) arme le coup, qui part à la frappe suivante.
+     * Tous les coups restent renvoyables. */
+    var COUPS = [
+        { cle: 'feu', nom: 'Balle de feu', couleur: '255,110,30', desc: "Très rapide, sonne celui qui la renvoie" },
+        { cle: 'zigzag', nom: 'Zigzag', couleur: '255,214,0', desc: "Zigzague jusqu'au rebond" },
+        { cle: 'fantome', nom: 'Balle fantôme', couleur: '190,200,255', desc: "Disparaît au milieu du trajet" },
+        { cle: 'boomerang', nom: 'Boomerang', couleur: '90,230,140', desc: "Part sur le côté et revient" },
+        { cle: 'glace', nom: 'Glace', couleur: '150,220,255', desc: "Fige l'adversaire dans un glaçon" }
+    ];
+    /* Remplissage de la jauge : frappe d'un échange long (à partir de la
+     * 4e), point gagné, et surtout les effets : lifté ou coupé marqué, balle
+     * courbée (effet latéral à plus de la moitié du maximum). Cumulables :
+     * quatre frappes liftées suffisent. */
+    var JAUGE = { echange: 0.08, apresFrappes: 4, effet: 0.25, courbe: 0.2, point: 0.2 };
+    var GEL_CUTIN = 0.65;  // arrêt sur image du déclenchement (s)
+    var SONNE = 0.7;       // durée où le receveur d'une balle de feu titube (s)
+    var GLACE = 0.5;       // durée où la Glace fige l'adversaire dans un glaçon (s)
+    var FEU = { gain: 1.45, plafond: 1.3 }; // vitesse ×1,45, au plus 1,3 × vMax
+    var ZIGZAG = { amplitude: 22, pulsation: 15 };
+    var FANTOME = { de: 0.22, a: 0.68 }; // part du trajet où la balle disparaît
+    /* Boomerang : vitesse latérale et vers l'avant au départ (× vitesse de
+     * la balle). 1,1 / 0,8 : départ à 54°, écart maximal ~130 px, sans
+     * toucher les bords ; la durée du trajet ne change pas. */
+    var BOOMERANG = { lateral: 1.1, avant: 0.8 };
+
+    function coupParCle(cle) {
+        return COUPS.filter(function (c) { return c.cle === cle; })[0] || null;
+    }
+
+    function coupSignature(p) {
+        var t = String((p && p.prenom) || '') + String((p && p.nom) || ''), h = 0;
+        for (var i = 0; i < t.length; i++) h = (h * 31 + t.charCodeAt(i)) >>> 0;
+        return COUPS[h % COUPS.length];
+    }
 
     /* ---------------------------------------------------------- utilitaires */
 
@@ -297,6 +337,27 @@
         } catch (e) { /* pas d'audio : jeu muet */ }
     }
 
+    /* Coup spécial : montée rapide. */
+    function sonSpecial(son) {
+        if (!son) return;
+        try {
+            audio = audio || new (window.AudioContext || window.webkitAudioContext)();
+            if (audio.state === 'suspended') audio.resume();
+            var t = audio.currentTime;
+            var osc = audio.createOscillator(), gain = audio.createGain();
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(220, t);
+            osc.frequency.exponentialRampToValueAtTime(1320, t + 0.35);
+            gain.gain.setValueAtTime(0.0001, t);
+            gain.gain.exponentialRampToValueAtTime(0.1, t + 0.03);
+            gain.gain.exponentialRampToValueAtTime(0.001, t + 0.45);
+            osc.connect(gain);
+            gain.connect(audio.destination);
+            osc.start(t);
+            osc.stop(t + 0.5);
+        } catch (e) { /* pas d'audio : jeu muet */ }
+    }
+
     /* ---------------------------------------------------------- marqueur */
 
     /* Fiche papier : changer la valeur fait basculer la page de devant
@@ -346,8 +407,15 @@
             }
             camp.appendChild(nom);
             camp.appendChild(fiches);
+            // Jauge du mode Arcade et nom du coup signature (masquées sinon).
+            var jauge = el('div', 'pong-jauge');
+            var niveau = el('span', 'pong-jauge-niveau');
+            jauge.appendChild(niveau);
+            var coup = el('span', 'pong-jauge-coup');
+            camp.appendChild(jauge);
+            camp.appendChild(coup);
             self.el.appendChild(camp);
-            self.camps[cote] = { el: camp, libelle: libelle, manches: manches, points: points };
+            self.camps[cote] = { el: camp, libelle: libelle, manches: manches, points: points, jauge: jauge, niveau: niveau, coup: coup };
         });
         this.annonce = el('div', 'pong-sr');
         this.annonce.setAttribute('aria-live', 'polite');
@@ -356,6 +424,20 @@
     Marqueur.prototype.noms = function (j, a) {
         this.camps.joueur.libelle.textContent = j;
         this.camps.adversaire.libelle.textContent = a;
+    };
+    /* Jauges (0 à 1) et coup armé, par côté. */
+    Marqueur.prototype.jauges = function (niveaux, armes) {
+        var self = this;
+        ['joueur', 'adversaire'].forEach(function (cote) {
+            var c = self.camps[cote];
+            c.niveau.style.width = Math.round(niveaux[cote] * 100) + '%';
+            c.jauge.classList.toggle('pong-jauge--pleine', niveaux[cote] >= 1);
+            c.jauge.classList.toggle('pong-jauge--arme', !!armes[cote]);
+        });
+    };
+    Marqueur.prototype.coups = function (j, a) {
+        this.camps.joueur.coup.textContent = j;
+        this.camps.adversaire.coup.textContent = a;
     };
     Marqueur.prototype.maj = function (m) {
         this.camps.joueur.points.set(m.points.joueur);
@@ -393,6 +475,14 @@
         }
         return 'point';
     };
+    /* Le prochain point peut-il finir le match (d'un côté ou de l'autre) ? */
+    Match.prototype.balleDeMatch = function () {
+        var self = this;
+        return ['joueur', 'adversaire'].some(function (c) {
+            var p = self.points[c] + 1, q = self.points[autre(c)];
+            return p >= 11 && p - q >= 2 && self.manches[c] + 1 >= self.gagnantes;
+        });
+    };
     Match.prototype.mancheSuivante = function () {
         this.points = { joueur: 0, adversaire: 0 };
         this.premierServeur = autre(this.premierServeur);
@@ -426,6 +516,7 @@
 
         var etat = {
             niveau: 'normal',
+            mode: lirePref('arcade', false) ? 'arcade' : 'classique',
             son: lirePref('son', true),
             musique: lirePref('musique', true),
             joueur: null
@@ -533,6 +624,10 @@
                         niveaux.querySelectorAll('.pong-niveau').forEach(function (x) {
                             x.setAttribute('aria-pressed', String(x.dataset.niveau === defi.niveau));
                         });
+                    }
+                    if (defi.mode === 'arcade' || defi.mode === 'classique') {
+                        etat.mode = defi.mode;
+                        majModes();
                     }
                     relever.textContent = 'Choisis ton joueur ↓';
                     relever.disabled = true;
@@ -695,6 +790,7 @@
             etat.joueur = p;
             clubAdv.masquer(p);
             sousTitreAdv.textContent = 'Tu joues avec ' + nomAffiche(p);
+            majCoups();
             if (etat.defiJour && defiJour && defiJour.advObj !== p) jouerContre(defiJour.advObj);
             else if (etat.defiActif && defi.adv && defi.adv !== p) jouerContre(defi.adv);
             else if (impose) jouerContre(impose);
@@ -846,7 +942,7 @@
             var compteJour = etat.defiJour === 'compte' && defiJour && adv === defiJour.advObj;
             if (compteJour) ligneJour.textContent = 'Défi du jour : enregistrement…';
             else if (etat.defiJour === 'libre') ligneJour.textContent = 'Hors classement : ta tentative du jour est déjà jouée.';
-            var classe = type !== 'invite';
+            var classe = type !== 'invite' && !modeArcade();
             if (victoire && classe) ligne.textContent = 'Enregistrement au tableau…';
             appelAjax('monclubtt_pong_fin', {
                 nonce: cfg.nonce || '', page: cfg.page || 0,
@@ -854,6 +950,7 @@
                 joueur_nom: etat.joueur.nom, joueur_prenom: etat.joueur.prenom || '',
                 adv_type: type, adv_nom: adv.nom, adv_prenom: adv.prenom || '',
                 niveau: etat.niveau, pj: match.points.joueur, pa: match.points.adversaire,
+                mode: modeArcade() ? 'arcade' : 'classique', speciaux: arcade.speciaux,
                 defi_jour: compteJour ? '1' : '', defi_date: compteJour ? defiJour.date : '', duree: match.duree.toFixed(1)
             }).then(function (d) {
                 if (d.defi) {
@@ -1012,6 +1109,74 @@
             });
         });
         ecranAdv.appendChild(niveaux);
+
+        /* Mode : Classique (règles du ping, tableau des scores) ou Arcade
+         * (coups spéciaux, hors tableau). Gardé sur l'appareil. */
+        var modes = el('div', 'pong-niveaux pong-modes');
+        modes.setAttribute('role', 'group');
+        modes.setAttribute('aria-label', 'Mode de jeu');
+        [['classique', 'Classique'], ['arcade', 'Arcade']].forEach(function (m) {
+            var b = el('button', 'pong-niveau', m[1]);
+            b.type = 'button';
+            b.dataset.mode = m[0];
+            modes.appendChild(b);
+        });
+        var aideMode = el('p', 'pong-mode-aide');
+        function majModes() {
+            modes.querySelectorAll('.pong-niveau').forEach(function (x) {
+                x.setAttribute('aria-pressed', String(x.dataset.mode === etat.mode));
+            });
+            aideMode.textContent = etat.mode === 'arcade'
+                ? 'Coups spéciaux : remplis ta jauge (les effets la remplissent vite), puis ' + (tactile ? 'touche l\'écran' : 'appuie sur Espace') + ' pour lâcher ton coup. Hors tableau des scores.'
+                : 'Les règles du ping, et le tableau des meilleurs scores.';
+        }
+        modes.addEventListener('click', function (e) {
+            var b = e.target.closest('.pong-niveau');
+            if (!b) return;
+            etat.mode = b.dataset.mode;
+            ecrirePref('arcade', etat.mode === 'arcade');
+            majModes();
+            majCoups();
+        });
+        majModes();
+        ecranAdv.appendChild(modes);
+        ecranAdv.appendChild(aideMode);
+
+        /* Choix du coup spécial (mode Arcade), gardé sur l'appareil ; à
+         * défaut, le coup signature du joueur choisi. */
+        etat.coup = coupParCle(lireLocal('coup')) ? lireLocal('coup') : null;
+        function coupJoueur() { return coupParCle(etat.coup) || coupSignature(etat.joueur); }
+        var blocCoups = el('div', 'pong-coups-bloc');
+        blocCoups.appendChild(el('p', 'pong-coups-titre', 'Ton coup spécial'));
+        var choixCoups = el('div', 'pong-coups');
+        choixCoups.setAttribute('role', 'group');
+        choixCoups.setAttribute('aria-label', 'Ton coup spécial');
+        COUPS.forEach(function (c) {
+            var b = el('button', 'pong-coup');
+            b.type = 'button';
+            b.dataset.coup = c.cle;
+            b.style.setProperty('--pong-coup', 'rgb(' + c.couleur + ')');
+            b.appendChild(el('strong', 'pong-coup-nom', c.nom));
+            b.appendChild(el('span', 'pong-coup-desc', c.desc));
+            choixCoups.appendChild(b);
+        });
+        choixCoups.addEventListener('click', function (e) {
+            var b = e.target.closest('.pong-coup');
+            if (!b) return;
+            etat.coup = b.dataset.coup;
+            ecrireLocal('coup', etat.coup);
+            majCoups();
+        });
+        blocCoups.appendChild(choixCoups);
+        ecranAdv.appendChild(blocCoups);
+        function majCoups() {
+            blocCoups.hidden = etat.mode !== 'arcade';
+            var choisi = etat.joueur ? coupJoueur().cle : etat.coup;
+            choixCoups.querySelectorAll('.pong-coup').forEach(function (x) {
+                x.setAttribute('aria-pressed', String(x.dataset.coup === choisi));
+            });
+        }
+        majCoups();
 
         var hasard = el('button', 'pong-bouton pong-hasard', 'Au hasard');
         hasard.type = 'button';
@@ -1265,6 +1430,130 @@
         var raf = 0, dernier = 0;
         var toast = { texte: '', t: 0 };
 
+        /* ---- Effets visuels (tous modes) ----
+         * Étincelles et onde à chaque frappe (selon la vitesse), secousse sur
+         * un smash ou un service rapide gagnant, ralenti quand la balle de
+         * match passe la raquette. Ni secousse ni ralenti si l'appareil
+         * demande de réduire les animations. */
+        var mouvementReduit = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+        var particules = [], secousse = { t: 0, duree: 1, force: 0 };
+        function impact() {
+            var ratio = clamp(balle.v / NIVEAUX[etat.niveau].vMax, 0, 1.4);
+            var p = proj(balle.x, balle.y, hauteurBalle());
+            particules.push({ onde: true, x: p.x, y: p.y, t: 0, vie: 0.2, r: 6 + 14 * ratio });
+            var nb = mouvementReduit ? 3 : Math.round(4 + 8 * ratio);
+            for (var i = 0; i < nb; i++) {
+                var a = Math.random() * Math.PI * 2, v = 60 + Math.random() * 140 * (0.5 + ratio);
+                particules.push({
+                    x: p.x, y: p.y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, t: 0, vie: 0.22 + Math.random() * 0.15,
+                    couleur: i % 3 ? '255,255,255' : '242,162,74'
+                });
+            }
+        }
+        function secouer(duree, force) {
+            if (!mouvementReduit) secousse = { t: duree, duree: duree, force: force };
+        }
+        function animerEffets(dt) {
+            particules = particules.filter(function (q) {
+                q.t += dt;
+                if (!q.onde) {
+                    q.x += q.vx * dt;
+                    q.y += q.vy * dt;
+                    q.vx *= 1 - 4 * dt;
+                    q.vy *= 1 - 4 * dt;
+                }
+                return q.t < q.vie;
+            });
+            if (secousse.t > 0) secousse.t = Math.max(0, secousse.t - dt);
+        }
+        function dessinerEffets() {
+            particules.forEach(function (q) {
+                var k = 1 - q.t / q.vie;
+                if (q.onde) {
+                    ctx.strokeStyle = 'rgba(255,255,255,' + (0.7 * k).toFixed(3) + ')';
+                    ctx.lineWidth = 2.5 * k + 0.5;
+                    ctx.beginPath();
+                    ctx.arc(q.x, q.y, q.r * (1 - k * 0.7), 0, Math.PI * 2);
+                    ctx.stroke();
+                } else {
+                    ctx.fillStyle = 'rgba(' + q.couleur + ',' + k.toFixed(3) + ')';
+                    ctx.beginPath();
+                    ctx.arc(q.x, q.y, 1.2 + 1.6 * k, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            });
+        }
+        /* Facteur de temps : ralenti quand la balle de match a passé la
+         * raquette qui devait la renvoyer (le point se joue). */
+        function vitesseTemps() {
+            if (mouvementReduit || phase !== 'jeu' || !match || !match.balleDeMatch()) return 1;
+            var manquee = balle.vy > 0 ? balle.y - R > HIT_J : balle.y + R < HIT_A;
+            return manquee ? 0.35 : 1;
+        }
+
+        /* ---- Mode Arcade : jauges, coups spéciaux, cut-in ---- */
+        var arcade = { jauge: { joueur: 0, adversaire: 0 }, arme: { joueur: false, adversaire: false }, speciaux: 0, gel: 0, cutin: null };
+        // Jamais au défi du jour : ses règles sont fixes.
+        function modeArcade() { return etat.mode === 'arcade' && !etat.defiJour; }
+        function majJauges() { marqueur.jauges(arcade.jauge, arcade.arme); }
+        function remplirJauge(cote, q) {
+            if (!modeArcade() || arcade.arme[cote]) return;
+            var avant = arcade.jauge[cote];
+            arcade.jauge[cote] = Math.min(1, avant + q);
+            if (cote === 'joueur' && avant < 1 && arcade.jauge.joueur >= 1) {
+                montrerToast(tactile ? 'Jauge pleine : touche l\'écran !' : 'Jauge pleine : Espace !', 1.4);
+            }
+            majJauges();
+        }
+        /* Arme le coup du joueur (jauge pleine, pendant l'échange). */
+        function armerSpecial() {
+            if (!modeArcade() || phase !== 'jeu' || arcade.jauge.joueur < 1 || arcade.arme.joueur) return false;
+            arcade.arme.joueur = true;
+            montrerToast('Coup spécial prêt : ' + coupJoueur().nom, 0.9);
+            tock(980, etat.son);
+            majJauges();
+            return true;
+        }
+        /* Coup spécial à la frappe de fig : la balle change de comportement,
+         * le jeu se fige le temps du cut-in. */
+        function lancerSpecial(fig, sens, cote) {
+            var n = NIVEAUX[etat.niveau];
+            var coup = cote === 'joueur' ? coupJoueur() : coupSignature(adv);
+            arcade.jauge[cote] = 0;
+            arcade.arme[cote] = false;
+            if (cote === 'joueur') arcade.speciaux++;
+            balle.special = { cle: coup.cle, couleur: coup.couleur, t: 0 };
+            if (coup.cle === 'feu') {
+                var v = Math.min(n.vMax * FEU.plafond, balle.v * FEU.gain), k = v / balle.v;
+                balle.v = v;
+                balle.vx *= k;
+                balle.vy *= k;
+                balle.ax = 0;
+            } else if (coup.cle === 'glace') {
+                // L'adversaire est figé dès la reprise du jeu, après le cut-in.
+                (cote === 'joueur' ? figA : figJ).gele = GLACE;
+            } else if (coup.cle === 'boomerang') {
+                // Part vers le bord opposé et revient en courbe au point de départ.
+                var c = balle.x < W / 2 ? 1 : -1;
+                balle.vx = c * BOOMERANG.lateral * balle.v;
+                balle.vy = sens * BOOMERANG.avant * balle.v;
+                var trajet = Math.abs(HIT_J - HIT_A) / Math.abs(balle.vy);
+                // Courbure telle que l'écart soit nul à l'arrivée, amortissement de
+                // l'effet compris : x(T) = vx·T + ax/k · (T − (1 − e^(−kT))/k) = 0.
+                balle.ax = -balle.vx * trajet * EFFET_AMORTI / (trajet - (1 - Math.exp(-EFFET_AMORTI * trajet)) / EFFET_AMORTI);
+            }
+            arcade.gel = mouvementReduit ? 0.4 : GEL_CUTIN;
+            arcade.cutin = { cote: cote, coup: coup, t: 0 };
+            sonSpecial(etat.son);
+            majJauges();
+        }
+        /* Balle fantôme : invisible sur le milieu de son trajet. */
+        function balleCachee() {
+            if (!balle.special || balle.special.cle !== 'fantome' || phase !== 'jeu') return false;
+            var u = Math.abs(balle.y - balle.y0) / Math.abs(HIT_J - HIT_A);
+            return u > FANTOME.de && u < FANTOME.a;
+        }
+
         /* Personnage : corps dessiné dans ses trois poses (sans tête si photo)
          * + tête détourée. */
         function preparerSprite(p, tenue, hauteur) {
@@ -1408,6 +1697,15 @@
             var manches = etat.defiJour ? 1 : nbManches;
             match = new Match(manches);
             match.duree = 0; // temps de jeu (s), pauses exclues
+            arcade = { jauge: { joueur: 0, adversaire: 0 }, arme: { joueur: false, adversaire: false }, speciaux: 0, gel: 0, cutin: null };
+            figJ.sonne = figA.sonne = 0;
+            figJ.gele = figA.gele = 0;
+            var hauteurMarqueur = marqueur.el.offsetHeight;
+            marqueur.el.classList.toggle('pong-marqueur--arcade', modeArcade());
+            marqueur.coups(coupJoueur().nom, coupSignature(adv).nom);
+            majJauges();
+            // Jauges affichées ou retirées : la table se recale sur la hauteur restante.
+            if (marqueur.el.offsetHeight !== hauteurMarqueur) dimensionner();
             marqueur.el.classList.toggle('pong-marqueur--une-manche', manches === 1);
             tourSepa++;
             construireSeparations();
@@ -1432,6 +1730,7 @@
 
         /* Touche de service du joueur : lance la balle, puis frappe pendant le lancer. */
         function appuiService() {
+            if (armerSpecial()) return;
             if (phase !== 'service' || match.serveur() !== 'joueur') return;
             if (lancer === null) { lancer = 0; tock(420, etat.son); return; }
             var aTemps = LANCER - lancer <= FENETRE;
@@ -1451,6 +1750,10 @@
             balle.trace = [];
             balle.y0 = balle.y;
             balle.rebond = false;
+            balle.frappes = 0;
+            balle.special = null;
+            balle.serveur = cote;
+            balle.serviceRapide = force > 1;
             phase = 'jeu';
             toast.t = 0;
             tock(force > 1 ? 760 : 620, etat.son);
@@ -1459,6 +1762,9 @@
 
         function frapper(fig, sens) {
             var n = NIVEAUX[etat.niveau];
+            var cote = fig === figJ ? 'joueur' : 'adversaire';
+            if (balle.special && balle.special.cle === 'feu') fig.sonne = SONNE;
+            balle.special = null;
             var rel = clamp((balle.x - fig.x) / fig.demi, -1, 1);
             balle.v = Math.min(n.vMax, balle.v * ACCELERATION);
             // Coup droit si la balle arrive du côté de la raquette, revers sinon.
@@ -1472,6 +1778,17 @@
             if (fig === figJ && Math.abs(balle.rot) >= 0.5) montrerToast(balle.rot > 0 ? 'Lifté !' : 'Coupé !', 0.6);
             balle.y0 = balle.y;
             balle.rebond = false;
+            balle.frappes++;
+            impact();
+            if (modeArcade()) {
+                if (balle.frappes >= JAUGE.apresFrappes) remplirJauge(cote, JAUGE.echange);
+                if (Math.abs(balle.rot) >= 0.5) remplirJauge(cote, JAUGE.effet);
+                if (Math.abs(balle.ax) >= EFFET_MAX * 0.5) remplirJauge(cote, JAUGE.courbe);
+                var iaTire = cote === 'adversaire' && arcade.jauge.adversaire >= 1 && Math.random() < n.special;
+                if (arcade.arme[cote] || iaTire) lancerSpecial(fig, sens, cote);
+            }
+            // Smash : frappe du joueur à pleine vitesse.
+            if (fig === figJ && balle.v >= n.vMax * 0.95) secouer(0.18, 3.5);
             tock(sens < 0 ? 560 : 700, etat.son);
         }
 
@@ -1510,7 +1827,10 @@
         }
 
         function marquer(cote) {
+            if (balle.serviceRapide && balle.frappes === 0 && balle.serveur === cote) secouer(0.25, 5);
             balle.visible = false;
+            balle.special = null;
+            remplirJauge(cote, JAUGE.point);
             var resultat = match.marquer(cote);
             marqueur.maj(match);
             if (cote === 'joueur') fanfare(etat.son);
@@ -1543,6 +1863,9 @@
                         { texte: 'Rejouer', action: nouveauMatch },
                         { texte: 'Changer d\'adversaire', action: retourSelection, secondaire: true }
                     ]);
+                if (modeArcade()) {
+                    message.insertBefore(el('span', 'pong-message-classement', 'Mode Arcade : ' + arcade.speciaux + ' coup' + (arcade.speciaux > 1 ? 's' : '') + ' spécia' + (arcade.speciaux > 1 ? 'ux' : 'l') + ' placé' + (arcade.speciaux > 1 ? 's' : '') + ', hors tableau des scores.'), message.querySelector('.pong-message-boutons'));
+                }
                 var verdict = verdictDefi();
                 if (verdict) message.insertBefore(el('strong', 'pong-message-defi', verdict), message.querySelector('.pong-message-boutons'));
                 var ligneJour = el('strong', 'pong-message-defi');
@@ -1645,11 +1968,16 @@
 
         /* ---- Simulation ---- */
         function deplacerJoueur(dt) {
+            if (figJ.gele > 0) { // figé dans un glaçon
+                figJ.vx = 0;
+                geste.yAvant = geste.y;
+                return;
+            }
             var avant = figJ.x;
             if (touches.g || touches.d) {
-                figJ.x += ((touches.d ? 1 : 0) - (touches.g ? 1 : 0)) * 420 * dt;
+                figJ.x += ((touches.d ? 1 : 0) - (touches.g ? 1 : 0)) * 420 * (figJ.sonne > 0 ? 0.5 : 1) * dt;
             } else if (cible !== null) {
-                figJ.x += (cible - figJ.x) * Math.min(1, dt * 20);
+                figJ.x += (cible - figJ.x) * Math.min(1, dt * (figJ.sonne > 0 ? 6 : 20));
             }
             figJ.x = clamp(figJ.x, 20, W - 20);
             figJ.vx = (figJ.x - avant) / Math.max(dt, 0.001);
@@ -1660,6 +1988,10 @@
         }
 
         function deplacerIa(dt) {
+            if (figA.gele > 0) { // figé dans un glaçon
+                figA.vx = 0;
+                return;
+            }
             var n = NIVEAUX[etat.niveau];
             var but = W / 2;
             if (phase === 'jeu' && balle.vy < 0 && balle.y < HIT_J - (HIT_J - HIT_A) * (1 - n.reaction) - 1) {
@@ -1669,17 +2001,23 @@
             } else if (phase === 'service' && match.serveur() === 'adversaire') {
                 but = figA.x;
             }
-            var pas = n.vIa * (etat.force || 1) * dt, avant = figA.x;
+            if (balleCachee()) but = figA.x; // balle fantôme : il ne la lit plus
+            var pas = n.vIa * (etat.force || 1) * (figA.sonne > 0 ? 0.5 : 1) * dt, avant = figA.x;
             figA.x += clamp(but - figA.x, -pas, pas);
             figA.x = clamp(figA.x, 20, W - 20);
             figA.vx = (figA.x - avant) / Math.max(dt, 0.001);
         }
 
         function step(dt) {
+            animerEffets(dt);
             if (match && (phase === 'service' || phase === 'jeu' || phase === 'pause')) match.duree += dt;
             deplacerJoueur(dt);
             deplacerIa(dt);
             figJ.tCoup = Math.max(0, figJ.tCoup - dt);
+            figJ.sonne = Math.max(0, (figJ.sonne || 0) - dt);
+            figA.sonne = Math.max(0, (figA.sonne || 0) - dt);
+            figJ.gele = Math.max(0, (figJ.gele || 0) - dt);
+            figA.gele = Math.max(0, (figA.gele || 0) - dt);
             figA.tCoup = Math.max(0, figA.tCoup - dt);
             if (toast.t > 0) toast.t -= dt;
 
@@ -1714,6 +2052,11 @@
             if (balle.trace.length > 7) balle.trace.pop();
             balle.x += balle.vx * dt;
             balle.y += balle.vy * dt;
+            // Zigzag : oscillation latérale jusqu'au rebond sur la table.
+            if (balle.special && balle.special.cle === 'zigzag' && !balle.rebond) {
+                balle.special.t += dt;
+                balle.x += ZIGZAG.amplitude * ZIGZAG.pulsation * Math.cos(ZIGZAG.pulsation * balle.special.t) * dt;
+            }
             if (balle.x < R) { balle.x = 2 * R - balle.x; balle.vx = Math.abs(balle.vx); }
             if (balle.x > W - R) { balle.x = 2 * (W - R) - balle.x; balle.vx = -Math.abs(balle.vx); }
 
@@ -1875,8 +2218,18 @@
             ctx.beginPath();
             ctx.ellipse(p.x, pied + 2 * k, 58 * k, 8 * k, 0, 0, Math.PI * 2);
             ctx.fill();
+            var cote = fig === figJ ? 'joueur' : 'adversaire';
+            if (modeArcade() && arcade.jauge[cote] >= 1) {
+                // Halo pulsant : coup spécial disponible.
+                var pouls = 0.5 + 0.5 * Math.sin(performance.now() / 140);
+                ctx.fillStyle = 'rgba(255,214,0,' + (0.25 + 0.3 * pouls).toFixed(3) + ')';
+                ctx.beginPath();
+                ctx.ellipse(p.x, pied, (62 + 8 * pouls) * k, (13 + 3 * pouls) * k, 0, 0, Math.PI * 2);
+                ctx.fill();
+            }
             ctx.translate(p.x, pied);
-            ctx.rotate(clamp((fig.vx || 0) / 700, -1, 1) * 10 * Math.PI / 180);
+            var titube = fig.sonne > 0 ? Math.sin(fig.sonne * 40) * 12 * fig.sonne / SONNE : 0;
+            ctx.rotate((clamp((fig.vx || 0) / 700, -1, 1) * 10 + titube) * Math.PI / 180);
             ctx.translate(-p.x, -pied);
             ctx.save();
             ctx.shadowColor = 'rgba(15,20,26,0.22)';
@@ -1886,13 +2239,43 @@
             ctx.restore();
             if (s.tete) {
                 var tw = s.tete.width / (echelle * dpr), th = s.tete.height / (echelle * dpr);
+                ctx.save();
                 ctx.translate(p.x, top + SVG.yTete * k);
                 ctx.rotate(inclinaison(s.cle) * Math.PI / 180);
                 ctx.shadowColor = 'rgba(15,20,26,0.35)';
                 ctx.shadowBlur = 4 * echelle * dpr;
                 ctx.shadowOffsetY = 2 * echelle * dpr;
                 ctx.drawImage(s.tete, -tw / 2, -th / 2, tw, th);
+                ctx.restore();
             }
+            if (fig.gele > 0) dessinerGlacon(p.x, top + 4 * k, 128 * k, pied - top, Math.min(1, fig.gele / 0.12));
+            ctx.restore();
+        }
+
+        /* Glaçon autour d'un joueur figé : bloc translucide, arêtes et reflets
+         * blancs ; opacite fond le bloc dans les derniers instants. */
+        function dessinerGlacon(cx, top, l, h, opacite) {
+            var x = cx - l / 2;
+            ctx.save();
+            ctx.globalAlpha = opacite;
+            ctx.fillStyle = 'rgba(170,225,255,0.5)';
+            ctx.strokeStyle = 'rgba(255,255,255,0.9)';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            if (ctx.roundRect) ctx.roundRect(x, top, l, h, 8);
+            else ctx.rect(x, top, l, h);
+            ctx.fill();
+            ctx.stroke();
+            ctx.strokeStyle = 'rgba(255,255,255,0.7)';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(x + l * 0.18, top + h * 0.12);
+            ctx.lineTo(x + l * 0.08, top + h * 0.42);
+            ctx.moveTo(x + l * 0.3, top + h * 0.1);
+            ctx.lineTo(x + l * 0.24, top + h * 0.26);
+            ctx.moveTo(x + l * 0.86, top + h * 0.62);
+            ctx.lineTo(x + l * 0.78, top + h * 0.88);
+            ctx.stroke();
             ctx.restore();
         }
 
@@ -1913,9 +2296,16 @@
             var z = hauteurBalle();
             // Sillage visible seulement quand la balle a de l'effet.
             // Blanc pour l'effet latéral, orangé pour le lifté, bleuté pour le coupé.
-            var effet = Math.max(Math.abs(balle.ax) / EFFET_MAX, Math.abs(balle.rot));
+            // Traînée aussi à grande vitesse (au-delà de 75 % de la vitesse maximale).
+            var vitesse = clamp((balle.v / NIVEAUX[etat.niveau].vMax - 0.75) / 0.25, 0, 1);
+            var effet = Math.max(Math.abs(balle.ax) / EFFET_MAX, Math.abs(balle.rot), vitesse * 0.8);
             var teinteSillage = balle.rot > 0.15 ? '255,120,40' : balle.rot < -0.15 ? '90,170,255' : '255,255,255';
-            if (phase === 'jeu' && effet > 0.15) {
+            if (balle.special) {
+                teinteSillage = balle.special.couleur;
+                effet = 1;
+            }
+            var cachee = balleCachee();
+            if (phase === 'jeu' && effet > 0.15 && !cachee) {
                 balle.trace.forEach(function (t, i) {
                     var q = proj(t.x, t.y, t.z);
                     ctx.fillStyle = 'rgba(' + teinteSillage + ',' + (Math.min(1, effet) * 0.35 * (1 - i / balle.trace.length)).toFixed(3) + ')';
@@ -1929,6 +2319,14 @@
             ctx.beginPath();
             ctx.ellipse(sol.x + z * 0.15 * sol.s, sol.y + z * 0.05 * sol.s, R * 0.95 * sol.s, R * 0.6 * sol.s, 0, 0, Math.PI * 2);
             ctx.fill();
+            if (cachee) {
+                // Seule l'ombre trahit la balle fantôme.
+                ctx.fillStyle = 'rgba(255,255,255,0.1)';
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, R * p.s, 0, Math.PI * 2);
+                ctx.fill();
+                return;
+            }
             var r = R * p.s * (1 + z / 90);
             var g = ctx.createRadialGradient(p.x - r * 0.35, p.y - r * 0.35, r * 0.1, p.x, p.y, r);
             g.addColorStop(0, '#ffffff');
@@ -1937,6 +2335,60 @@
             ctx.beginPath();
             ctx.arc(p.x, p.y, r, 0, Math.PI * 2);
             ctx.fill();
+        }
+
+        /* Cut-in du coup spécial : bandeau en biais aux couleurs du club (ou
+         * de l'adversaire), joueur en coup droit, nom du coup en grand. */
+        function dessinerCutIn() {
+            var c = arcade.cutin;
+            if (!c || arcade.gel <= 0) return;
+            var entree = mouvementReduit ? 1 : clamp(c.t / 0.14, 0, 1);
+            var couleur = c.cote === 'joueur' ? couleurs.primaire || '#2b7cb5' : couleurs.secondaire || '#d34328';
+            ctx.save();
+            ctx.fillStyle = 'rgba(15,20,26,' + (0.35 * entree).toFixed(3) + ')';
+            ctx.fillRect(-20, -20, W + 40, H + 40);
+            if (!mouvementReduit && c.t < 0.08) {
+                ctx.fillStyle = 'rgba(255,255,255,' + (0.8 * (1 - c.t / 0.08)).toFixed(3) + ')';
+                ctx.fillRect(-20, -20, W + 40, H + 40);
+            }
+            ctx.translate(W / 2 + (1 - entree) * W * (c.cote === 'joueur' ? -1 : 1), H / 2);
+            ctx.rotate(-0.18);
+            ctx.fillStyle = couleur;
+            ctx.fillRect(-W, -62, W * 2, 124);
+            ctx.fillStyle = 'rgba(255,255,255,0.9)';
+            ctx.fillRect(-W, -62, W * 2, 5);
+            ctx.fillRect(-W, 57, W * 2, 5);
+            var s = sprites[c.cote];
+            if (s && s.corps.cd) {
+                var h = 150, k = h / SVG.h, w = SVG.l * k, x = -100, top = -88;
+                ctx.drawImage(s.corps.cd, x - w / 2, top, w, h);
+                if (s.photo) {
+                    var hTete = SVG.tete * k;
+                    if (!s.teteCutin || s.teteCutinEchelle !== echelle) {
+                        s.teteCutin = sticker(s.photo, hTete * echelle * dpr, 6 * echelle * dpr);
+                        s.teteCutinEchelle = echelle;
+                    }
+                    var tw = s.teteCutin.width / (echelle * dpr), th = s.teteCutin.height / (echelle * dpr);
+                    ctx.drawImage(s.teteCutin, x - tw / 2, top + SVG.yTete * k - th / 2, tw, th);
+                }
+            }
+            ctx.fillStyle = '#fff';
+            ctx.strokeStyle = 'rgba(15,20,26,0.35)';
+            ctx.lineJoin = 'round';
+            ctx.textBaseline = 'middle';
+            ctx.font = '800 12px system-ui, -apple-system, "Segoe UI", Roboto, sans-serif';
+            ctx.fillText(nomAffiche(c.cote === 'joueur' ? etat.joueur : adv).toUpperCase(), -8, -24);
+            var texte = c.coup.nom.toUpperCase() + ' !', taille = 30;
+            ctx.font = 'italic 900 ' + taille + 'px system-ui, -apple-system, "Segoe UI", Roboto, sans-serif';
+            var largeur = ctx.measureText(texte).width;
+            if (largeur > 185) {
+                taille *= 185 / largeur;
+                ctx.font = 'italic 900 ' + taille.toFixed(1) + 'px system-ui, -apple-system, "Segoe UI", Roboto, sans-serif';
+            }
+            ctx.lineWidth = 6;
+            ctx.strokeText(texte, -8, 8);
+            ctx.fillText(texte, -8, 8);
+            ctx.restore();
         }
 
         function dessinerToast() {
@@ -1963,6 +2415,10 @@
         function rendu() {
             var s = echelle * dpr;
             ctx.setTransform(s, 0, 0, s, 0, 0);
+            if (secousse.t > 0) {
+                var k = secousse.force * secousse.t / secousse.duree;
+                ctx.translate((Math.random() * 2 - 1) * k, (Math.random() * 2 - 1) * k);
+            }
             var filet = TABLE.y + TABLE.h / 2;
             dessinerFond();
             dessinerSeparations();
@@ -1972,13 +2428,18 @@
             dessinerFilet();
             dessinerFigure(sprites.joueur, figJ, FIG_J);
             if (balle.y >= filet) dessinerBalle();
+            dessinerEffets();
             dessinerToast();
+            dessinerCutIn();
         }
 
         function boucle(t) {
             var dt = Math.min((t - dernier) / 1000, 1 / 30);
             dernier = t;
-            if (!document.hidden && !enPause) step(dt);
+            if (arcade.gel > 0 && !enPause) {
+                arcade.gel -= dt;
+                arcade.cutin.t += dt;
+            } else if (!document.hidden && !enPause) step(dt * vitesseTemps());
             rendu();
             raf = phase === 'arret' || !root.isConnected ? 0 : requestAnimationFrame(boucle);
         }
