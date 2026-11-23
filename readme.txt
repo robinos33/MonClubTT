@@ -86,6 +86,9 @@ Yes. The plugin exposes six filters: `monclubtt_get_evenements`, `monclubtt_get_
 
 == Changelog ==
 
+= Unreleased =
+* Added: pong daily challenge: the same opponent for everyone each day, one counted attempt per player and device, daily ranking by point margin then match duration, with yesterday's winner
+
 = 2.8.0 =
 * Added: club partners in Settings (logo from the media library, name, optional link, display order), with a preview of each logo in white on navy
 * Changed: pong table seen slightly tilted, with depth (table edge, net, shadows); still rectangular, ball physics and controls unchanged
