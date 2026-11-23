@@ -5,6 +5,12 @@ Format : [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/)
 
 ---
 
+## [2.9.0] — 2026-11-23
+
+### Ajouté
+
+- **Pong › Défi du jour** (#46) : un même adversaire pour tous chaque jour (top 10 mondial et licenciés, changement à minuit heure de Paris), présenté par un écran d'accueil à la première visite de la journée puis par un bandeau. Une manche, niveau Normal, force neutre ; une seule tentative comptée par joueur et par appareil, dès le premier service, les suivantes hors classement. Classement du jour (défaites comprises) par écart de points puis durée du match, avec le vainqueur de la veille ; case « Vider le classement du jour » dans *Mon Club TT › Pong*.
+
 ## [2.8.0] — 2026-11-23
 
 ### Ajouté

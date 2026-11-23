@@ -543,18 +543,168 @@
             ecranSel.appendChild(bandeau);
         }
 
+        /* ---- Défi du jour ----
+         * Même adversaire pour tous aujourd'hui (tiré par le serveur), en une
+         * manche, niveau Normal, force neutre. Une seule tentative comptée :
+         * elle est consommée au lancement du match (stockage local), les
+         * suivantes se jouent hors classement. */
+        var defiJour = null; // données du serveur + adversaire retrouvé (advObj)
+        var grilleJoueurs = null; // grille du choix du joueur, posée plus bas
+        function lireLocal(cle) {
+            try { return localStorage.getItem('monclubtt-pong-' + cle); } catch (e) { return null; }
+        }
+        function ecrireLocal(cle, v) {
+            try { localStorage.setItem('monclubtt-pong-' + cle, v); } catch (e) { /* stockage indisponible */ }
+        }
+        function defiJoue() { return !!defiJour && lireLocal('defi-jour') === defiJour.date; }
+        function resultatJour() {
+            try {
+                var r = JSON.parse(lireLocal('defi-jour-resultat') || 'null');
+                return r && defiJour && r.date === defiJour.date ? r : null;
+            } catch (e) { return null; }
+        }
+        function texteDuree(s) {
+            s = Math.round(s);
+            return s < 60 ? s + ' s' : Math.floor(s / 60) + ' min ' + ('0' + s % 60).slice(-2);
+        }
+        function rangTexte(n) { return n === 1 ? '1er' : n + 'e'; }
+        function adversaireJour(d) {
+            if (!d || !d.adv) return null;
+            var liste = d.adv.type === 'monde' ? adversaires : joueurs;
+            return liste.filter(function (a) {
+                return a.nom === d.adv.nom && (d.adv.type === 'monde' || a.prenom === d.adv.prenom);
+            })[0] || null;
+        }
+
+        var bandeauJour = el('div', 'pong-defi pong-defi--jour');
+        bandeauJour.hidden = true;
+        ecranSel.appendChild(bandeauJour);
+
+        var blocJour = el('section', 'pong-scores pong-scores--jour');
+        blocJour.hidden = true;
+
+        function majDefiJour(d) {
+            var advObj = adversaireJour(d);
+            defiJour = advObj ? d : null;
+            if (defiJour) defiJour.advObj = advObj;
+            bandeauJour.hidden = blocJour.hidden = !defiJour;
+            if (!defiJour) return;
+            var joue = defiJoue(), r = resultatJour();
+            bandeauJour.innerHTML = '';
+            bandeauJour.appendChild(el('span', 'pong-defi-label', 'Défi du jour'));
+            bandeauJour.appendChild(el('strong', 'pong-defi-titre', 'Bats ' + nomAffiche(advObj)));
+            bandeauJour.appendChild(el('span', 'pong-defi-texte', joue
+                ? (r ? 'Ton résultat : ' + r.pj + '–' + r.pa + (r.rang ? ', ' + rangTexte(r.rang) + ' sur ' + r.total + ' à ce moment-là' : '') + '.'
+                    : 'Ta tentative du jour est jouée.') + ' Tu peux rejouer, hors classement.'
+                : 'Une manche, niveau Normal. Une seule tentative comptée, dès le premier service.'));
+            var bouton = el('button', 'pong-bouton pong-defi-bouton', joue ? 'Rejouer (hors classement)' : 'Relever le défi');
+            bouton.type = 'button';
+            bouton.addEventListener('click', releverDefiJour);
+            bandeauJour.appendChild(bouton);
+            afficherClassementJour(d.classement, d.total, d.hier);
+        }
+
+        function afficherClassementJour(liste, total, hier) {
+            blocJour.innerHTML = '';
+            blocJour.appendChild(el('h4', 'pong-scores-titre', 'Défi du jour : ' + nomAffiche(defiJour.advObj)));
+            if (hier) {
+                blocJour.appendChild(el('p', 'pong-scores-hier', 'Vainqueur d\'hier : ' + hier.joueur + ', ' + hier.pj + '–' + hier.pa + ' contre ' + hier.adversaire));
+            }
+            var ol = el('ol', 'pong-scores-liste');
+            if (!liste || !liste.length) {
+                ol.appendChild(el('li', 'pong-scores-vide', 'Personne n\'a encore joué aujourd\'hui. À toi d\'ouvrir le classement !'));
+            }
+            (liste || []).forEach(function (e) {
+                var li = el('li', 'pong-score' + (e.pj > e.pa ? '' : ' pong-score--defaite'));
+                var nom = el('span', 'pong-score-joueur', e.joueur);
+                if (e.visiteur) nom.appendChild(el('span', 'pong-score-visiteur', 'hors club'));
+                li.appendChild(nom);
+                li.appendChild(el('span', 'pong-score-detail', (e.pj > e.pa ? 'gagné' : 'perdu') + ' en ' + texteDuree(e.duree)));
+                li.appendChild(el('span', 'pong-score-points', e.pj + '–' + e.pa));
+                ol.appendChild(li);
+            });
+            blocJour.appendChild(ol);
+            if (total > (liste || []).length) {
+                blocJour.appendChild(el('p', 'pong-scores-suite', '… et ' + (total - liste.length) + ' autre' + (total - liste.length > 1 ? 's' : '')));
+            }
+        }
+
+        /* Relever le défi : on choisit son joueur, puis le match part contre
+         * l'adversaire du jour (masqué de la grille : pas de match contre soi). */
+        function releverDefiJour() {
+            if (!defiJour) return;
+            fermerAccueilJour();
+            etat.defiActif = false;
+            etat.defiJour = defiJoue() ? 'libre' : 'compte';
+            etat.niveau = 'normal';
+            niveaux.querySelectorAll('.pong-niveau').forEach(function (x) {
+                x.setAttribute('aria-pressed', String(x.dataset.niveau === 'normal'));
+            });
+            if (grilleJoueurs) grilleJoueurs.masquer(defiJour.advObj);
+            var bouton = bandeauJour.querySelector('.pong-defi-bouton');
+            bouton.textContent = 'Choisis ton joueur ↓';
+            bouton.disabled = true;
+            var grille = ecranSel.querySelector('.pong-grille');
+            if (grille) grille.scrollIntoView({ block: 'start', behavior: 'smooth' });
+        }
+
+        /* Écran d'accueil du défi, une fois par jour tant qu'il n'est pas
+         * joué ; pas sur un lien de défi partagé (son propre bandeau prime). */
+        var accueilJour = null;
+        function montrerAccueilJour() {
+            if (!defiJour || defiJoue() || cfg.defi || ecranSel.hidden || lireLocal('defi-jour-vu') === defiJour.date) return;
+            ecrireLocal('defi-jour-vu', defiJour.date);
+            var a = defiJour.advObj;
+            accueilJour = el('div', 'pong-defi-accueil');
+            accueilJour.setAttribute('role', 'dialog');
+            accueilJour.setAttribute('aria-label', 'Défi du jour');
+            var carte = el('div', 'pong-defi-carte');
+            carte.appendChild(el('span', 'pong-defi-label', 'Défi du jour'));
+            var tete = el('span', 'pong-defi-tete');
+            carte.appendChild(tete);
+            teteJoueur(a, couleurs.secondaire).then(function (t) { poserTete(tete, t, a.photo || 'avatar-' + a.nom + a.prenom); });
+            carte.appendChild(el('strong', 'pong-defi-nom', nomAffiche(a)));
+            var info = a.titre || (a.pts ? Math.round(a.pts) + ' pts' : '');
+            if (info) carte.appendChild(el('span', 'pong-defi-info', info));
+            var meneur = defiJour.classement && defiJour.classement[0];
+            carte.appendChild(el('span', 'pong-defi-texte', meneur
+                ? 'En tête : ' + meneur.joueur + ', ' + meneur.pj + '–' + meneur.pa + ' en ' + texteDuree(meneur.duree)
+                : 'Personne ne l\'a encore affronté aujourd\'hui.'));
+            carte.appendChild(el('span', 'pong-defi-regle', 'Une manche, niveau Normal. Une seule tentative comptée, dès le premier service : classement à l\'écart de points, puis au temps.'));
+            var boutons = el('div', 'pong-message-boutons');
+            var go = el('button', 'pong-bouton', 'Relever le défi');
+            go.type = 'button';
+            go.addEventListener('click', releverDefiJour);
+            var plusTard = el('button', 'pong-bouton pong-bouton--secondaire', 'Plus tard');
+            plusTard.type = 'button';
+            plusTard.addEventListener('click', fermerAccueilJour);
+            boutons.appendChild(go);
+            boutons.appendChild(plusTard);
+            carte.appendChild(boutons);
+            accueilJour.appendChild(carte);
+            accueilJour.addEventListener('click', function (e) { if (e.target === accueilJour) fermerAccueilJour(); });
+            ecranSel.appendChild(accueilJour);
+            setTimeout(function () { go.focus({ preventScroll: true }); }, 50);
+        }
+        function fermerAccueilJour() {
+            if (accueilJour) accueilJour.remove();
+            accueilJour = null;
+        }
+
         function choisirJoueur(p) {
             etat.joueur = p;
             clubAdv.masquer(p);
             sousTitreAdv.textContent = 'Tu joues avec ' + nomAffiche(p);
-            if (etat.defiActif && defi.adv && defi.adv !== p) jouerContre(defi.adv);
+            if (etat.defiJour && defiJour && defiJour.advObj !== p) jouerContre(defiJour.advObj);
+            else if (etat.defiActif && defi.adv && defi.adv !== p) jouerContre(defi.adv);
             else if (impose) jouerContre(impose);
             else montrer(ecranAdv);
         }
 
         ecranSel.appendChild(el('h3', 'pong-titre', 'Choisis ton joueur'));
         ecranSel.appendChild(formulaireVisiteur());
-        ecranSel.appendChild(grilleCartes(joueurs, couleurs.maillot, choisirJoueur));
+        grilleJoueurs = grilleCartes(joueurs, couleurs.maillot, choisirJoueur);
+        ecranSel.appendChild(grilleJoueurs);
 
         /* Visiteur hors club : joue sous son prénom, avec un avatar dessiné
          * (joueur ou joueuse). Prénom et choix gardés sur son appareil.
@@ -641,6 +791,7 @@
         blocScores.appendChild(el('h4', 'pong-scores-titre', 'Meilleurs scores'));
         var listeScores = el('ol', 'pong-scores-liste');
         blocScores.appendChild(listeScores);
+        ecranSel.appendChild(blocJour);
         ecranSel.appendChild(blocScores);
 
         function afficherScores(liste) {
@@ -675,6 +826,9 @@
         }
         // La page peut venir d'un cache : le tableau est relu à l'ouverture.
         appelAjax('monclubtt_pong_scores').then(function (d) { afficherScores(d.classement); }, function () {});
+        // Défi du jour : relu de même (la page peut dater d'hier), puis l'écran d'accueil.
+        majDefiJour(cfg.defiJour || null);
+        appelAjax('monclubtt_pong_defi').then(function (d) { majDefiJour(d); }, function () {}).then(montrerAccueilJour);
 
         /* Type d'adversaire envoyé au serveur (seuls « monde » et « club » sont classés). */
         function typeAdversaire(a) {
@@ -685,9 +839,13 @@
 
         /* Fin de match : le match est enregistré pour le partage ; une victoire
          * contre le top 10 ou le club est en plus proposée au tableau. */
-        function envoyerFin(ligne, zonePartage) {
+        function envoyerFin(ligne, zonePartage, ligneJour) {
             var victoire = match.points.joueur > match.points.adversaire;
             var type = typeAdversaire(adv);
+            // Tentative comptée au défi du jour : la première, contre l'adversaire du jour.
+            var compteJour = etat.defiJour === 'compte' && defiJour && adv === defiJour.advObj;
+            if (compteJour) ligneJour.textContent = 'Défi du jour : enregistrement…';
+            else if (etat.defiJour === 'libre') ligneJour.textContent = 'Hors classement : ta tentative du jour est déjà jouée.';
             var classe = type !== 'invite';
             if (victoire && classe) ligne.textContent = 'Enregistrement au tableau…';
             appelAjax('monclubtt_pong_fin', {
@@ -695,8 +853,20 @@
                 joueur_type: etat.joueur.visiteur ? 'visiteur' : 'club',
                 joueur_nom: etat.joueur.nom, joueur_prenom: etat.joueur.prenom || '',
                 adv_type: type, adv_nom: adv.nom, adv_prenom: adv.prenom || '',
-                niveau: etat.niveau, pj: match.points.joueur, pa: match.points.adversaire
+                niveau: etat.niveau, pj: match.points.joueur, pa: match.points.adversaire,
+                defi_jour: compteJour ? '1' : '', defi_date: compteJour ? defiJour.date : '', duree: match.duree.toFixed(1)
             }).then(function (d) {
+                if (d.defi) {
+                    var dj = d.defi;
+                    if (dj.message) ligneJour.textContent = dj.message;
+                    else if (dj.deja) ligneJour.textContent = 'Défi du jour : ta tentative est déjà classée aujourd\'hui.';
+                    else if (dj.rang) ligneJour.textContent = 'Défi du jour : ' + rangTexte(dj.rang) + ' sur ' + dj.total + ' !';
+                    if (dj.rang) ecrireLocal('defi-jour-resultat', JSON.stringify({ date: defiJour.date, pj: match.points.joueur, pa: match.points.adversaire, rang: dj.rang, total: dj.total }));
+                    if (dj.classement) {
+                        defiJour.classement = dj.classement;
+                        defiJour.total = dj.total;
+                    }
+                }
                 if (d.classement) {
                     afficherScores(d.classement);
                     ligne.textContent = d.rang
@@ -1194,7 +1364,8 @@
         function demarrer(p) {
             pleinEcranMobile();
             etat.joueur = p;
-            etat.force = forceAdversaire(p, adv);
+            // Défi du jour : même adversaire pour tous, sans ajustement à son joueur.
+            etat.force = etat.defiJour ? 1 : forceAdversaire(p, adv);
             montrer(ecranJeu);
             marqueur.noms(nomAffiche(p), nomAffiche(adv));
             Promise.all([
@@ -1219,13 +1390,25 @@
             cancelAnimationFrame(raf);
             raf = 0;
             phase = 'arret';
+            // Fin du défi du jour : retour au jeu libre.
+            if (etat.defiJour) {
+                etat.defiJour = null;
+                if (grilleJoueurs) grilleJoueurs.masquer(null);
+                majDefiJour(defiJour);
+            }
             montrer(ecranAdv);
         }
 
         function nouveauMatch() {
             // Compteur des parties jouées (réglages du plugin) ; sans réponse attendue.
             appelAjax('monclubtt_pong_debut', { nonce: cfg.nonce || '' }).catch(function () {});
-            match = new Match(nbManches);
+            // Défi du jour : une manche ; la tentative comptée est consommée ici.
+            if (etat.defiJour === 'compte' && defiJoue()) etat.defiJour = 'libre';
+            if (etat.defiJour === 'compte') ecrireLocal('defi-jour', defiJour.date);
+            var manches = etat.defiJour ? 1 : nbManches;
+            match = new Match(manches);
+            match.duree = 0; // temps de jeu (s), pauses exclues
+            marqueur.el.classList.toggle('pong-marqueur--une-manche', manches === 1);
             tourSepa++;
             construireSeparations();
             marqueur.maj(match);
@@ -1351,7 +1534,7 @@
                 phase = 'message';
                 var victoire = cote === 'joueur';
                 // En une manche, le score de la manche ; sinon le décompte des manches.
-                var bilan = nbManches === 1
+                var bilan = match.gagnantes === 1
                     ? match.points.joueur + '–' + match.points.adversaire
                     : 'manches ' + match.manches.joueur + '–' + match.manches.adversaire;
                 afficherMessage(victoire ? 'Victoire !' : 'Défaite…',
@@ -1362,11 +1545,13 @@
                     ]);
                 var verdict = verdictDefi();
                 if (verdict) message.insertBefore(el('strong', 'pong-message-defi', verdict), message.querySelector('.pong-message-boutons'));
+                var ligneJour = el('strong', 'pong-message-defi');
                 var ligneScore = el('span', 'pong-message-classement');
                 var zonePartage = el('div', 'pong-partage');
+                message.insertBefore(ligneJour, message.querySelector('.pong-message-boutons'));
                 message.insertBefore(ligneScore, message.querySelector('.pong-message-boutons'));
                 message.insertBefore(zonePartage, message.querySelector('.pong-message-boutons'));
-                envoyerFin(ligneScore, zonePartage);
+                envoyerFin(ligneScore, zonePartage, ligneJour);
             }
         }
 
@@ -1491,6 +1676,7 @@
         }
 
         function step(dt) {
+            if (match && (phase === 'service' || phase === 'jeu' || phase === 'pause')) match.duree += dt;
             deplacerJoueur(dt);
             deplacerIa(dt);
             figJ.tCoup = Math.max(0, figJ.tCoup - dt);

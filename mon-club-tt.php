@@ -3,7 +3,7 @@
   Plugin Name: Mon Club TT
   Plugin URI: https://github.com/robinos33/MonClubTT
   Description: Display your table tennis club's players, teams, and rankings from the official FFTT Smartping API. Not affiliated with or endorsed by the FFTT.
-  Version: 2.8.0
+  Version: 2.9.0
   Author: Robin Aldasoro
   Author URI: https://github.com/robinos33
   License: GPLv2
@@ -91,6 +91,8 @@ class MonClubTT_Plugin
         add_action('wp_ajax_nopriv_monclubtt_pong_debut',    array($this, 'handle_ajax_pong_debut'));
         add_action('wp_ajax_monclubtt_pong_fin',             array($this, 'handle_ajax_pong_fin'));
         add_action('wp_ajax_nopriv_monclubtt_pong_fin',      array($this, 'handle_ajax_pong_fin'));
+        add_action('wp_ajax_monclubtt_pong_defi',            array($this, 'handle_ajax_pong_defi'));
+        add_action('wp_ajax_nopriv_monclubtt_pong_defi',     array($this, 'handle_ajax_pong_defi'));
         // Partage d'un match : image générée et balises Open Graph.
         add_action('init', array($this, 'pong_image'), 20);
         add_action('wp_head', array($this, 'pong_og'), 1);
@@ -291,6 +293,7 @@ class MonClubTT_Plugin
         register_setting($groupe, 'monclubtt_pong_raz_compteurs', array('sanitize_callback' => array($this, 'sanitize_pong_raz_compteurs')));
         register_setting($groupe, 'monclubtt_pong_vider_scores', array('sanitize_callback' => array($this, 'sanitize_pong_vider_scores')));
         register_setting($groupe, 'monclubtt_pong_vider_matchs', array('sanitize_callback' => array($this, 'sanitize_pong_vider_matchs')));
+        register_setting($groupe, 'monclubtt_pong_vider_defi', array('sanitize_callback' => array($this, 'sanitize_pong_vider_defi')));
         add_settings_section('monclubtt_section_pong', '', '__return_false', $groupe);
         add_settings_field(MonClubTT_Constantes::MONCLUBTT_PONG_PROS, 'Top 10 mondial', array($this, 'pong_pros_html'), $groupe, 'monclubtt_section_pong');
         add_settings_field(MonClubTT_Constantes::MONCLUBTT_PONG_ADVERSAIRES, 'Adversaires', array($this, 'pong_adversaires_html'), $groupe, 'monclubtt_section_pong');
@@ -298,6 +301,7 @@ class MonClubTT_Plugin
         add_settings_field('monclubtt_pong_raz_compteurs', 'Parties', array($this, 'pong_compteurs_html'), $groupe, 'monclubtt_section_pong');
         add_settings_field('monclubtt_pong_vider_scores', 'Meilleurs scores', array($this, 'pong_vider_scores_html'), $groupe, 'monclubtt_section_pong');
         add_settings_field('monclubtt_pong_vider_matchs', 'Matchs partagés', array($this, 'pong_vider_matchs_html'), $groupe, 'monclubtt_section_pong');
+        add_settings_field('monclubtt_pong_vider_defi', 'Défi du jour', array($this, 'pong_vider_defi_html'), $groupe, 'monclubtt_section_pong');
 
         // Réglages : identité du club
         $groupe = 'monclubtt_settings';
@@ -836,6 +840,44 @@ class MonClubTT_Plugin
         return '';
     }
 
+    public function pong_vider_defi_html()
+    {
+        $defi = $this->donneesDefiPong();
+        ?>
+        <?php if ($defi): ?>
+            <p>
+                <?php /* translators: 1: adversaire du jour, 2: nombre de tentatives */ ?>
+                Aujourd'hui : <strong><?php echo esc_html($defi['adv']['affiche']); ?></strong>,
+                <?php echo esc_html(sprintf(_n('%d tentative classée', '%d tentatives classées', $defi['total'], 'mon-club-tt'), $defi['total'])); ?>.
+            </p>
+            <label>
+                <input type="checkbox" name="monclubtt_pong_vider_defi" value="1">
+                Vider le classement du jour (l'adversaire reste le même)
+            </label>
+        <?php else: ?>
+            <p>Aucun adversaire possible : ni licencié, ni top 10 mondial.</p>
+        <?php endif; ?>
+        <p class="description">
+            Chaque jour, un adversaire tiré au sort (licenciés et top 10 mondial) est proposé à tous les visiteurs à l'ouverture du jeu, en une manche, niveau Normal.
+            Une seule tentative comptée par joueur et par appareil ; classement par écart de points, puis par durée du match. Changement à minuit (heure de Paris).
+        </p>
+        <?php
+    }
+
+    /** Case « Vider le classement du jour » : tentatives du jour supprimées, adversaire gardé. */
+    public function sanitize_pong_vider_defi($valeur)
+    {
+        if ($valeur === '1') {
+            $jours = (array) get_option(MonClubTT_Constantes::MONCLUBTT_PONG_DEFIS, array());
+            $date  = $this->dateDefiPong();
+            if (isset($jours[$date])) {
+                $jours[$date]['entrees'] = array();
+                update_option(MonClubTT_Constantes::MONCLUBTT_PONG_DEFIS, $jours, false);
+            }
+        }
+        return '';
+    }
+
     public function pong_vider_matchs_html()
     {
         $nb = count((array) get_option(MonClubTT_Constantes::MONCLUBTT_PONG_MATCHS, array()));
@@ -1070,6 +1112,7 @@ class MonClubTT_Plugin
         $joueurs = new MonClubTT_Joueurs();
         $scores  = $this->classementPong();
         $musique = monclubtt_get_pong_musique_url();
+        $defiJour = $this->donneesDefiPong();
 
         // Arrivée par un lien partagé (?pong=ID) : le match devient un défi.
         $defi  = null;
@@ -1302,6 +1345,14 @@ class MonClubTT_Plugin
             update_option(MonClubTT_Constantes::MONCLUBTT_PONG_SCORES, $resultat['tableau'], false);
             $reponse['classement'] = array_map(array('MonClubTT_PongScores', 'publique'), $resultat['tableau']);
             $reponse['rang']       = $resultat['rang'];
+        }
+
+        // Défi du jour : première tentative du joueur, contre l'adversaire du jour.
+        if ($champ('defi_jour') === '1') {
+            $reponse['defi'] = $this->enregistrerDefiPong(
+                $champ('defi_date'), $advType, $champ('adv_nom'), $champ('adv_prenom'), $niveau,
+                $joueur['affiche'], $visiteur, $pj, $pa, $champ('duree')
+            );
         }
 
         // Partage : seulement depuis une page publiée qui contient le jeu.
@@ -1571,6 +1622,150 @@ class MonClubTT_Plugin
     }
 
     /** Tableau des meilleurs scores, version publique. */
+    /**
+     * Date du défi (AAAA-MM-JJ), heure de Paris : le défi change à minuit.
+     * @param int $decalage Jours ajoutés (-1 : hier).
+     */
+    private function dateDefiPong($decalage = 0)
+    {
+        $jour = new DateTimeImmutable('now', new DateTimeZone('Europe/Paris'));
+        return $decalage ? $jour->modify(sprintf('%+d days', $decalage))->format('Y-m-d') : $jour->format('Y-m-d');
+    }
+
+    /**
+     * Adversaires possibles du défi, par clé : top 10 mondial (s'il est
+     * proposé dans le jeu) et licenciés du club.
+     * @return array<string, array{type: string, nom: string, prenom: string, affiche: string}>
+     */
+    private function adversairesDefiPong()
+    {
+        $candidats = array();
+        foreach (monclubtt_pong_pros() ? monclubtt_get_pong_adversaires() : array() as $liste) {
+            foreach ($liste as $adv) {
+                if ($adv['nom'] !== '') {
+                    $candidats['monde|' . $adv['nom']] = array('type' => 'monde', 'nom' => $adv['nom'], 'prenom' => '', 'affiche' => $adv['nom']);
+                }
+            }
+        }
+        $joueurs = new MonClubTT_Joueurs();
+        foreach ($joueurs->getDonneesPong() as $j) {
+            $candidats['club|' . $j['nom'] . '|' . $j['prenom']] = array(
+                'type' => 'club', 'nom' => $j['nom'], 'prenom' => $j['prenom'], 'affiche' => trim($j['prenom'] . ' ' . strtoupper($j['nom'])),
+            );
+        }
+        return $candidats;
+    }
+
+    /**
+     * Jours du défi (option purgée), avec l'adversaire du jour tiré au
+     * premier appel de la journée puis gardé, même si la liste change.
+     * @return array{date: string, jours: array}|null null sans adversaire possible.
+     */
+    private function joursDefiPong()
+    {
+        $date  = $this->dateDefiPong();
+        $jours = MonClubTT_PongDefis::purger((array) get_option(MonClubTT_Constantes::MONCLUBTT_PONG_DEFIS, array()), $date);
+        if (!isset($jours[$date]['adv'])) {
+            $candidats = $this->adversairesDefiPong();
+            $hier      = $jours[$this->dateDefiPong(-1)]['adv']['cle'] ?? null;
+            $cle       = MonClubTT_PongDefis::tirage($date, array_keys($candidats), $hier);
+            if ($cle === null) {
+                return null;
+            }
+            $jours[$date] = array('adv' => $candidats[$cle] + array('cle' => $cle), 'entrees' => array());
+            update_option(MonClubTT_Constantes::MONCLUBTT_PONG_DEFIS, $jours, false);
+        }
+        return array('date' => $date, 'jours' => $jours);
+    }
+
+    /**
+     * Défi du jour pour le navigateur : adversaire, classement (AFFICHES
+     * premiers), nombre de tentatives et vainqueur d'hier (meilleur écart,
+     * s'il a gagné).
+     * @return array|null
+     */
+    private function donneesDefiPong()
+    {
+        $defi = $this->joursDefiPong();
+        if (!$defi) {
+            return null;
+        }
+        $jour     = $defi['jours'][$defi['date']];
+        $entrees  = MonClubTT_PongDefis::classer((array) $jour['entrees']);
+        $champion = null;
+        $hier     = $defi['jours'][$this->dateDefiPong(-1)] ?? null;
+        if ($hier && isset($hier['adv'])) {
+            $premiers = MonClubTT_PongDefis::classer((array) ($hier['entrees'] ?? array()));
+            if ($premiers && $premiers[0]['pj'] > $premiers[0]['pa']) {
+                $champion = MonClubTT_PongDefis::publique($premiers[0]) + array('adversaire' => $hier['adv']['affiche']);
+            }
+        }
+        return array(
+            'date'       => $defi['date'],
+            'adv'        => array('type' => $jour['adv']['type'], 'nom' => $jour['adv']['nom'], 'prenom' => $jour['adv']['prenom'], 'affiche' => $jour['adv']['affiche']),
+            'classement' => array_map(array('MonClubTT_PongDefis', 'publique'), array_slice($entrees, 0, MonClubTT_PongDefis::AFFICHES)),
+            'total'      => count($entrees),
+            'hier'       => $champion,
+        );
+    }
+
+    /**
+     * Tentative au défi du jour : comptée si c'est la première du joueur
+     * aujourd'hui, contre l'adversaire du jour, au niveau imposé et en une
+     * durée plausible. Une tentative est identifiée par le joueur choisi et
+     * l'empreinte de l'adresse IP : n'importe qui peut jouer sous le nom d'un
+     * licencié (aucune connexion), il ne doit donc pas le priver de sa
+     * propre tentative, ni bloquer ceux qui choisissent le même joueur
+     * ailleurs. Changer de joueur permet de rejouer : le navigateur s'en
+     * charge, le serveur ne peut pas l'empêcher sans compte.
+     * @return array{message: string, rang: int|null, total: int, deja: bool, classement: array}
+     */
+    private function enregistrerDefiPong($date, $advType, $advNom, $advPrenom, $niveau, $joueur, $visiteur, $pj, $pa, $duree)
+    {
+        $refus = function ($message) {
+            return array('message' => $message, 'rang' => null, 'total' => 0, 'deja' => false, 'classement' => null);
+        };
+        $defi = $this->joursDefiPong();
+        if (!$defi || $date !== $defi['date']) {
+            return $refus('Le défi a changé à minuit : cette partie n\'est pas classée.');
+        }
+        $adv = $defi['jours'][$defi['date']]['adv'];
+        if ($adv['type'] !== $advType || $adv['nom'] !== $advNom || $adv['prenom'] !== $advPrenom || $niveau !== MonClubTT_PongDefis::NIVEAU) {
+            return $refus('Partie non classée au défi du jour.');
+        }
+        if (!MonClubTT_PongDefis::dureeValide($pj, $pa, $duree)) {
+            return $refus('Durée de match invalide : partie non classée.');
+        }
+        $resultat = MonClubTT_PongDefis::ajouter((array) $defi['jours'][$defi['date']]['entrees'], array(
+            'cle'      => ($visiteur ? 'v:' : 'c:') . $joueur . '|' . $this->cleIpPong(),
+            'joueur'   => $joueur,
+            'visiteur' => $visiteur,
+            'pj'       => $pj,
+            'pa'       => $pa,
+            'duree'    => round((float) $duree, 1),
+            'date'     => time(),
+        ));
+        $jours = $defi['jours'];
+        $jours[$defi['date']]['entrees'] = $resultat['entrees'];
+        update_option(MonClubTT_Constantes::MONCLUBTT_PONG_DEFIS, $jours, false);
+        return array(
+            'message'    => '',
+            'rang'       => $resultat['rang'],
+            'total'      => count($resultat['entrees']),
+            'deja'       => $resultat['deja'],
+            'classement' => array_map(array('MonClubTT_PongDefis', 'publique'), array_slice($resultat['entrees'], 0, MonClubTT_PongDefis::AFFICHES)),
+        );
+    }
+
+    /**
+     * Handler AJAX (public) : défi du jour, relu à l'ouverture de la page
+     * (qui peut venir d'un cache, ou d'hier).
+     */
+    public function handle_ajax_pong_defi()
+    {
+        wp_send_json_success($this->donneesDefiPong());
+    }
+
     private function classementPong()
     {
         $tableau = MonClubTT_PongScores::classer((array) get_option(MonClubTT_Constantes::MONCLUBTT_PONG_SCORES, array()));

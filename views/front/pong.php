@@ -19,6 +19,7 @@ $config   = array(
     'impose'      => $impose,
     'scores'      => $scores,
     'defi'        => $defi,
+    'defiJour'    => $defiJour,
     'ajax'        => admin_url('admin-ajax.php'),
     'musique'     => $musique,
     'nonce'       => wp_create_nonce('monclubtt_pong'),

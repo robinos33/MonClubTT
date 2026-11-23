@@ -196,6 +196,8 @@ Le visiteur choisit son joueur parmi les licenciés (photo détourée avec liser
 | `adversaire_pays` | code pays (`FRA`, `CHN`, `JPN`…) | — | Tenue aux couleurs de la sélection ; à défaut, couleur secondaire du club |
 | `manches` | `1`, `3`, `5` | `1` | Nombre de manches du match (en une manche, le marqueur n'affiche que les points) |
 
+**Défi du jour** : chaque jour (changement à minuit, heure de Paris), un même adversaire pour tous les visiteurs, tiré au sort parmi le top 10 mondial et les licenciés. Un écran d'accueil le présente à la première visite de la journée, puis un bandeau reste en haut de la sélection. Le match se joue en une manche, niveau Normal, sans ajustement de force au joueur choisi. Une seule tentative comptée par joueur et par appareil, dès le premier service ; les suivantes se jouent hors classement. Classement du jour sous la sélection, défaites comprises : plus grand écart de points, puis match le plus court ; le vainqueur de la veille y est rappelé. Le classement du jour se vide dans *Mon Club TT › Pong*.
+
 **Plein écran et musique** : boutons sous la table pour passer en plein écran, couper les effets sonores et la musique. La musique de fond (boucle) se règle dans *Mon Club TT › Pong › Musique* : fichier audio de la médiathèque ou adresse directe d'un fichier MP3/OGG/M4A/WAV (pas de lien YouTube/Spotify). Les navigateurs ne la lancent qu'au premier toucher du visiteur.
 
 **Meilleurs scores** : les 10 meilleures victoires (contre le top 10 mondial ou un licencié) sont affichées sous la sélection des joueurs, classées par niveau (Expert d'abord), puis écart de points. Commun à tous les visiteurs ; les scores étant déclarés par le navigateur, une case « Vider le tableau » est disponible dans *Mon Club TT › Pong*.
