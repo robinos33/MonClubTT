@@ -3,7 +3,7 @@ Contributors: robinos33
 Tags: table tennis, fftt, club, rankings, results
 Requires at least: 6.4
 Tested up to: 7.1
-Stable tag: 2.6.0
+Stable tag: 2.7.0
 Requires PHP: 8.4
 License: GPLv2
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -86,7 +86,7 @@ Yes. The plugin exposes six filters: `monclubtt_get_evenements`, `monclubtt_get_
 
 == Changelog ==
 
-= Unreleased =
+= 2.7.0 =
 * Changed: pong ball speeds up a little faster during a rally (+10% per hit instead of +8%), reaching top speed in about 8 hits
 
 = 2.6.0 =
