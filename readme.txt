@@ -3,7 +3,7 @@ Contributors: robinos33
 Tags: table tennis, fftt, club, rankings, results
 Requires at least: 6.4
 Tested up to: 7.1
-Stable tag: 2.8.0
+Stable tag: 2.9.0
 Requires PHP: 8.4
 License: GPLv2
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -86,7 +86,7 @@ Yes. The plugin exposes six filters: `monclubtt_get_evenements`, `monclubtt_get_
 
 == Changelog ==
 
-= Unreleased =
+= 2.9.0 =
 * Added: pong daily challenge: the same opponent for everyone each day, one counted attempt per player and device, daily ranking by point margin then match duration, with yesterday's winner
 
 = 2.8.0 =
