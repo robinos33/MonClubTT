@@ -83,13 +83,15 @@
         { cle: 'feu', nom: 'Balle de feu', couleur: '255,110,30' },
         { cle: 'zigzag', nom: 'Zigzag', couleur: '255,214,0' },
         { cle: 'fantome', nom: 'Balle fantôme', couleur: '190,200,255' },
-        { cle: 'boomerang', nom: 'Boomerang', couleur: '90,230,140' }
+        { cle: 'boomerang', nom: 'Boomerang', couleur: '90,230,140' },
+        { cle: 'glace', nom: 'Glace', couleur: '150,220,255' }
     ];
     /* Remplissage de la jauge : frappe d'un échange long (à partir de la
      * 4e), lifté ou coupé marqué, point gagné. */
     var JAUGE = { echange: 0.08, apresFrappes: 4, effet: 0.1, point: 0.2 };
     var GEL_CUTIN = 0.65;  // arrêt sur image du déclenchement (s)
     var SONNE = 0.7;       // durée où le receveur d'une balle de feu titube (s)
+    var GLACE = 0.5;       // durée où la Glace fige l'adversaire dans un glaçon (s)
     var FEU = { gain: 1.45, plafond: 1.3 }; // vitesse ×1,45, au plus 1,3 × vMax
     var ZIGZAG = { amplitude: 22, pulsation: 15 };
     var FANTOME = { de: 0.22, a: 0.68 }; // part du trajet où la balle disparaît
@@ -1479,6 +1481,9 @@
                 balle.vx *= k;
                 balle.vy *= k;
                 balle.ax = 0;
+            } else if (coup.cle === 'glace') {
+                // L'adversaire est figé dès la reprise du jeu, après le cut-in.
+                (cote === 'joueur' ? figA : figJ).gele = GLACE;
             } else if (coup.cle === 'boomerang') {
                 // Part vers le bord opposé et revient en courbe : écart nul à l'arrivée.
                 var c = balle.x < W / 2 ? 1 : -1;
@@ -1644,6 +1649,7 @@
             match.duree = 0; // temps de jeu (s), pauses exclues
             arcade = { jauge: { joueur: 0, adversaire: 0 }, arme: { joueur: false, adversaire: false }, speciaux: 0, gel: 0, cutin: null };
             figJ.sonne = figA.sonne = 0;
+            figJ.gele = figA.gele = 0;
             var hauteurMarqueur = marqueur.el.offsetHeight;
             marqueur.el.classList.toggle('pong-marqueur--arcade', modeArcade());
             marqueur.coups(coupSignature(etat.joueur).nom, coupSignature(adv).nom);
@@ -1911,6 +1917,11 @@
 
         /* ---- Simulation ---- */
         function deplacerJoueur(dt) {
+            if (figJ.gele > 0) { // figé dans un glaçon
+                figJ.vx = 0;
+                geste.yAvant = geste.y;
+                return;
+            }
             var avant = figJ.x;
             if (touches.g || touches.d) {
                 figJ.x += ((touches.d ? 1 : 0) - (touches.g ? 1 : 0)) * 420 * (figJ.sonne > 0 ? 0.5 : 1) * dt;
@@ -1926,6 +1937,10 @@
         }
 
         function deplacerIa(dt) {
+            if (figA.gele > 0) { // figé dans un glaçon
+                figA.vx = 0;
+                return;
+            }
             var n = NIVEAUX[etat.niveau];
             var but = W / 2;
             if (phase === 'jeu' && balle.vy < 0 && balle.y < HIT_J - (HIT_J - HIT_A) * (1 - n.reaction) - 1) {
@@ -1950,6 +1965,8 @@
             figJ.tCoup = Math.max(0, figJ.tCoup - dt);
             figJ.sonne = Math.max(0, (figJ.sonne || 0) - dt);
             figA.sonne = Math.max(0, (figA.sonne || 0) - dt);
+            figJ.gele = Math.max(0, (figJ.gele || 0) - dt);
+            figA.gele = Math.max(0, (figA.gele || 0) - dt);
             figA.tCoup = Math.max(0, figA.tCoup - dt);
             if (toast.t > 0) toast.t -= dt;
 
@@ -2171,13 +2188,43 @@
             ctx.restore();
             if (s.tete) {
                 var tw = s.tete.width / (echelle * dpr), th = s.tete.height / (echelle * dpr);
+                ctx.save();
                 ctx.translate(p.x, top + SVG.yTete * k);
                 ctx.rotate(inclinaison(s.cle) * Math.PI / 180);
                 ctx.shadowColor = 'rgba(15,20,26,0.35)';
                 ctx.shadowBlur = 4 * echelle * dpr;
                 ctx.shadowOffsetY = 2 * echelle * dpr;
                 ctx.drawImage(s.tete, -tw / 2, -th / 2, tw, th);
+                ctx.restore();
             }
+            if (fig.gele > 0) dessinerGlacon(p.x, top + 4 * k, 128 * k, pied - top, Math.min(1, fig.gele / 0.12));
+            ctx.restore();
+        }
+
+        /* Glaçon autour d'un joueur figé : bloc translucide, arêtes et reflets
+         * blancs ; opacite fond le bloc dans les derniers instants. */
+        function dessinerGlacon(cx, top, l, h, opacite) {
+            var x = cx - l / 2;
+            ctx.save();
+            ctx.globalAlpha = opacite;
+            ctx.fillStyle = 'rgba(170,225,255,0.5)';
+            ctx.strokeStyle = 'rgba(255,255,255,0.9)';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            if (ctx.roundRect) ctx.roundRect(x, top, l, h, 8);
+            else ctx.rect(x, top, l, h);
+            ctx.fill();
+            ctx.stroke();
+            ctx.strokeStyle = 'rgba(255,255,255,0.7)';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(x + l * 0.18, top + h * 0.12);
+            ctx.lineTo(x + l * 0.08, top + h * 0.42);
+            ctx.moveTo(x + l * 0.3, top + h * 0.1);
+            ctx.lineTo(x + l * 0.24, top + h * 0.26);
+            ctx.moveTo(x + l * 0.86, top + h * 0.62);
+            ctx.lineTo(x + l * 0.78, top + h * 0.88);
+            ctx.stroke();
             ctx.restore();
         }
 
