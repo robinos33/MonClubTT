@@ -5,6 +5,12 @@ Format : [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/)
 
 ---
 
+## [Unreleased]
+
+### Modifié
+
+- **Pong** : la balle accélère un peu plus vite au fil de l'échange (+10 % par frappe au lieu de +8 %) et atteint sa vitesse maximale en 8 frappes environ au lieu de 10 ; vitesses de départ et plafonds inchangés (#49).
+
 ## [2.6.0] — 2026-11-17
 
 ### Ajouté

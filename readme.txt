@@ -86,6 +86,9 @@ Yes. The plugin exposes six filters: `monclubtt_get_evenements`, `monclubtt_get_
 
 == Changelog ==
 
+= Unreleased =
+* Changed: pong ball speeds up a little faster during a rally (+10% per hit instead of +8%), reaching top speed in about 8 hits
+
 = 2.6.0 =
 * Added: management committee (Mon Club TT menu): one entry per member with photo, first and last name, board role, commissions (checkboxes) and display order
 * Added: `[monclubtt_comite]` shortcode: the board with each member's role, then the other members with their commissions ("Commission Communication / Équipes"), as cards with photo or initials in the club colours; `partie`, `commission`, titles, `niveau`, `photos`, `classe`, `vide` attributes
