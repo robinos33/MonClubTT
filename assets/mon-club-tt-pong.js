@@ -97,6 +97,10 @@
     var FEU = { gain: 1.45, plafond: 1.3 }; // vitesse ×1,45, au plus 1,3 × vMax
     var ZIGZAG = { amplitude: 22, pulsation: 15 };
     var FANTOME = { de: 0.22, a: 0.68 }; // part du trajet où la balle disparaît
+    /* Boomerang : vitesse latérale et vers l'avant au départ (× vitesse de
+     * la balle). 1,1 / 0,8 : départ à 54°, écart maximal ~130 px, sans
+     * toucher les bords ; la durée du trajet ne change pas. */
+    var BOOMERANG = { lateral: 1.1, avant: 0.8 };
 
     function coupParCle(cle) {
         return COUPS.filter(function (c) { return c.cle === cle; })[0] || null;
@@ -1529,12 +1533,14 @@
                 // L'adversaire est figé dès la reprise du jeu, après le cut-in.
                 (cote === 'joueur' ? figA : figJ).gele = GLACE;
             } else if (coup.cle === 'boomerang') {
-                // Part vers le bord opposé et revient en courbe : écart nul à l'arrivée.
+                // Part vers le bord opposé et revient en courbe au point de départ.
                 var c = balle.x < W / 2 ? 1 : -1;
-                balle.vx = c * 0.6 * balle.v;
-                balle.vy = sens * 0.8 * balle.v;
+                balle.vx = c * BOOMERANG.lateral * balle.v;
+                balle.vy = sens * BOOMERANG.avant * balle.v;
                 var trajet = Math.abs(HIT_J - HIT_A) / Math.abs(balle.vy);
-                balle.ax = -c * 2.4 * Math.abs(balle.vx) / trajet;
+                // Courbure telle que l'écart soit nul à l'arrivée, amortissement de
+                // l'effet compris : x(T) = vx·T + ax/k · (T − (1 − e^(−kT))/k) = 0.
+                balle.ax = -balle.vx * trajet * EFFET_AMORTI / (trajet - (1 - Math.exp(-EFFET_AMORTI * trajet)) / EFFET_AMORTI);
             }
             arcade.gel = mouvementReduit ? 0.4 : GEL_CUTIN;
             arcade.cutin = { cote: cote, coup: coup, t: 0 };
