@@ -37,6 +37,8 @@ if ( ! class_exists( 'MonClubTT_Constantes' ) ) {
         const MONCLUBTT_PONG_MATCHS = 'monclubtt_pong_matchs';
         /** Compteurs du jeu de pong : parties jouées, parties terminées, date de départ. */
         const MONCLUBTT_PONG_COMPTEURS = 'monclubtt_pong_compteurs';
+        /** Défi du jour du jeu de pong : par date (AAAA-MM-JJ), l'adversaire tiré et les tentatives. */
+        const MONCLUBTT_PONG_DEFIS = 'monclubtt_pong_defis';
         /** Ancienne option (1.6.2), relue tant que les réglages n'ont pas été enregistrés. */
         const MONCLUBTT_SOCIAL_COULEURS = 'monclubtt_social_couleurs';
 
