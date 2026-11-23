@@ -3,7 +3,7 @@ Contributors: robinos33
 Tags: table tennis, fftt, club, rankings, results
 Requires at least: 6.4
 Tested up to: 7.1
-Stable tag: 2.9.0
+Stable tag: 2.10.0
 Requires PHP: 8.4
 License: GPLv2
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -86,7 +86,7 @@ Yes. The plugin exposes six filters: `monclubtt_get_evenements`, `monclubtt_get_
 
 == Changelog ==
 
-= Unreleased =
+= 2.10.0 =
 * Added: pong hit sparks, screen shake on smashes and winning fast serves, slow motion on match point, speed trail; no shake or slow motion with reduced motion
 * Added: pong Arcade mode: the player picks one of five special shots (fire ball, zigzag, ghost ball, boomerang, ice freezing the opponent in an ice cube), the opponent has a signature shot, charged mostly by spin and curve shots, also by long rallies and points won, with a freeze-frame cut-in; kept out of the high scores and the daily challenge
 
