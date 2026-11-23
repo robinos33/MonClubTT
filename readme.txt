@@ -86,6 +86,9 @@ Yes. The plugin exposes six filters: `monclubtt_get_evenements`, `monclubtt_get_
 
 == Changelog ==
 
+= Unreleased =
+* Added: club partners in Settings (logo from the media library, name, optional link, display order), with a preview of each logo in white on navy
+
 = 2.7.0 =
 * Changed: pong ball speeds up a little faster during a rally (+10% per hit instead of +8%), reaching top speed in about 8 hits
 

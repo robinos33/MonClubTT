@@ -305,11 +305,13 @@ class MonClubTT_Plugin
         register_setting($groupe, MonClubTT_Constantes::MONCLUBTT_LOGO, array('sanitize_callback' => array($this, 'sanitize_logo')));
         register_setting($groupe, MonClubTT_Constantes::MONCLUBTT_COULEURS, array('sanitize_callback' => array($this, 'sanitize_couleurs')));
         register_setting($groupe, MonClubTT_Constantes::MONCLUBTT_APPLI_EQUIPES, array('sanitize_callback' => array($this, 'sanitize_case')));
+        register_setting($groupe, MonClubTT_Constantes::MONCLUBTT_PARTENAIRES, array('sanitize_callback' => array($this, 'sanitize_partenaires')));
         add_settings_section('monclubtt_section_reglages', '', '__return_false', $groupe);
         add_settings_field(MonClubTT_Constantes::MONCLUBTT_NOM_CLUB, 'Nom du club', array($this, 'nom_club_html'), $groupe, 'monclubtt_section_reglages');
         add_settings_field(MonClubTT_Constantes::MONCLUBTT_LOGO, 'Logo du club', array($this, 'logo_html'), $groupe, 'monclubtt_section_reglages');
         add_settings_field(MonClubTT_Constantes::MONCLUBTT_COULEURS, 'Couleurs du club', array($this, 'couleurs_html'), $groupe, 'monclubtt_section_reglages');
         add_settings_field(MonClubTT_Constantes::MONCLUBTT_APPLI_EQUIPES, 'Écran d\'accueil', array($this, 'appli_equipes_html'), $groupe, 'monclubtt_section_reglages');
+        add_settings_field(MonClubTT_Constantes::MONCLUBTT_PARTENAIRES, 'Partenaires', array($this, 'partenaires_html'), $groupe, 'monclubtt_section_reglages');
     }
 
     /** Journal désactivé : les logs déjà enregistrés sont effacés. */
@@ -480,6 +482,118 @@ class MonClubTT_Plugin
                 $(this).hide();
             });
         });');
+    }
+
+    /**
+     * Partenaires du club : une ligne par partenaire (logo, nom, lien), dans
+     * l'ordre d'affichage. Aperçu du logo en blanc sur fond marine, tel qu'il
+     * apparaît sur les séparations du jeu de pong.
+     */
+    public function partenaires_html()
+    {
+        $option      = MonClubTT_Constantes::MONCLUBTT_PARTENAIRES;
+        $partenaires = monclubtt_get_partenaires();
+        $ligne = function ($i, array $p) use ($option) {
+            $base   = $option . '[' . $i . ']';
+            $apercu = $p['logo'] ? wp_get_attachment_image_url($p['logo'], 'medium') : '';
+            ?>
+            <tr class="monclubtt-partenaire">
+                <td class="monclubtt-partenaire-ordre">
+                    <button type="button" class="button-link monclubtt-partenaire-monter" aria-label="Monter">↑</button>
+                    <button type="button" class="button-link monclubtt-partenaire-descendre" aria-label="Descendre">↓</button>
+                </td>
+                <td>
+                    <input type="hidden" data-champ="logo" name="<?php echo esc_attr($base . '[logo]'); ?>" value="<?php echo esc_attr($p['logo'] ? $p['logo'] : ''); ?>">
+                    <span class="monclubtt-partenaire-apercu"><?php if ($apercu): ?><img src="<?php echo esc_url($apercu); ?>" alt=""><?php endif; ?></span>
+                    <button type="button" class="button button-small monclubtt-partenaire-choisir"><?php echo $p['logo'] ? 'Changer' : 'Logo'; ?></button>
+                </td>
+                <td><input type="text" data-champ="nom" class="regular-text" style="width:14em" name="<?php echo esc_attr($base . '[nom]'); ?>" value="<?php echo esc_attr($p['nom']); ?>" placeholder="Nom du partenaire" aria-label="Nom du partenaire"></td>
+                <td><input type="url" data-champ="url" class="regular-text" style="width:16em" name="<?php echo esc_attr($base . '[url]'); ?>" value="<?php echo esc_attr($p['url']); ?>" placeholder="https://… (facultatif)" aria-label="Site du partenaire"></td>
+                <td><button type="button" class="button-link button-link-delete monclubtt-partenaire-retirer">Retirer</button></td>
+            </tr>
+            <?php
+        };
+        ?>
+        <style>
+            .monclubtt-partenaires td { vertical-align: middle; white-space: nowrap; }
+            .monclubtt-partenaire-ordre { white-space: nowrap; }
+            .monclubtt-partenaire-ordre .button-link { font-size: 16px; text-decoration: none; padding: 0 2px; }
+            .monclubtt-partenaire-apercu { display: inline-flex; align-items: center; justify-content: center; width: 96px; height: 36px; margin-right: 6px; padding: 4px 8px; vertical-align: middle; border-radius: 3px; background: linear-gradient(#3b5274, #2e4260); box-sizing: border-box; }
+            .monclubtt-partenaire-apercu img { max-width: 100%; max-height: 100%; object-fit: contain; filter: brightness(0) invert(1); }
+        </style>
+        <table class="widefat striped monclubtt-partenaires" style="width:auto">
+            <tbody>
+            <?php foreach ($partenaires as $i => $p) { $ligne($i, $p); } ?>
+            </tbody>
+        </table>
+        <template class="monclubtt-partenaire-modele"><?php $ligne('__i__', array('logo' => 0, 'nom' => '', 'url' => '')); ?></template>
+        <p><button type="button" class="button monclubtt-partenaire-ajouter">Ajouter un partenaire</button></p>
+        <p class="description">
+            Logos affichés en blanc sur les séparations du jeu de pong, dans cet ordre (à tour de rôle d'un match à l'autre s'ils sont plus nombreux que les panneaux).
+            <strong>PNG à fond transparent</strong> : un logo sur fond blanc ou en JPEG devient un rectangle blanc, l'aperçu ci-dessus le montre tel qu'il sera affiché.
+            Le lien n'est pas encore utilisé par le jeu. Une ligne sans logo est ignorée.
+        </p>
+        <?php
+        wp_add_inline_script('monclubtt-js', 'jQuery(function($) {
+            var $table = $(".monclubtt-partenaires tbody"), modele = $(".monclubtt-partenaire-modele").html();
+            function renumeroter() {
+                $table.find("tr").each(function(i) {
+                    $(this).find("[data-champ]").each(function() {
+                        this.name = ' . wp_json_encode($option) . ' + "[" + i + "][" + $(this).data("champ") + "]";
+                    });
+                });
+            }
+            $(".monclubtt-partenaire-ajouter").on("click", function() {
+                $table.append(modele.replace(/__i__/g, $table.find("tr").length));
+                renumeroter();
+                $table.find("tr:last .monclubtt-partenaire-choisir").trigger("click");
+            });
+            $table.on("click", ".monclubtt-partenaire-choisir", function() {
+                var $ligne = $(this).closest("tr");
+                var frame = wp.media({ title: "Logo du partenaire", button: { text: "Utiliser ce logo" }, library: { type: "image" }, multiple: false });
+                frame.on("select", function() {
+                    var att = frame.state().get("selection").first().toJSON();
+                    $ligne.find("[data-champ=logo]").val(att.id);
+                    $ligne.find(".monclubtt-partenaire-apercu").html($("<img>", { src: att.sizes && att.sizes.medium ? att.sizes.medium.url : att.url, alt: "" }));
+                    $ligne.find(".monclubtt-partenaire-choisir").text("Changer");
+                    var $nom = $ligne.find("[data-champ=nom]");
+                    if (!$nom.val()) $nom.val(att.title || "");
+                });
+                frame.open();
+            }).on("click", ".monclubtt-partenaire-retirer", function() {
+                $(this).closest("tr").remove();
+                renumeroter();
+            }).on("click", ".monclubtt-partenaire-monter", function() {
+                var $ligne = $(this).closest("tr");
+                $ligne.prev().before($ligne);
+                renumeroter();
+            }).on("click", ".monclubtt-partenaire-descendre", function() {
+                var $ligne = $(this).closest("tr");
+                $ligne.next().after($ligne);
+                renumeroter();
+            });
+        });');
+    }
+
+    /**
+     * Partenaires : lignes normalisées, logo vérifié (image de la
+     * médiathèque), nom et lien nettoyés.
+     *
+     * @param mixed $valeur
+     * @return array<int, array{logo: int, nom: string, url: string}>
+     */
+    public function sanitize_partenaires($valeur)
+    {
+        $partenaires = array();
+        foreach (monclubtt_normaliser_partenaires(is_array($valeur) ? array_values($valeur) : array()) as $p) {
+            if ($this->sanitize_logo($p['logo']) === 0) {
+                continue;
+            }
+            $p['nom'] = sanitize_text_field($p['nom']);
+            $p['url'] = esc_url_raw($p['url'], array('http', 'https'));
+            $partenaires[] = $p;
+        }
+        return $partenaires;
     }
 
     /**

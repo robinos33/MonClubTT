@@ -28,7 +28,7 @@ Menu *Mon Club TT* :
 - **Calendrier** — événements saisis à la main ou importés du tableur de la saison (CSV ou JSON), rangés par série et par catégorie
 - **Comité directeur** — fiche par membre (photo, prénom, nom, poste au bureau, commissions cochées, ordre) ; commissions dans *Comité directeur › Commissions*
 - **Shortcodes** — tous les shortcodes du plugin, avec exemples à copier en un clic, attributs et slugs disponibles sur le site
-- **Pong**, **Réglages** (nom, logo et couleurs du club)
+- **Pong**, **Réglages** (nom, logo et couleurs du club, partenaires)
 - **Réseaux sociaux** — visuels prêts à poster (Top Progression, nouveaux paliers de points, et pour le dernier week-end de championnat : résultats des équipes, top perfs, cartons pleins, victoires à la belle), générés dans le navigateur et téléchargeables en PNG portrait 4:5 (1080 × 1350, affiché en entier dans le fil Instagram et Facebook), avec un texte de publication pré-rempli. « Créer un article » en fait un brouillon : visuel en image à la une (avec texte alternatif), légende et données en texte, catégorie par visuel et lien de fin réglables ; un second clic pour la même période propose l'article existant. Depuis l'éditeur d'un article publié, « Publier sur les réseaux » le partage sur Facebook et Instagram avec un texte par réseau, jusqu'à 10 photos et l'historique des publications, en deux modes choisis réseau par réseau : **partage manuel** pour tous les comptes (texte à copier, photos prêtes à poster, partage du téléphone vers l'appli) ou **publication automatique** par l'API Graph de Meta pour une Page Facebook et un compte Instagram professionnel (app Meta du club, réglages *Réseaux sociaux*). Balises Open Graph sur les articles si aucune extension SEO ne les fournit
 
 ---
