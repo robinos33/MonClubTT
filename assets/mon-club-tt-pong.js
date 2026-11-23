@@ -49,6 +49,17 @@
     var LANCER = 0.6, FENETRE = 0.1, HAUTEUR_LANCER = 34;
     var SERVICE_RAPIDE = 1.7, SERVICE_MOU = 0.85;
 
+    /* Vue légèrement inclinée, sans fuite : la physique reste en
+     * coordonnées de table vue de dessus (x, y) avec une hauteur z, le rendu
+     * ne fait que tasser la profondeur pour libérer en haut la place des
+     * séparations. Transformation affine : x inchangé (les rebonds latéraux
+     * tombent sur les bords de l'écran), trajectoires droites, vitesse
+     * apparente constante. La ligne de frappe du joueur garde ses
+     * coordonnées d'écran, celle de l'adversaire descend en VUE.yAdversaire.
+     * VUE.relief : part de la hauteur z visible à l'écran. */
+    var VUE = { yAdversaire: 96, relief: 0.7 };
+    var FILET = 14; // hauteur du filet
+
     var NIVEAUX = {
         normal:  { libelle: 'Normal',         vIa: 270, erreur: 42, reaction: 0.65, lecture: 0.5,  v0: 300, vMax: 640, rot: 0.3, rapide: 0.12 },
         mondial: { libelle: 'Expert',         vIa: 350, erreur: 34, reaction: 0.85, lecture: 0.7,  v0: 330, vMax: 720, rot: 0.5, rapide: 0.2 }
@@ -64,6 +75,14 @@
     }
 
     function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
+
+    /* Point de la salle (x, y au sol, hauteur z) projeté à l'écran ; s =
+     * échelle des objets posés à cette profondeur (1 : les tailles des
+     * joueurs portent déjà l'effet de profondeur). */
+    function proj(x, y, z) {
+        var k = (HIT_J - VUE.yAdversaire) / (HIT_J - HIT_A);
+        return { x: x, y: HIT_J - (HIT_J - y) * k - (z || 0) * VUE.relief, s: 1 };
+    }
 
     function rgb(hex) {
         var n = parseInt(String(hex).slice(1), 16);
@@ -1053,7 +1072,7 @@
             ['joueur', 'adversaire'].forEach(function (cote) {
                 var s = sprites[cote];
                 if (!s || !s.photo) return;
-                var k = s.hauteur / SVG.h;
+                var k = s.hauteur * proj(0, cote === 'joueur' ? FIG_J.hit : FIG_A.hit, 0).s / SVG.h;
                 var hTete = SVG.tete * k * echelle * dpr;
                 s.tete = sticker(s.photo, hTete, 6 * hTete / TETE_GRILLE);
             });
@@ -1424,7 +1443,7 @@
             var py = balle.y;
             balle.vx += balle.ax * dt;
             balle.ax *= 1 - EFFET_AMORTI * dt;
-            balle.trace.unshift({ x: balle.x, y: balle.y });
+            balle.trace.unshift({ x: balle.x, y: balle.y, z: hauteurBalle() });
             if (balle.trace.length > 7) balle.trace.pop();
             balle.x += balle.vx * dt;
             balle.y += balle.vy * dt;
@@ -1455,63 +1474,94 @@
             else if (balle.y + R < 0) marquer('joueur');
         }
 
-        /* ---- Rendu ---- */
+        /* ---- Rendu ----
+         * Tout ce qui est posé dans la salle passe par proj() (perspective) ;
+         * le toast reste en coordonnées d'écran. */
+        function chemin(points) {
+            ctx.beginPath();
+            points.forEach(function (p, i) { if (i) ctx.lineTo(p.x, p.y); else ctx.moveTo(p.x, p.y); });
+            ctx.closePath();
+        }
+
         function dessinerFond() {
-            ctx.fillStyle = couleurs.fond || '#f4f1ea';
+            var fond = couleurs.fond || '#f4f1ea';
+            ctx.fillStyle = fond;
             ctx.fillRect(0, 0, W, H);
         }
 
         function dessinerTable() {
             var prim = couleurs.primaire || '#2b7cb5';
+            var x1 = TABLE.x, x2 = TABLE.x + TABLE.w, y1 = TABLE.y, y2 = TABLE.y + TABLE.h;
+            var hg = proj(x1, y1, 0), hd = proj(x2, y1, 0), bd = proj(x2, y2, 0), bg = proj(x1, y2, 0);
+            var ep = 9 * bg.s; // épaisseur du plateau, vue sur le bord avant
             // ombre portée de la table
             ctx.fillStyle = 'rgba(15,20,26,0.16)';
-            ctx.fillRect(TABLE.x + 6, TABLE.y + 8, TABLE.w, TABLE.h);
-            var g = ctx.createLinearGradient(0, TABLE.y, 0, TABLE.y + TABLE.h);
+            chemin([{ x: hg.x + 5, y: hg.y + 6 }, { x: hd.x + 5, y: hd.y + 6 }, { x: bd.x + 7, y: bd.y + ep + 8 }, { x: bg.x + 7, y: bg.y + ep + 8 }]);
+            ctx.fill();
+            // bord avant
+            ctx.fillStyle = teinte(prim, -0.38);
+            chemin([bg, bd, { x: bd.x, y: bd.y + ep }, { x: bg.x, y: bg.y + ep }]);
+            ctx.fill();
+            var g = ctx.createLinearGradient(0, hg.y, 0, bg.y);
             g.addColorStop(0, teinte(prim, -0.12));
             g.addColorStop(0.5, prim);
             g.addColorStop(1, teinte(prim, -0.12));
             ctx.fillStyle = g;
-            ctx.fillRect(TABLE.x, TABLE.y, TABLE.w, TABLE.h);
+            chemin([hg, hd, bd, bg]);
+            ctx.fill();
+            // lignes blanches
+            var i = 2;
             ctx.strokeStyle = '#fff';
-            ctx.lineWidth = 4;
-            ctx.strokeRect(TABLE.x + 2, TABLE.y + 2, TABLE.w - 4, TABLE.h - 4);
-            ctx.lineWidth = 1.5;
-            ctx.beginPath();
-            ctx.moveTo(W / 2, TABLE.y + 4);
-            ctx.lineTo(W / 2, TABLE.y + TABLE.h - 4);
+            ctx.lineJoin = 'round';
+            ctx.lineWidth = 3.4;
+            chemin([proj(x1 + i, y1 + i, 0), proj(x2 - i, y1 + i, 0), proj(x2 - i, y2 - i, 0), proj(x1 + i, y2 - i, 0)]);
             ctx.stroke();
-            // filet
-            var yf = TABLE.y + TABLE.h / 2;
+            ctx.lineWidth = 1.5;
+            var c1 = proj(W / 2, y1 + 4, 0), c2 = proj(W / 2, y2 - 4, 0);
+            ctx.beginPath();
+            ctx.moveTo(c1.x, c1.y);
+            ctx.lineTo(c2.x, c2.y);
+            ctx.stroke();
+        }
+
+        /* Filet : toile tendue entre deux poteaux, au milieu de la table. */
+        function dessinerFilet() {
+            var yf = TABLE.y + TABLE.h / 2, xa = TABLE.x - 10, xb = TABLE.x + TABLE.w + 10;
+            var a = proj(xa, yf, 0), b = proj(xb, yf, 0), ah = proj(xa, yf, FILET), bh = proj(xb, yf, FILET);
             ctx.fillStyle = 'rgba(15,20,26,0.18)';
-            ctx.fillRect(TABLE.x - 10, yf + 2, TABLE.w + 20, 6);
+            ctx.fillRect(a.x, a.y, b.x - a.x, 5 * a.s);
             ctx.fillStyle = 'rgba(35,52,74,0.55)';
-            ctx.fillRect(TABLE.x - 10, yf - 3, TABLE.w + 20, 6);
+            ctx.fillRect(ah.x, ah.y, bh.x - ah.x, a.y - ah.y);
             ctx.fillStyle = '#fff';
-            ctx.fillRect(TABLE.x - 10, yf - 4, TABLE.w + 20, 2);
+            ctx.fillRect(ah.x, ah.y - 1, bh.x - ah.x, 2.2 * a.s);
             ctx.fillStyle = '#23344a';
-            ctx.fillRect(TABLE.x - 14, yf - 6, 6, 10);
-            ctx.fillRect(TABLE.x + TABLE.w + 8, yf - 6, 6, 10);
+            [[xa - 4, ah], [xb + 4, bh]].forEach(function (p) {
+                var pied = proj(p[0], yf, 0), tete = proj(p[0], yf, FILET + 2);
+                ctx.fillRect(pied.x - 3 * pied.s, tete.y, 6 * pied.s, pied.y - tete.y + 2);
+            });
         }
 
         /* Joueur dans sa pose (coup droit ou revers juste après une frappe),
          * ombre au sol, penché dans le sens du déplacement (pivot aux pieds),
-         * tête détourée posée par-dessus. */
+         * tête détourée posée par-dessus. Raquette sur la ligne de frappe,
+         * taille selon la profondeur. */
         function dessinerFigure(s, fig, cadre) {
             if (!s) return;
-            var k = s.hauteur / SVG.h;
-            var fw = SVG.l * k, fh = s.hauteur;
-            var top = cadre.hit - SVG.yRaquette * k;
-            var fx = fig.x - SVG.l / 2 * k;
+            var p = proj(fig.x, cadre.hit, 0);
+            var k = s.hauteur * p.s / SVG.h;
+            var fw = SVG.l * k, fh = s.hauteur * p.s;
+            var top = p.y - SVG.yRaquette * k;
+            var fx = p.x - SVG.l / 2 * k;
             var pied = top + SVG.pied * k;
             var corps = s.corps[fig.tCoup > 0 && fig.coup ? fig.coup : 'attente'];
             ctx.save();
             ctx.fillStyle = 'rgba(15,20,26,0.16)';
             ctx.beginPath();
-            ctx.ellipse(fig.x, pied + 2 * k, 58 * k, 8 * k, 0, 0, Math.PI * 2);
+            ctx.ellipse(p.x, pied + 2 * k, 58 * k, 8 * k, 0, 0, Math.PI * 2);
             ctx.fill();
-            ctx.translate(fig.x, pied);
+            ctx.translate(p.x, pied);
             ctx.rotate(clamp((fig.vx || 0) / 700, -1, 1) * 10 * Math.PI / 180);
-            ctx.translate(-fig.x, -pied);
+            ctx.translate(-p.x, -pied);
             ctx.save();
             ctx.shadowColor = 'rgba(15,20,26,0.22)';
             ctx.shadowBlur = 8 * echelle * dpr;
@@ -1520,7 +1570,7 @@
             ctx.restore();
             if (s.tete) {
                 var tw = s.tete.width / (echelle * dpr), th = s.tete.height / (echelle * dpr);
-                ctx.translate(fig.x, top + SVG.yTete * k);
+                ctx.translate(p.x, top + SVG.yTete * k);
                 ctx.rotate(inclinaison(s.cle) * Math.PI / 180);
                 ctx.shadowColor = 'rgba(15,20,26,0.35)';
                 ctx.shadowBlur = 4 * echelle * dpr;
@@ -1550,24 +1600,26 @@
             var effet = Math.max(Math.abs(balle.ax) / EFFET_MAX, Math.abs(balle.rot));
             var teinteSillage = balle.rot > 0.15 ? '255,120,40' : balle.rot < -0.15 ? '90,170,255' : '255,255,255';
             if (phase === 'jeu' && effet > 0.15) {
-                balle.trace.forEach(function (p, i) {
+                balle.trace.forEach(function (t, i) {
+                    var q = proj(t.x, t.y, t.z);
                     ctx.fillStyle = 'rgba(' + teinteSillage + ',' + (Math.min(1, effet) * 0.35 * (1 - i / balle.trace.length)).toFixed(3) + ')';
                     ctx.beginPath();
-                    ctx.arc(p.x, p.y - z * 0.6, R * (1 - i / 10), 0, Math.PI * 2);
+                    ctx.arc(q.x, q.y, R * q.s * (1 - i / 10), 0, Math.PI * 2);
                     ctx.fill();
                 });
             }
-            ctx.fillStyle = 'rgba(15,20,26,0.25)';
+            var sol = proj(balle.x, balle.y, 0), p = proj(balle.x, balle.y, z);
+            ctx.fillStyle = 'rgba(15,20,26,' + (0.28 - z / 200).toFixed(3) + ')';
             ctx.beginPath();
-            ctx.ellipse(balle.x + z * 0.35, balle.y + z * 0.2, R * 0.95, R * 0.7, 0, 0, Math.PI * 2);
+            ctx.ellipse(sol.x + z * 0.15 * sol.s, sol.y + z * 0.05 * sol.s, R * 0.95 * sol.s, R * 0.6 * sol.s, 0, 0, Math.PI * 2);
             ctx.fill();
-            var by = balle.y - z * 0.6, r = R * (1 + z / 90);
-            var g = ctx.createRadialGradient(balle.x - r * 0.35, by - r * 0.35, r * 0.1, balle.x, by, r);
+            var r = R * p.s * (1 + z / 90);
+            var g = ctx.createRadialGradient(p.x - r * 0.35, p.y - r * 0.35, r * 0.1, p.x, p.y, r);
             g.addColorStop(0, '#ffffff');
             g.addColorStop(1, '#f2a24a');
             ctx.fillStyle = g;
             ctx.beginPath();
-            ctx.arc(balle.x, by, r, 0, Math.PI * 2);
+            ctx.arc(p.x, p.y, r, 0, Math.PI * 2);
             ctx.fill();
         }
 
@@ -1590,16 +1642,19 @@
             ctx.restore();
         }
 
+        /* Ordre du peintre, du fond vers la caméra. La balle passe toujours
+         * devant les joueurs : on doit la voir arriver sur la raquette. */
         function rendu() {
             var s = echelle * dpr;
             ctx.setTransform(s, 0, 0, s, 0, 0);
+            var filet = TABLE.y + TABLE.h / 2;
             dessinerFond();
-            // L'adversaire passe derrière la table : le bord cache ses pieds.
             dessinerFigure(sprites.adversaire, figA, FIG_A);
             dessinerTable();
-            if (balle.y < TABLE.y + TABLE.h / 2) dessinerBalle();
+            if (balle.y < filet) dessinerBalle();
+            dessinerFilet();
             dessinerFigure(sprites.joueur, figJ, FIG_J);
-            if (balle.y >= TABLE.y + TABLE.h / 2) dessinerBalle();
+            if (balle.y >= filet) dessinerBalle();
             dessinerToast();
         }
 

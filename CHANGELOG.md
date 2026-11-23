@@ -11,6 +11,10 @@ Format : [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/)
 
 - **Partenaires du club** (*Réglages*) : une ligne par partenaire avec son logo (médiathèque), son nom et un lien facultatif, dans l'ordre choisi (flèches pour réordonner). Aperçu de chaque logo en blanc sur fond marine, tel qu'il s'affichera dans le jeu de pong (#45).
 
+### Modifié
+
+- **Pong** : table vue légèrement inclinée, en relief (bord avant du plateau, filet tendu entre ses poteaux, ombres). La table reste rectangulaire : trajectoires, rebonds sur les bords, effets et commandes inchangés ; la profondeur est seulement tassée pour libérer le haut de l'écran (#45).
+
 ## [2.7.0] — 2026-11-23
 
 ### Modifié
