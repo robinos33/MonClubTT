@@ -5,6 +5,12 @@ Format : [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/)
 
 ---
 
+## [Unreleased]
+
+### Ajouté
+
+- **Pong** : effets à l'impact (étincelles et onde, plus fournies à grande vitesse), secousse de l'écran sur un smash ou un service rapide gagnant, ralenti quand la balle de match passe la raquette, traînée de la balle à grande vitesse. Ni secousse ni ralenti quand l'appareil demande de réduire les animations (#47).
+
 ## [2.9.0] — 2026-11-23
 
 ### Ajouté

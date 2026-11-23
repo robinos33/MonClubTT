@@ -86,6 +86,9 @@ Yes. The plugin exposes six filters: `monclubtt_get_evenements`, `monclubtt_get_
 
 == Changelog ==
 
+= Unreleased =
+* Added: pong hit sparks, screen shake on smashes and winning fast serves, slow motion on match point, speed trail; no shake or slow motion with reduced motion
+
 = 2.9.0 =
 * Added: pong daily challenge: the same opponent for everyone each day, one counted attempt per player and device, daily ranking by point margin then match duration, with yesterday's winner
 

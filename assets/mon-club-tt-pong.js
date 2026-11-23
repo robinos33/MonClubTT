@@ -393,6 +393,14 @@
         }
         return 'point';
     };
+    /* Le prochain point peut-il finir le match (d'un côté ou de l'autre) ? */
+    Match.prototype.balleDeMatch = function () {
+        var self = this;
+        return ['joueur', 'adversaire'].some(function (c) {
+            var p = self.points[c] + 1, q = self.points[autre(c)];
+            return p >= 11 && p - q >= 2 && self.manches[c] + 1 >= self.gagnantes;
+        });
+    };
     Match.prototype.mancheSuivante = function () {
         this.points = { joueur: 0, adversaire: 0 };
         this.premierServeur = autre(this.premierServeur);
@@ -1265,6 +1273,67 @@
         var raf = 0, dernier = 0;
         var toast = { texte: '', t: 0 };
 
+        /* ---- Effets visuels (tous modes) ----
+         * Étincelles et onde à chaque frappe (selon la vitesse), secousse sur
+         * un smash ou un service rapide gagnant, ralenti quand la balle de
+         * match passe la raquette. Ni secousse ni ralenti si l'appareil
+         * demande de réduire les animations. */
+        var mouvementReduit = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+        var particules = [], secousse = { t: 0, duree: 1, force: 0 };
+        function impact() {
+            var ratio = clamp(balle.v / NIVEAUX[etat.niveau].vMax, 0, 1.4);
+            var p = proj(balle.x, balle.y, hauteurBalle());
+            particules.push({ onde: true, x: p.x, y: p.y, t: 0, vie: 0.2, r: 6 + 14 * ratio });
+            var nb = mouvementReduit ? 3 : Math.round(4 + 8 * ratio);
+            for (var i = 0; i < nb; i++) {
+                var a = Math.random() * Math.PI * 2, v = 60 + Math.random() * 140 * (0.5 + ratio);
+                particules.push({
+                    x: p.x, y: p.y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, t: 0, vie: 0.22 + Math.random() * 0.15,
+                    couleur: i % 3 ? '255,255,255' : '242,162,74'
+                });
+            }
+        }
+        function secouer(duree, force) {
+            if (!mouvementReduit) secousse = { t: duree, duree: duree, force: force };
+        }
+        function animerEffets(dt) {
+            particules = particules.filter(function (q) {
+                q.t += dt;
+                if (!q.onde) {
+                    q.x += q.vx * dt;
+                    q.y += q.vy * dt;
+                    q.vx *= 1 - 4 * dt;
+                    q.vy *= 1 - 4 * dt;
+                }
+                return q.t < q.vie;
+            });
+            if (secousse.t > 0) secousse.t = Math.max(0, secousse.t - dt);
+        }
+        function dessinerEffets() {
+            particules.forEach(function (q) {
+                var k = 1 - q.t / q.vie;
+                if (q.onde) {
+                    ctx.strokeStyle = 'rgba(255,255,255,' + (0.7 * k).toFixed(3) + ')';
+                    ctx.lineWidth = 2.5 * k + 0.5;
+                    ctx.beginPath();
+                    ctx.arc(q.x, q.y, q.r * (1 - k * 0.7), 0, Math.PI * 2);
+                    ctx.stroke();
+                } else {
+                    ctx.fillStyle = 'rgba(' + q.couleur + ',' + k.toFixed(3) + ')';
+                    ctx.beginPath();
+                    ctx.arc(q.x, q.y, 1.2 + 1.6 * k, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            });
+        }
+        /* Facteur de temps : ralenti quand la balle de match a passé la
+         * raquette qui devait la renvoyer (le point se joue). */
+        function vitesseTemps() {
+            if (mouvementReduit || phase !== 'jeu' || !match || !match.balleDeMatch()) return 1;
+            var manquee = balle.vy > 0 ? balle.y - R > HIT_J : balle.y + R < HIT_A;
+            return manquee ? 0.35 : 1;
+        }
+
         /* Personnage : corps dessiné dans ses trois poses (sans tête si photo)
          * + tête détourée. */
         function preparerSprite(p, tenue, hauteur) {
@@ -1451,6 +1520,9 @@
             balle.trace = [];
             balle.y0 = balle.y;
             balle.rebond = false;
+            balle.frappes = 0;
+            balle.serveur = cote;
+            balle.serviceRapide = force > 1;
             phase = 'jeu';
             toast.t = 0;
             tock(force > 1 ? 760 : 620, etat.son);
@@ -1472,6 +1544,10 @@
             if (fig === figJ && Math.abs(balle.rot) >= 0.5) montrerToast(balle.rot > 0 ? 'Lifté !' : 'Coupé !', 0.6);
             balle.y0 = balle.y;
             balle.rebond = false;
+            balle.frappes++;
+            impact();
+            // Smash : frappe du joueur à pleine vitesse.
+            if (fig === figJ && balle.v >= n.vMax * 0.95) secouer(0.18, 3.5);
             tock(sens < 0 ? 560 : 700, etat.son);
         }
 
@@ -1510,6 +1586,7 @@
         }
 
         function marquer(cote) {
+            if (balle.serviceRapide && balle.frappes === 0 && balle.serveur === cote) secouer(0.25, 5);
             balle.visible = false;
             var resultat = match.marquer(cote);
             marqueur.maj(match);
@@ -1676,6 +1753,7 @@
         }
 
         function step(dt) {
+            animerEffets(dt);
             if (match && (phase === 'service' || phase === 'jeu' || phase === 'pause')) match.duree += dt;
             deplacerJoueur(dt);
             deplacerIa(dt);
@@ -1913,7 +1991,9 @@
             var z = hauteurBalle();
             // Sillage visible seulement quand la balle a de l'effet.
             // Blanc pour l'effet latéral, orangé pour le lifté, bleuté pour le coupé.
-            var effet = Math.max(Math.abs(balle.ax) / EFFET_MAX, Math.abs(balle.rot));
+            // Traînée aussi à grande vitesse (au-delà de 75 % de la vitesse maximale).
+            var vitesse = clamp((balle.v / NIVEAUX[etat.niveau].vMax - 0.75) / 0.25, 0, 1);
+            var effet = Math.max(Math.abs(balle.ax) / EFFET_MAX, Math.abs(balle.rot), vitesse * 0.8);
             var teinteSillage = balle.rot > 0.15 ? '255,120,40' : balle.rot < -0.15 ? '90,170,255' : '255,255,255';
             if (phase === 'jeu' && effet > 0.15) {
                 balle.trace.forEach(function (t, i) {
@@ -1963,6 +2043,10 @@
         function rendu() {
             var s = echelle * dpr;
             ctx.setTransform(s, 0, 0, s, 0, 0);
+            if (secousse.t > 0) {
+                var k = secousse.force * secousse.t / secousse.duree;
+                ctx.translate((Math.random() * 2 - 1) * k, (Math.random() * 2 - 1) * k);
+            }
             var filet = TABLE.y + TABLE.h / 2;
             dessinerFond();
             dessinerSeparations();
@@ -1972,13 +2056,14 @@
             dessinerFilet();
             dessinerFigure(sprites.joueur, figJ, FIG_J);
             if (balle.y >= filet) dessinerBalle();
+            dessinerEffets();
             dessinerToast();
         }
 
         function boucle(t) {
             var dt = Math.min((t - dernier) / 1000, 1 / 30);
             dernier = t;
-            if (!document.hidden && !enPause) step(dt);
+            if (!document.hidden && !enPause) step(dt * vitesseTemps());
             rendu();
             raf = phase === 'arret' || !root.isConnected ? 0 : requestAnimationFrame(boucle);
         }
