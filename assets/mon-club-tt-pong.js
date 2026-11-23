@@ -1112,10 +1112,13 @@
         /* ---- Séparations : logos des partenaires, sinon du club ----
          * Images chargées une fois, recolorées en blanc à la taille d'affichage
          * à chaque redimensionnement. Plus de partenaires que de panneaux : la
-         * rangée avance d'un cran à chaque match. */
+         * rangée défile dans l'ordre, d'une rangée entière à chaque match, à
+         * partir d'un partenaire tiré au hasard à chaque visite (sinon les
+         * mêmes sortiraient toujours au premier match, le plus joué). */
         var partenaires = (cfg.partenaires || []).map(function (p) { return { url: p.logo, nom: p.nom || '' }; });
         var club = { url: cfg.club && cfg.club.logo || '', nom: cfg.club && cfg.club.nom || '' };
         var panneaux = [], tourSepa = 0;
+        var departSepa = Math.floor(Math.random() * Math.max(1, partenaires.length));
         partenaires.concat([club]).forEach(function (p) {
             chargerImage(p.url).then(function (img) {
                 p.img = img;
@@ -1137,7 +1140,7 @@
             var places = partenaires.length < n ? placesPartenaires(partenaires.length, n) : null;
             for (var i = 0; i < n; i++) {
                 var p;
-                if (!places) p = partenaires[(tourSepa * n + i) % partenaires.length];
+                if (!places) p = partenaires[(departSepa + tourSepa * n + i) % partenaires.length];
                 else p = places.indexOf(i) >= 0 ? partenaires[places.indexOf(i)] : club;
                 panneaux.push(contenu(p));
             }
