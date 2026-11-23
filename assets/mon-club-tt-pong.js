@@ -31,8 +31,9 @@
     var BORD_GRILLE = 6;                         // liseré blanc (px) des têtes de la sélection
     var TETE_GRILLE = 88;                        // hauteur (px CSS) des têtes de la sélection
 
-    /* Accélération à chaque frappe d'un même échange (repart de v0 au service). */
-    var ACCELERATION = 1.08;
+    /* Accélération à chaque frappe d'un même échange (repart de v0 au service) :
+     * plafond vMax atteint en ~8 frappes. */
+    var ACCELERATION = 1.10;
     /* Effet : la vitesse latérale de la raquette à l'impact donne à la balle
      * une courbe (accélération latérale, px/s²) qui s'atténue en vol. */
     var EFFET_MAX = 270, EFFET_VITESSE = 450, EFFET_AMORTI = 0.8;
