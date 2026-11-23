@@ -5,6 +5,19 @@ Format : [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/)
 
 ---
 
+## [2.8.0] — 2026-11-23
+
+### Ajouté
+
+- **Partenaires du club** (*Réglages*) : une ligne par partenaire avec son logo (médiathèque), son nom et un lien facultatif, dans l'ordre choisi (flèches pour réordonner). Aperçu de chaque logo en blanc sur fond marine, tel qu'il s'affichera dans le jeu de pong (#45).
+- **Pong** : rangée de séparations bleu marine au fond de l'aire de jeu, derrière l'adversaire, sur toute la largeur. Les 4 panneaux portent les logos des partenaires en blanc, répartis sur la rangée s'ils sont moins nombreux, à tour de rôle d'un match à l'autre s'ils sont plus nombreux, en partant d'un partenaire tiré au hasard à chaque visite ; les panneaux libres affichent le logo du club, ou son nom (#45).
+
+### Modifié
+
+- **Pong** : table vue légèrement inclinée, en relief (bord avant du plateau, filet tendu entre ses poteaux, ombres). La table reste rectangulaire : trajectoires, rebonds sur les bords, effets et commandes inchangés ; la profondeur est seulement tassée pour libérer le haut de l'écran (#45).
+
+- **Pong** : la roue crantée (pause et réglages) passe au milieu du marqueur, entre les deux scores : elle ne cache plus rien sur la table ni sur les séparations (#45).
+
 ## [2.7.0] — 2026-11-23
 
 ### Modifié

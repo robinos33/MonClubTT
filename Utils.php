@@ -21,6 +21,10 @@ if ( ! class_exists( 'MonClubTT_Constantes' ) ) {
         const MONCLUBTT_LOGO = 'monclubtt_logo';
         /** Nom du club affiché (gestion des équipes, e-mails, visuels) ; vide : nom du site. */
         const MONCLUBTT_NOM_CLUB = 'monclubtt_nom_club';
+        /** Partenaires du club : logo (ID de la médiathèque), nom, lien ; dans l'ordre d'affichage. */
+        const MONCLUBTT_PARTENAIRES = 'monclubtt_partenaires';
+        /** Nombre maximal de partenaires enregistrés. */
+        const PARTENAIRES_MAX = 20;
         // Bandeau « ajoute l'équipe à ton écran d'accueil » sur les pages d'équipe ('1' / '0').
         const MONCLUBTT_APPLI_EQUIPES = 'monclubtt_appli_equipes';
         const MONCLUBTT_PONG_ADVERSAIRES = 'monclubtt_pong_adversaires';
@@ -336,6 +340,51 @@ if ( ! function_exists( 'monclubtt_normaliser_adversaires' ) ) {
             }
         }
         return $adversaires;
+    }
+
+}
+
+if ( ! function_exists( 'monclubtt_normaliser_partenaires' ) ) {
+
+    /**
+     * Partenaires du club, dans l'ordre de saisie : une ligne sans logo est
+     * écartée (le logo est ce qui s'affiche), le nom sert de texte
+     * alternatif, le lien n'est gardé qu'en http(s).
+     *
+     * @param mixed $valeur Tableau brut (option ou saisie).
+     * @return array<int, array{logo: int, nom: string, url: string}>
+     */
+    function monclubtt_normaliser_partenaires($valeur) {
+        $partenaires = array();
+        foreach (is_array($valeur) ? $valeur : array() as $ligne) {
+            if (!is_array($ligne) || !isset($ligne['logo']) || !is_numeric($ligne['logo']) || (int) $ligne['logo'] <= 0) {
+                continue;
+            }
+            $nom = isset($ligne['nom']) && is_string($ligne['nom']) ? trim(preg_replace('/\s+/u', ' ', wp_strip_all_tags($ligne['nom']))) : '';
+            $nom = function_exists('mb_substr') ? mb_substr($nom, 0, 80) : substr($nom, 0, 80);
+            $url = isset($ligne['url']) && is_string($ligne['url']) ? trim($ligne['url']) : '';
+            if ($url !== '' && (!filter_var($url, FILTER_VALIDATE_URL) || !preg_match('#^https?://#i', $url))) {
+                $url = '';
+            }
+            $partenaires[] = array('logo' => (int) $ligne['logo'], 'nom' => $nom, 'url' => $url);
+            if (count($partenaires) >= MonClubTT_Constantes::PARTENAIRES_MAX) {
+                break;
+            }
+        }
+        return $partenaires;
+    }
+
+}
+
+if ( ! function_exists( 'monclubtt_get_partenaires' ) ) {
+
+    /**
+     * Partenaires du club enregistrés dans Réglages.
+     *
+     * @return array<int, array{logo: int, nom: string, url: string}>
+     */
+    function monclubtt_get_partenaires() {
+        return monclubtt_normaliser_partenaires(get_option(MonClubTT_Constantes::MONCLUBTT_PARTENAIRES, array()));
     }
 
 }

@@ -3,7 +3,7 @@ Contributors: robinos33
 Tags: table tennis, fftt, club, rankings, results
 Requires at least: 6.4
 Tested up to: 7.1
-Stable tag: 2.7.0
+Stable tag: 2.8.0
 Requires PHP: 8.4
 License: GPLv2
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -85,6 +85,12 @@ Player data is refreshed on manual sync only. League standings and results are c
 Yes. The plugin exposes six filters: `monclubtt_get_evenements`, `monclubtt_get_joueurs`, `monclubtt_get_equipes`, `monclubtt_get_classement_poule`, `monclubtt_get_rencontres_poule`, `monclubtt_get_feuille_rencontre`. See the documentation for usage.
 
 == Changelog ==
+
+= 2.8.0 =
+* Added: club partners in Settings (logo from the media library, name, optional link, display order), with a preview of each logo in white on navy
+* Changed: pong table seen slightly tilted, with depth (table edge, net, shadows); still rectangular, ball physics and controls unchanged
+* Added: a row of navy barriers behind the pong opponent, with the club partners' logos in white (club logo or name when there are no partners)
+* Changed: the pong pause button moves to the middle of the scoreboard
 
 = 2.7.0 =
 * Changed: pong ball speeds up a little faster during a rally (+10% per hit instead of +8%), reaching top speed in about 8 hits
