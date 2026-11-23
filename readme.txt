@@ -3,7 +3,7 @@ Contributors: robinos33
 Tags: table tennis, fftt, club, rankings, results
 Requires at least: 6.4
 Tested up to: 7.1
-Stable tag: 2.7.0
+Stable tag: 2.8.0
 Requires PHP: 8.4
 License: GPLv2
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -86,7 +86,7 @@ Yes. The plugin exposes six filters: `monclubtt_get_evenements`, `monclubtt_get_
 
 == Changelog ==
 
-= Unreleased =
+= 2.8.0 =
 * Added: club partners in Settings (logo from the media library, name, optional link, display order), with a preview of each logo in white on navy
 * Changed: pong table seen slightly tilted, with depth (table edge, net, shadows); still rectangular, ball physics and controls unchanged
 * Added: a row of navy barriers behind the pong opponent, with the club partners' logos in white (club logo or name when there are no partners)
