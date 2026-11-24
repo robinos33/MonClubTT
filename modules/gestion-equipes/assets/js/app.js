@@ -193,11 +193,24 @@
     return complete;
   }
 
+  // Les compos de la journée affichée remplacent celles de la même journée
+  // dans les compos de la phase, qui alimentent le tableau de bord.
+  function setRoundCompositions(compos, extra) {
+    var ph = S.phase + 1, rn = S.journeeN;
+    var phaseCompos = S.phaseCompositions.filter(function (c) {
+      return !(Number(c.phase) === ph && Number(c.round) === rn);
+    }).concat(compos);
+    setState(Object.assign({ compositions: compos, phaseCompositions: phaseCompos }, extra || {}));
+  }
+
   function loadCompositions() {
+    var ph = S.phase + 1, rn = S.journeeN;
     apiFetch('/compositions?season=' + encodeURIComponent(cfg.season || '') +
-             '&phase=' + (S.phase + 1) + '&round=' + S.journeeN)
+             '&phase=' + ph + '&round=' + rn)
       .then(function (c) {
-        setState({ compositions: c || [] });
+        // Journée quittée entre-temps : ses compos seraient rangées sous la nouvelle.
+        if (S.phase + 1 !== ph || S.journeeN !== rn) return;
+        setRoundCompositions(c || []);
         loadBurnageContext(currentTeamCode(), S.journeeN);
       })
       .catch(function () {});
@@ -333,7 +346,7 @@
     });
     compos.push({ team_code: teamCode, slot_number: slotNum, player_id: playerId, phase: ph, round: rn, season: se });
     invalidateBurnage(teamCode, rn);
-    setState({ compositions: compos, picker: null, pickerQ: '' });
+    setRoundCompositions(compos, { picker: null, pickerQ: '' });
     apiFetch('/compositions', {
       method: 'POST',
       body: JSON.stringify({ team_code: teamCode, slot_number: slotNum, player_id: playerId, phase: ph, round: rn, season: se })
@@ -349,7 +362,7 @@
         ? Object.assign({}, c, { player_id: null }) : c;
     });
     invalidateBurnage(teamCode, rn);
-    setState({ compositions: compos });
+    setRoundCompositions(compos);
     apiFetch('/compositions', {
       method: 'DELETE',
       body: JSON.stringify({ team_code: teamCode, slot_number: slotNum, phase: ph, round: rn, season: se })
