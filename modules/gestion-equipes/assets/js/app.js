@@ -65,6 +65,7 @@
     journees: buildJournees(cfg.phase || 0),
     pwaPrompt: null, pwaIos: false, pwaDismissed: !!localStorage.getItem('ttp-pwa-dismissed'),
     share: null,
+    smsEdit: null,
     rulesOpen: false, rulesDetail: {}
   };
 
@@ -1576,8 +1577,7 @@
 
     // SMS
     h += sectionWrap('SMS pré-rédigés',
-      infoRow('Demande de dispo', 'Modifier →', dark, true) +
-      infoRow('Confirmation compo', 'Modifier →', dark, true),
+      smsEditRow('availability', t) + smsEditRow('confirmation', t),
       dark);
 
     // About
@@ -1587,6 +1587,88 @@
 
     h += '</div>';
     return h;
+  }
+
+  var SMS_KINDS = {
+    availability: { label: 'Demande de dispo', help: 'Envoyé depuis la liste des joueurs et la fiche d’un joueur. {equipe} : son équipe habituelle.' },
+    confirmation: { label: 'Confirmation compo', help: 'Envoyé aux joueurs placés, depuis la compo de la vue Journée. {equipe} : l’équipe de la compo.' }
+  };
+
+  function smsEditRow(kind, t) {
+    return '<button data-action="sms-edit" data-value="' + kind + '" style="width:100%;display:flex;justify-content:space-between;padding:8px 12px;font-size:12px;align-items:center;background:transparent;border:none;cursor:pointer;text-align:left">' +
+      '<span style="color:' + t.ink2 + '">' + esc(SMS_KINDS[kind].label) + '</span>' +
+      '<span style="color:' + C.pri + ';font-weight:600">Modifier →</span>' +
+    '</button>';
+  }
+
+  // Joueur fictif, prochaine journée datée (à défaut, aujourd'hui) : l'aperçu
+  // montre un texte complet, quelle que soit la journée affichée.
+  function smsPreview(text) {
+    var team = S.teams[0];
+    var next = findGlobalNext();
+    return w.TTPSms.body(text, {
+      prenom: 'Camille', nom: 'MARTIN', equipe: team ? (team.name || team.code) : 'Équipe 1',
+      journee: next ? next.round : 1, date: w.TTPSms.formatDate(next ? next.date : todayISO())
+    });
+  }
+
+  function renderSmsEdit() {
+    var t = tk(S.dark);
+    var se = S.smsEdit;
+    var kind = SMS_KINDS[se.kind];
+    var vars = w.TTPSms.VARIABLES.map(function (v) {
+      return '<code style="font-size:11px;padding:1px 5px;border-radius:4px;background:' + t.surf2 + ';color:' + t.ink + '">{' + v + '}</code>';
+    }).join(' ');
+    var btn = 'flex:1;padding:10px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer';
+    return '<div style="position:absolute;inset:0;z-index:60;display:flex;align-items:center;justify-content:center;padding:16px">' +
+      '<div data-action="sms-edit-close" style="position:absolute;inset:0;background:rgba(0,0,0,0.5)"></div>' +
+      '<div style="position:relative;background:' + t.surf + ';border-radius:14px;padding:16px;max-width:420px;width:100%;box-shadow:0 10px 40px rgba(0,0,0,0.3)">' +
+        '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">' +
+          '<div style="flex:1;font-size:15px;font-weight:700;color:' + t.ink + '">' + esc(kind.label) + '</div>' +
+          '<button data-action="sms-edit-close" style="width:28px;height:28px;border-radius:8px;border:none;background:' + t.surf2 + ';color:' + t.ink2 + ';font-size:14px;cursor:pointer">✕</button>' +
+        '</div>' +
+        '<div style="font-size:11px;color:' + t.ink2 + ';line-height:1.5;margin-bottom:10px">' + esc(kind.help) + '</div>' +
+        '<textarea data-input="sms-text" rows="5" aria-label="Texte du SMS" style="width:100%;box-sizing:border-box;padding:10px;border-radius:8px;border:1px solid ' + t.bord + ';background:' + t.surf2 + ';color:' + t.ink + ';font-size:16px;font-family:inherit;line-height:1.4;resize:vertical">' + esc(se.text) + '</textarea>' +
+        '<div style="font-size:11px;color:' + t.ink2 + ';margin:6px 0 12px;line-height:1.8">Variables : ' + vars + '</div>' +
+        '<div style="font-size:10px;color:' + t.ink2 + ';font-weight:600;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px">Aperçu</div>' +
+        '<div data-sms-preview style="font-size:13px;color:' + t.ink + ';background:' + t.priSoft + ';border-radius:12px;padding:10px 12px;margin-bottom:12px;white-space:pre-wrap;word-break:break-word">' + esc(smsPreview(se.text)) + '</div>' +
+        (se.error ? '<div style="font-size:12px;color:' + C.err + ';background:' + C.errSoft + ';border-radius:8px;padding:8px 10px;margin-bottom:12px">' + esc(se.error) + '</div>' : '') +
+        '<div style="display:flex;gap:8px">' +
+          '<button data-action="sms-edit-close" style="' + btn + ';border:1px solid ' + t.bord + ';background:transparent;color:' + t.ink + '">Annuler</button>' +
+          '<button data-action="sms-edit-save"' + (se.saving ? ' disabled' : '') + ' style="' + btn + ';border:none;background:' + C.pri + ';color:white;opacity:' + (se.saving ? '0.6' : '1') + '">' + (se.saving ? 'Enregistrement…' : 'Enregistrer') + '</button>' +
+        '</div>' +
+      '</div>' +
+    '</div>';
+  }
+
+  function openSmsEdit(kind) {
+    if (!SMS_KINDS[kind]) return;
+    setState({ smsEdit: { kind: kind, text: smsTemplate(kind), saving: false, error: null } });
+  }
+
+  // Le serveur répond { message } en cas d'erreur ; apiFetch le transmet brut.
+  function apiErrorMessage(err) {
+    var raw = (err && err.message) || String(err);
+    try { return JSON.parse(raw).message || raw; } catch (e) { return raw; }
+  }
+
+  function saveSmsEdit() {
+    var se = S.smsEdit;
+    if (!se || se.saving) return;
+    if (!se.text.trim()) {
+      setState({ smsEdit: Object.assign({}, se, { error: 'Le texte du SMS ne peut pas être vide.' }) });
+      return;
+    }
+    var payload = {};
+    payload[se.kind] = se.text;
+    setState({ smsEdit: Object.assign({}, se, { saving: true, error: null }) });
+    apiFetch('/sms-templates', { method: 'PUT', body: JSON.stringify(payload) }).then(function (templates) {
+      cfg.smsTemplates = templates;
+      setState({ smsEdit: null });
+    }).catch(function (err) {
+      if (!S.smsEdit) return;
+      setState({ smsEdit: Object.assign({}, S.smsEdit, { saving: false, error: apiErrorMessage(err) }) });
+    });
   }
 
   function renderToggle(label, value, action, t) {
@@ -1680,6 +1762,7 @@
       (S.bulkResult ? renderBulkResult() : '') +
       (S.wipeConfirm ? renderWipeConfirm() : '') +
       (S.share ? renderShare() : '') +
+      (S.smsEdit ? renderSmsEdit() : '') +
       (S.rulesOpen ? renderRules() : '') +
     '</div>';
   }
@@ -1731,6 +1814,13 @@
     if (ee) ee.addEventListener('input', function (e) { S.editEmail = e.target.value; });
     var en = root.querySelector('[data-input="edit-notes"]');
     if (en) en.addEventListener('input', function (e) { S.editNotes = e.target.value; });
+    // L'aperçu se met à jour sans re-rendre : la saisie garde le focus.
+    var st = root.querySelector('[data-input="sms-text"]');
+    if (st) st.addEventListener('input', function (e) {
+      S.smsEdit.text = e.target.value;
+      var pv = root.querySelector('[data-sms-preview]');
+      if (pv) pv.textContent = smsPreview(S.smsEdit.text);
+    });
   }
 
   function squadAdd(teamCode, playerId) {
@@ -2099,6 +2189,9 @@
       case 'share-send':         sendShare(); break;
       case 'share-copy-link':    copyShareLink(); break;
       case 'share-close':        closeShare(); break;
+      case 'sms-edit':           openSmsEdit(v); break;
+      case 'sms-edit-save':      saveSmsEdit(); break;
+      case 'sms-edit-close':     setState({ smsEdit: null }); break;
     }
   }
 
