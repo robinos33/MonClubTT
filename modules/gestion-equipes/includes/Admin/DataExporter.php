@@ -37,7 +37,7 @@ class DataExporter
     public const TABLES = [
         'players' => [
             'table' => 'monclubtt_ge_players',
-            'ints'  => ['id', 'ranking', 'best_official_points', 'is_foreign', 'is_captain', 'is_young', 'is_mutation', 'is_burned', 'is_active'],
+            'ints'  => ['id', 'ranking', 'best_official_points', 'is_foreign', 'is_young', 'is_mutation', 'is_active'],
         ],
         'availabilities' => [
             'table' => 'monclubtt_ge_availabilities',
@@ -45,11 +45,11 @@ class DataExporter
         ],
         'team_compositions' => [
             'table' => 'monclubtt_ge_team_compositions',
-            'ints'  => ['id', 'phase', 'round', 'slot_number', 'player_id'],
+            'ints'  => ['id', 'phase', 'round', 'slot_number', 'player_id', 'is_captain'],
         ],
         'phase_squads' => [
             'table' => 'monclubtt_ge_phase_squads',
-            'ints'  => ['id', 'phase', 'player_id', 'position'],
+            'ints'  => ['id', 'phase', 'player_id', 'position', 'is_captain'],
         ],
         'match_appearances' => [
             'table' => 'monclubtt_ge_match_appearances',
