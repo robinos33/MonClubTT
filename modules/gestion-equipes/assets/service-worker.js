@@ -5,8 +5,8 @@
  *   - Everything else: network-first, no cache
  */
 
-var CACHE_SHELL  = 'monclubtt-ge-shell-v1';
-var CACHE_API    = 'monclubtt-ge-api-v1';
+var CACHE_SHELL  = 'monclubtt-ge-shell-v2';
+var CACHE_API    = 'monclubtt-ge-api-v2';
 
 // Chemin du plugin, passé par PHP à l'enregistrement : le SW a désormais un
 // scope global, il ne doit mettre en cache que ses propres assets.

@@ -3,6 +3,8 @@ declare(strict_types=1);
 
 namespace MonClubTT\GestionEquipes\Admin;
 
+use MonClubTT\GestionEquipes\Repository\SmsTemplateRepository;
+
 /**
  * Import des données de la gestion des équipes.
  *
@@ -116,6 +118,7 @@ class DataImporter
             'match_appearances' => __('participations', 'mon-club-tt'),
             'validated_rounds'  => __('journées validées', 'mon-club-tt'),
             'team_forfeits'     => __('forfaits', 'mon-club-tt'),
+            'audit_log'         => __('entrées du journal', 'mon-club-tt'),
         ];
         echo '<div class="notice notice-success"><p><strong>' . esc_html__('Import terminé.', 'mon-club-tt') . '</strong></p><ul style="list-style:disc;margin-left:20px">';
         foreach ($labels as $key => $label) {
@@ -197,6 +200,11 @@ class DataImporter
         $counts = [];
         foreach (DataExporter::TABLES as $key => $def) {
             $table = $wpdb->prefix . self::legacyTable($def['table']);
+            // Une version ancienne de TT Team Planner n'a pas toutes les tables (journal : 1.13).
+            if (! DataExporter::tableExists($table)) {
+                $counts[$key] = 0;
+                continue;
+            }
             $counts[$key] = (int) $wpdb->get_var("SELECT COUNT(*) FROM `{$table}`"); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter -- nom de table issu de $wpdb->prefix et d'une constante
         }
         return $counts;
@@ -225,6 +233,10 @@ class DataImporter
         $tables = [];
         foreach (DataExporter::TABLES as $key => $def) {
             $table = $wpdb->prefix . self::legacyTable($def['table']);
+            if (! DataExporter::tableExists($table)) {
+                $tables[$key] = [];
+                continue;
+            }
             $tables[$key] = (array) $wpdb->get_results("SELECT * FROM `{$table}` ORDER BY id", ARRAY_A); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter -- import ponctuel, nom de table issu de $wpdb->prefix et d'une constante
         }
 
@@ -233,6 +245,9 @@ class DataImporter
             'format_version' => 1,
             'options'        => $options,
             'tables'         => $tables,
+            'user_sms_templates' => DataExporter::userSmsTemplates(
+                static fn(string $kind): string => self::LEGACY_OPTION_PREFIX . 'sms_template_' . $kind
+            ),
         ];
     }
 
@@ -305,6 +320,7 @@ class DataImporter
         // phpcs:enable
 
         $this->importOptions(is_array($data['options'] ?? null) ? $data['options'] : [], $format, (string) ($data['club_name'] ?? ''));
+        self::importUserSmsTemplates(is_array($data['user_sms_templates'] ?? null) ? $data['user_sms_templates'] : []);
         self::flushCaches();
 
         return ['counts' => $counts, 'skipped' => $skipped];
@@ -327,6 +343,32 @@ class DataImporter
         $clubName = sanitize_text_field($clubName);
         if ($clubName !== '' && trim((string) get_option(\MonClubTT_Constantes::MONCLUBTT_NOM_CLUB, '')) === '') {
             update_option(\MonClubTT_Constantes::MONCLUBTT_NOM_CLUB, $clubName);
+        }
+    }
+
+    /**
+     * Modèles SMS personnels : chaque membre est retrouvé par son login, à
+     * défaut par son e-mail ; un membre absent de ce site est ignoré.
+     *
+     * @param array<mixed> $rows
+     */
+    private static function importUserSmsTemplates(array $rows): void
+    {
+        foreach ($rows as $row) {
+            if (! is_array($row)) {
+                continue;
+            }
+            $user = get_user_by('login', (string) ($row['user_login'] ?? ''))
+                ?: get_user_by('email', (string) ($row['user_email'] ?? ''));
+            if (! $user) {
+                continue;
+            }
+            foreach (SmsTemplateRepository::KINDS as $kind) {
+                $text = $row[$kind] ?? null;
+                if (is_string($text) && $text !== '') {
+                    update_user_meta($user->ID, SmsTemplateRepository::key($kind), sanitize_textarea_field($text));
+                }
+            }
         }
     }
 

@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace MonClubTT\GestionEquipes;
@@ -17,6 +18,7 @@ class Activator
         }
         Capabilities::install();
         self::createTables(); // dbDelta() ajoute les colonnes manquantes sans rien casser
+        self::dropRetiredColumns();
         self::seedDefaultOptions();
     }
 
@@ -40,10 +42,8 @@ class Activator
             best_official_season varchar(20)   NOT NULL DEFAULT '',
             usual_team     varchar(20)         NOT NULL DEFAULT '',
             is_foreign     tinyint(1)          NOT NULL DEFAULT 0,
-            is_captain     tinyint(1)          NOT NULL DEFAULT 0,
             is_young       tinyint(1)          NOT NULL DEFAULT 0,
             is_mutation    tinyint(1)          NOT NULL DEFAULT 0,
-            is_burned      tinyint(1)          NOT NULL DEFAULT 0,
             is_active      tinyint(1)          NOT NULL DEFAULT 1,
             notes          text                NOT NULL,
             raw_payload    longtext            NOT NULL,
@@ -78,6 +78,7 @@ class Activator
             team_code   varchar(20)         NOT NULL DEFAULT '',
             slot_number tinyint(1)          NOT NULL DEFAULT 1,
             player_id   bigint(20) UNSIGNED          DEFAULT NULL,
+            is_captain  tinyint(1)          NOT NULL DEFAULT 0,
             created_at  datetime            NOT NULL DEFAULT CURRENT_TIMESTAMP,
             updated_at  datetime            NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
             PRIMARY KEY (id),
@@ -137,6 +138,7 @@ class Activator
             team_code  varchar(20)         NOT NULL DEFAULT '',
             player_id  bigint(20) UNSIGNED NOT NULL,
             position   smallint(5)         NOT NULL DEFAULT 0,
+            is_captain tinyint(1)          NOT NULL DEFAULT 0,
             created_at datetime            NOT NULL DEFAULT CURRENT_TIMESTAMP,
             PRIMARY KEY (id),
             UNIQUE KEY season_phase_team_player (season, phase, team_code, player_id),
@@ -155,12 +157,51 @@ class Activator
             UNIQUE KEY season_phase_round_team (season, phase, round, team_code)
         ) $charset;";
 
+        // Journal des actions : summary est la phrase affichée, le reste sert aux filtres.
+        $sql[] = "CREATE TABLE {$wpdb->prefix}monclubtt_ge_audit_log (
+            id          bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,
+            created_at  datetime            NOT NULL,
+            user_id     bigint(20) UNSIGNED NOT NULL DEFAULT 0,
+            actor       varchar(100)        NOT NULL DEFAULT '',
+            source      varchar(20)         NOT NULL DEFAULT '',
+            action      varchar(60)         NOT NULL DEFAULT '',
+            summary     text                NOT NULL,
+            season      varchar(20)         NOT NULL DEFAULT '',
+            phase       tinyint(1)          NOT NULL DEFAULT 0,
+            round       tinyint(2)          NOT NULL DEFAULT 0,
+            team_code   varchar(20)         NOT NULL DEFAULT '',
+            PRIMARY KEY (id),
+            KEY created_at (created_at)
+        ) $charset;";
+
         require_once ABSPATH . 'wp-admin/includes/upgrade.php';
         foreach ($sql as $query) {
             dbDelta($query);
         }
 
         update_option('monclubtt_ge_db_version', MONCLUBTT_GE_VERSION);
+    }
+
+    /**
+     * Supprime les colonnes retirées du schéma : dbDelta() ajoute les
+     * colonnes, il ne les supprime jamais.
+     */
+    private static function dropRetiredColumns(): void
+    {
+        global $wpdb;
+        $players = "{$wpdb->prefix}monclubtt_ge_players";
+
+        $retired = [
+            'is_burned',  // drapeau manuel jamais exposé, remplacé par le brûlage calculé (robinos33/tt-team-planner#24)
+            'is_captain', // jamais renseigné, remplacé par le capitaine de phase et de journée
+        ];
+        foreach ($retired as $column) {
+            // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- nom de table issu de $wpdb->prefix
+            if ($wpdb->get_var($wpdb->prepare("SHOW COLUMNS FROM {$players} LIKE %s", $column)) !== null) {
+                // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.DirectDatabaseQuery.SchemaChange,WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- migration de schéma, colonne issue de la liste ci-dessus
+                $wpdb->query("ALTER TABLE {$players} DROP COLUMN {$column}");
+            }
+        }
     }
 
     private static function seedDefaultOptions(): void

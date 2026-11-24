@@ -5,6 +5,29 @@ Format : [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/)
 
 ---
 
+## [2.11.0] — 2026-11-24
+
+### Sécurité
+
+- **Gestion des équipes** : la lecture des joueurs (nom, téléphone, e-mail, n° de licence), des disponibilités et des effectifs demande d'être connecté. L'API les servait jusqu'ici à n'importe qui (#55).
+
+### Ajouté
+
+- **Gestion des équipes › rôle Membre commission équipe** (#56) : droit *Gérer les équipes* (`monclubtt_ge_manage_planner`), porté par ce rôle, les administrateurs et les éditeurs ; c'est lui, et non plus `edit_posts`, qu'exigent les écritures de l'API. Un membre de la commission sans droit d'édition WordPress est renvoyé de wp-admin vers l'application et n'a pas de barre d'admin. Les membres et le droit de TT Team Planner sont repris.
+- **Gestion des équipes**, rattrapage de TT Team Planner 1.8 à 1.15, oublié à l'intégration (#57) :
+  - capitaine de phase par équipe (écran *Effectifs*) et capitaine de la journée (vue *Journée*), marqué sur l'image des compos ; le filtre *Capitaines* des joueurs s'y fonde ;
+  - image récapitulant les compos d'une journée, à partager depuis la vue *Journée*, avec les disponibles non placés et le lien de la journée ;
+  - brûlage projeté sur les journées pas encore jouées, signalé dans les compos et au choix du joueur ;
+  - onglet *Dispos* dans la vue *Journée* ; rappel des règles de brûlage, en version courte ;
+  - équipe régionale incomplète signalée (en rouge dans la semaine), annoncée « rencontre perdue » sur l'image, et distinguée d'un forfait ;
+  - SMS : confirmation de compo depuis le slot, {nom} et {equipe} dans la demande de dispo, date en toutes lettres ; chaque membre peut modifier ses SMS pour lui-même depuis l'application, ou revenir au modèle du club ;
+  - journal des actions (écritures de l'API, réglages modifiés au back-office, tâches automatiques), consultable par les administrateurs.
+- **Gestion des équipes › Import / export** : le journal des actions et les SMS personnels des membres sont exportés et importés.
+
+### Corrigé
+
+- **Gestion des équipes** : compteurs de compos (journée affichée, mise à jour sans rechargement, équipes forfait exclues) ; un joueur placé ailleurs quitte son ancien slot ; clic sur la pastille de sélection d'un joueur ; badge et filtre « Brûlés » manuels retirés au profit du brûlage calculé.
+
 ## [2.10.1] — 2026-11-24
 
 ### Modifié

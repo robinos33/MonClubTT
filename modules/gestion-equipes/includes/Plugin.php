@@ -1,9 +1,11 @@
 <?php
+
 declare(strict_types=1);
 
 namespace MonClubTT\GestionEquipes;
 
 use MonClubTT\GestionEquipes\Admin\BackOfficeGuard;
+use MonClubTT\GestionEquipes\Audit\AuditRecorder;
 use MonClubTT\GestionEquipes\Admin\SettingsPage;
 use MonClubTT\GestionEquipes\Front\Assets;
 use MonClubTT\GestionEquipes\Front\MagicLinkTemplate;
@@ -21,10 +23,14 @@ use MonClubTT\GestionEquipes\Rest\TeamsController;
 use MonClubTT\GestionEquipes\Rest\SyncController;
 use MonClubTT\GestionEquipes\Rest\SeasonController;
 use MonClubTT\GestionEquipes\Rest\ManifestController;
+use MonClubTT\GestionEquipes\Rest\SmsTemplatesController;
+use MonClubTT\GestionEquipes\Rest\AuditLogController;
 
 final class Plugin
 {
     private static ?Plugin $instance = null;
+
+    private AuditRecorder $audit;
 
     public static function getInstance(): self
     {
@@ -36,9 +42,14 @@ final class Plugin
 
     private function __construct()
     {
+        // Journal des actions : écritures de l'API, réglages du back-office et
+        // tâches automatiques (relances, import des feuilles de match).
+        $this->audit = new AuditRecorder();
+        $this->audit->register();
+
         add_action('plugins_loaded', [Activator::class, 'maybeUpgrade']);
-        add_action('init',           [$this, 'init']);
-        add_action('rest_api_init',  [$this, 'registerRestRoutes']);
+        add_action('init', [$this, 'init']);
+        add_action('rest_api_init', [$this, 'registerRestRoutes']);
 
         // Relances de disponibilité : le handler doit être accroché à chaque
         // chargement (WP-Cron s'exécute dans une requête où rien d'autre du
@@ -79,12 +90,18 @@ final class Plugin
 
     public function sendAvailabilityReminders(): void
     {
-        (new AvailabilityReminder())->run();
+        $sent = (new AvailabilityReminder())->run();
+        if ($sent > 0) {
+            $this->audit->automatic('availability.remind', sprintf('a relancé %d joueur(s) sans réponse sur leurs dispos', $sent));
+        }
     }
 
     public function importAppearances(): void
     {
-        (new AppearanceImporter())->run();
+        $report = (new AppearanceImporter())->run();
+        if ($report['imported'] > 0) {
+            $this->audit->automatic('appearances.import', sprintf('a importé %d participation(s) depuis les feuilles de match', $report['imported']));
+        }
     }
 
     public function registerRestRoutes(): void
@@ -98,6 +115,8 @@ final class Plugin
         (new SeasonController())->registerRoutes();
         (new MagicLinkController())->registerRoutes();
         (new ManifestController())->registerRoutes();
+        (new SmsTemplatesController())->registerRoutes();
+        (new AuditLogController())->registerRoutes();
     }
 
     /** Entrée « Gestion des équipes » du menu Mon Club TT, après Données FFTT. */

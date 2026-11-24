@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace MonClubTT\GestionEquipes\Rest;
@@ -15,8 +16,7 @@ use MonClubTT\GestionEquipes\Repository\PlayerRepository;
  *
  * MonClubTT fields used:  licence, nom, prénom, classement (points mensuels),
  *                        nationalité (étranger), catégorie (jeune).
- * Manual fields preserved on update: phone, usual_team, is_captain,
- *                                    is_mutation, is_burned, notes.
+ * Manual fields preserved on update: phone, usual_team, is_mutation, notes.
  */
 class SyncController
 {
@@ -109,7 +109,7 @@ class SyncController
 
         if ($errors > 0) {
             /* translators: %d: number of skipped entries */
-            $message .= ' ' . sprintf( __('%d entrée(s) ignorée(s) (données invalides).', 'mon-club-tt'), $errors );
+            $message .= ' ' . sprintf(__('%d entrée(s) ignorée(s) (données invalides).', 'mon-club-tt'), $errors);
         }
 
         return [

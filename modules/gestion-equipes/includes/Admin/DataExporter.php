@@ -3,6 +3,8 @@ declare(strict_types=1);
 
 namespace MonClubTT\GestionEquipes\Admin;
 
+use MonClubTT\GestionEquipes\Repository\SmsTemplateRepository;
+
 /**
  * Export complet des données de la gestion des équipes au format JSON
  * (sauvegarde, transfert vers un autre site), relu par DataImporter. Même
@@ -37,7 +39,7 @@ class DataExporter
     public const TABLES = [
         'players' => [
             'table' => 'monclubtt_ge_players',
-            'ints'  => ['id', 'ranking', 'best_official_points', 'is_foreign', 'is_captain', 'is_young', 'is_mutation', 'is_burned', 'is_active'],
+            'ints'  => ['id', 'ranking', 'best_official_points', 'is_foreign', 'is_young', 'is_mutation', 'is_active'],
         ],
         'availabilities' => [
             'table' => 'monclubtt_ge_availabilities',
@@ -45,11 +47,11 @@ class DataExporter
         ],
         'team_compositions' => [
             'table' => 'monclubtt_ge_team_compositions',
-            'ints'  => ['id', 'phase', 'round', 'slot_number', 'player_id'],
+            'ints'  => ['id', 'phase', 'round', 'slot_number', 'player_id', 'is_captain'],
         ],
         'phase_squads' => [
             'table' => 'monclubtt_ge_phase_squads',
-            'ints'  => ['id', 'phase', 'player_id', 'position'],
+            'ints'  => ['id', 'phase', 'player_id', 'position', 'is_captain'],
         ],
         'match_appearances' => [
             'table' => 'monclubtt_ge_match_appearances',
@@ -62,6 +64,10 @@ class DataExporter
         'team_forfeits' => [
             'table' => 'monclubtt_ge_team_forfeits',
             'ints'  => ['id', 'phase', 'round', 'declared_by'],
+        ],
+        'audit_log' => [
+            'table' => 'monclubtt_ge_audit_log',
+            'ints'  => ['id', 'user_id', 'phase', 'round'],
         ],
     ];
 
@@ -121,7 +127,42 @@ class DataExporter
             'counts'         => array_map('count', $tables),
             'options'        => $options,
             'tables'         => $tables,
+            'user_sms_templates' => self::userSmsTemplates([SmsTemplateRepository::class, 'key']),
         ];
+    }
+
+    /**
+     * SMS personnalisés par les membres, avec leur login et e-mail pour
+     * retrouver le compte à l'import (les ID utilisateurs peuvent différer).
+     *
+     * @param callable(string): string $metaKey clé de user meta d'un type de SMS
+     * @return list<array<string, mixed>>
+     */
+    public static function userSmsTemplates(callable $metaKey): array
+    {
+        $query = ['relation' => 'OR'];
+        foreach (SmsTemplateRepository::KINDS as $kind) {
+            $query[] = ['key' => $metaKey($kind), 'compare' => 'EXISTS'];
+        }
+        $users = get_users([
+            'fields'     => ['ID', 'user_login', 'user_email'],
+            'meta_query' => $query, // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query -- export ponctuel
+        ]);
+
+        $result = [];
+        foreach ($users as $user) {
+            $row = [
+                'user_id'    => (int) $user->ID,
+                'user_login' => (string) $user->user_login,
+                'user_email' => (string) $user->user_email,
+            ];
+            foreach (SmsTemplateRepository::KINDS as $kind) {
+                $value      = get_user_meta((int) $user->ID, $metaKey($kind), true);
+                $row[$kind] = is_string($value) && $value !== '' ? $value : null;
+            }
+            $result[] = $row;
+        }
+        return $result;
     }
 
     /**
@@ -132,6 +173,12 @@ class DataExporter
     {
         global $wpdb;
         $table = $wpdb->prefix . $suffix;
+
+        // Table absente (migration pas encore passée) : liste vide plutôt
+        // qu'une erreur SQL imprimée au milieu du fichier téléchargé.
+        if (! self::tableExists($table)) {
+            return [];
+        }
 
         $rows = $wpdb->get_results( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter -- export ponctuel ; table issue de $wpdb->prefix et d'une constante
             "SELECT * FROM {$table} ORDER BY id", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- nom de table issu de $wpdb->prefix et d'une constante
@@ -155,5 +202,11 @@ class DataExporter
             $result[] = $row;
         }
         return $result;
+    }
+
+    public static function tableExists(string $table): bool
+    {
+        global $wpdb;
+        return $wpdb->get_var($wpdb->prepare('SHOW TABLES LIKE %s', $wpdb->esc_like($table))) === $table; // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- vérification ponctuelle
     }
 }

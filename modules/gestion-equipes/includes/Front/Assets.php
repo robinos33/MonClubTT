@@ -1,7 +1,12 @@
 <?php
+
 declare(strict_types=1);
 
 namespace MonClubTT\GestionEquipes\Front;
+
+use MonClubTT\GestionEquipes\Domain\Division;
+use MonClubTT\GestionEquipes\Domain\QualificationRules;
+use MonClubTT\GestionEquipes\Repository\SmsTemplateRepository;
 
 class Assets
 {
@@ -11,8 +16,8 @@ class Assets
     public function register(): void
     {
         add_action('wp_enqueue_scripts', [$this, 'enqueueFrontend']);
-        add_action('wp_head',           [$this, 'injectManifestLink']);
-        add_action('template_redirect',  [$this, 'maybeServeServiceWorker'], 0);
+        add_action('wp_head', [$this, 'injectManifestLink']);
+        add_action('template_redirect', [$this, 'maybeServeServiceWorker'], 0);
     }
 
     /**
@@ -60,8 +65,12 @@ class Assets
             return;
         }
 
-        wp_enqueue_style('ttp-app',  MONCLUBTT_GE_URL . 'assets/css/app.css', [], MONCLUBTT_GE_VERSION);
-        wp_enqueue_script('ttp-app', MONCLUBTT_GE_URL . 'assets/js/app.js',  [], MONCLUBTT_GE_VERSION, true);
+        wp_enqueue_style('ttp-app', MONCLUBTT_GE_URL . 'assets/css/app.css', [], MONCLUBTT_GE_VERSION);
+        wp_enqueue_script('ttp-roster', MONCLUBTT_GE_URL . 'assets/js/roster.js', [], MONCLUBTT_GE_VERSION, true);
+        wp_enqueue_script('ttp-team-check', MONCLUBTT_GE_URL . 'assets/js/team-check.js', [], MONCLUBTT_GE_VERSION, true);
+        wp_enqueue_script('ttp-share-image', MONCLUBTT_GE_URL . 'assets/js/share-image.js', ['ttp-roster', 'ttp-team-check'], MONCLUBTT_GE_VERSION, true);
+        wp_enqueue_script('ttp-sms', MONCLUBTT_GE_URL . 'assets/js/sms.js', [], MONCLUBTT_GE_VERSION, true);
+        wp_enqueue_script('ttp-app', MONCLUBTT_GE_URL . 'assets/js/app.js', ['ttp-roster', 'ttp-team-check', 'ttp-share-image', 'ttp-sms'], MONCLUBTT_GE_VERSION, true);
         wp_localize_script('ttp-app', 'TTPConfig', $this->buildConfig());
     }
 
@@ -83,6 +92,7 @@ class Assets
         $season = self::computeSeason();
         $phase  = self::detectPhase();
         $teams  = get_option('monclubtt_ge_teams', []);
+        $sms    = (new SmsTemplateRepository())->forUser(get_current_user_id());
 
         return [
             'apiBase'           => rest_url('monclubtt-equipes/v1'),
@@ -91,23 +101,43 @@ class Assets
             'season'            => $season,
             'phase'             => $phase - 1, // 0-indexed pour le JS
             'teamsCount'        => count($teams),
-            'teams'             => $teams,
+            'teams'             => self::teamsForFront((array) $teams),
             'journeeDates'      => [
                 (array) get_option('monclubtt_ge_journee_dates_p1', array_fill(0, 7, '')),
                 (array) get_option('monclubtt_ge_journee_dates_p2', array_fill(0, 7, '')),
             ],
+            'rules'             => QualificationRules::all(),
             'version'           => MONCLUBTT_GE_VERSION,
             'maxForeignPlayers' => self::MAX_FOREIGN,
-            'smsTemplates'      => [
-                'availability' => get_option('monclubtt_ge_sms_template_availability', ''),
-                'confirmation' => get_option('monclubtt_ge_sms_template_confirmation', ''),
-            ],
+            // Modèle personnel du membre, à défaut celui du club.
+            'smsTemplates'      => $sms['templates'],
+            'smsCustom'         => $sms['custom'],
+            'canViewAuditLog'   => current_user_can('manage_options'),
             'pwaEnabled'        => self::pwaEnabled(),
             'swUrl'             => self::pwaEnabled() ? self::serviceWorkerUrl() : null,
         ];
     }
 
     // ─── Helpers statiques ────────────────────────────────────────────────────
+
+    /**
+     * Équipes des réglages, avec ce que le front ne sait pas déduire seul du
+     * niveau en saisie libre : l'obligation de jouer à 4 (régional).
+     *
+     * @param array<mixed> $teams
+     * @return list<array<string, mixed>>
+     */
+    public static function teamsForFront(array $teams): array
+    {
+        $result = [];
+        foreach ($teams as $team) {
+            $team = (array) $team;
+            $team['full_team_required'] = Division::requiresFullTeam((string) ($team['level'] ?? ''));
+            $result[] = $team;
+        }
+
+        return $result;
+    }
 
     /**
      * Saison courante calculée depuis la date système.

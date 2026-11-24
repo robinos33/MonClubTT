@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace MonClubTT\GestionEquipes\Domain;
@@ -46,7 +47,7 @@ final class BurnageChecker
     private const PROMOTION_MIN_APPEARANCES = 3;
 
     public function __construct(
-        private readonly MatchAppearanceRepository $appearances = new MatchAppearanceRepository(),
+        private readonly AppearanceHistory $appearances = new MatchAppearanceRepository(),
         private readonly TeamCompositionRepository $compositions = new TeamCompositionRepository(),
         private readonly PlayerRepository $players = new PlayerRepository(),
         private readonly TeamForfeitRepository $forfeits = new TeamForfeitRepository(),
@@ -59,9 +60,7 @@ final class BurnageChecker
      */
     public static function minimumPointsForLevel(string $level): ?int
     {
-        $normalized = strtolower(remove_accents(trim($level)));
-        $normalized = (string) preg_replace('/[^a-z0-9]+/', ' ', $normalized);
-        $normalized = trim($normalized);
+        $normalized = Division::normalize($level);
 
         if (in_array($normalized, ['pn', 'pre nationale', 'pre national'], true)) {
             return 1200;

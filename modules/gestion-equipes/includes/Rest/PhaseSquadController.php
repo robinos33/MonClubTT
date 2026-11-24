@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace MonClubTT\GestionEquipes\Rest;
@@ -31,6 +32,12 @@ class PhaseSquadController
         register_rest_route(self::NS, '/phase-squads', [
             'methods'             => 'DELETE',
             'callback'            => [$this, 'removePlayer'],
+            'permission_callback' => [$this, 'canWrite'],
+        ]);
+
+        register_rest_route(self::NS, '/phase-squads/captain', [
+            'methods'             => 'POST',
+            'callback'            => [$this, 'setCaptain'],
             'permission_callback' => [$this, 'canWrite'],
         ]);
 
@@ -80,6 +87,32 @@ class PhaseSquadController
         $ok   = $repo->remove($season, $phase, $teamCode, $playerId);
 
         return new WP_REST_Response(['success' => $ok], 200);
+    }
+
+    /**
+     * Nomme le capitaine de phase d'une équipe, choisi dans son effectif.
+     * player_id = 0 retire le capitaine.
+     */
+    public function setCaptain(WP_REST_Request $request): WP_REST_Response
+    {
+        $season   = sanitize_text_field($request->get_param('season') ?? '');
+        $phase    = (int) $request->get_param('phase');
+        $teamCode = sanitize_text_field($request->get_param('team_code') ?? '');
+        $playerId = (int) $request->get_param('player_id');
+
+        if (! $season || ! $phase || ! $teamCode) {
+            return new WP_REST_Response(['message' => 'Paramètres manquants.'], 400);
+        }
+
+        $repo  = new PhaseSquadRepository();
+        $squad = array_map(fn($s) => $s->playerId, $repo->findByTeam($season, $phase, $teamCode));
+        if ($playerId && ! in_array($playerId, $squad, true)) {
+            return new WP_REST_Response(['message' => __("Ce joueur n'est pas dans l'effectif de l'équipe.", 'mon-club-tt')], 400);
+        }
+
+        $repo->setCaptain($season, $phase, $teamCode, $playerId);
+
+        return new WP_REST_Response(['success' => true], 200);
     }
 
     /**

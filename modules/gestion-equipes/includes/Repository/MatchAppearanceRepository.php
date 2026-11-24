@@ -1,12 +1,14 @@
 <?php
+
 declare(strict_types=1);
 
 namespace MonClubTT\GestionEquipes\Repository;
 
+use MonClubTT\GestionEquipes\Domain\AppearanceHistory;
 use MonClubTT\GestionEquipes\Domain\MatchAppearance;
 use MonClubTT\GestionEquipes\Domain\TeamComposition;
 
-class MatchAppearanceRepository
+class MatchAppearanceRepository implements AppearanceHistory
 {
     private const CACHE_GROUP = 'monclubtt_ge_appearances';
 

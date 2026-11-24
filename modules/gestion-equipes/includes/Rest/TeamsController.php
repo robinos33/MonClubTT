@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace MonClubTT\GestionEquipes\Rest;
@@ -34,6 +35,11 @@ class TeamsController
             'permission_callback' => [$this, 'canWrite'],
         ]);
 
+        register_rest_route(self::NS, '/compositions/captain', [
+            'methods'             => 'POST',
+            'callback'            => [$this, 'setCaptain'],
+            'permission_callback' => [$this, 'canWrite'],
+        ]);
     }
 
     public function getCompositions(WP_REST_Request $request): WP_REST_Response
@@ -81,6 +87,29 @@ class TeamsController
         $slot     = (int) $request->get_param('slot_number');
 
         (new TeamCompositionRepository())->clearSlot($season, $phase, $round, $teamCode, $slot);
+        return new WP_REST_Response(['success' => true], 200);
+    }
+
+    /**
+     * Nomme le capitaine de l'équipe pour la journée, choisi parmi les
+     * joueurs de la compo. Sans ce choix, le capitaine de phase l'est s'il
+     * joue (voir roster.js).
+     */
+    public function setCaptain(WP_REST_Request $request): WP_REST_Response
+    {
+        $season   = sanitize_text_field($request->get_param('season') ?? get_option('monclubtt_ge_active_season', ''));
+        $phase    = (int) $request->get_param('phase');
+        $round    = (int) $request->get_param('round');
+        $teamCode = sanitize_text_field($request->get_param('team_code') ?? '');
+        $playerId = (int) $request->get_param('player_id');
+
+        $repo    = new TeamCompositionRepository();
+        $playing = array_map(fn($c) => $c->playerId, $repo->findByTeamAndRound($season, $phase, $round, $teamCode));
+        if (! $playerId || ! in_array($playerId, $playing, true)) {
+            return new WP_REST_Response(['message' => __('Ce joueur ne joue pas dans cette compo.', 'mon-club-tt')], 400);
+        }
+
+        $repo->setCaptain($season, $phase, $round, $teamCode, $playerId);
         return new WP_REST_Response(['success' => true], 200);
     }
 
