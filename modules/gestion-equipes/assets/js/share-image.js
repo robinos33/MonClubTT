@@ -33,7 +33,7 @@
    * dispo, brûlage, puis statuts (étranger, mutation, capitaine).
    * Les libellés de brûlage sont ceux de l'app (input.burnLabels).
    */
-  function playerSlot(num, p, avail, burn, burnLabels) {
+  function playerSlot(num, p, avail, burn, burnLabels, captain) {
     var chips = [];
     if (avail === 'unavailable')    chips.push(chip('Indispo', 'danger'));
     else if (avail === 'uncertain') chips.push(chip('Incertain', 'warn'));
@@ -44,7 +44,7 @@
 
     if (p.is_foreign)  chips.push(chip('E', 'purple'));
     if (p.is_mutation) chips.push(chip('Mut.', 'warn'));
-    if (p.is_captain)  chips.push(chip('© Cap.', 'primary'));
+    if (captain)       chips.push(chip('© Cap.', 'primary'));
 
     return {
       num: num,
@@ -90,6 +90,7 @@
    *   teams          — cfg.teams, dans l'ordre d'affichage
    *   compositions   — les slots de la journée, toutes équipes
    *   players, availabilities
+   *   squads         — effectifs de phase, pour le capitaine (TTPRoster.captain)
    *   contexts       — { codeÉquipe: { burnage: {idJoueur: statut} | null, validated: bool | null } }
    *                    null = pas chargé (hors ligne sans cache)
    *   forfeits       — { codeÉquipe: true } | null si pas chargé
@@ -124,13 +125,14 @@
       var burnMap = ctx.burnage || {};
       var forfeit = !!(input.forfeits && input.forfeits[code]);
       var teamSlots = slotsByTeam[code] || {};
+      var captainId = w.TTPRoster.captain(code, phase, input.compositions, input.squads);
 
       var slots = [1, 2, 3, 4].map(function (num) {
         var pid = teamSlots[num];
         if (!pid) return { num: num, empty: true };
         var p = players[String(pid)];
         if (!p) return { num: num, empty: false, name: 'Joueur inconnu', points: null, danger: false, chips: [] };
-        return playerSlot(num, p, availOf(p.id), burnMap[p.id], burnLabels);
+        return playerSlot(num, p, availOf(p.id), burnMap[p.id], burnLabels, String(p.id) === String(captainId));
       });
       var filled = slots.filter(function (s) { return !s.empty; }).length;
       var lost = !forfeit && w.TTPTeamCheck.completeness(team, filled, input.date, today) === 'alert';

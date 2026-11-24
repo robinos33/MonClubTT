@@ -2190,7 +2190,7 @@
       return {
         clubName: cfg.clubName, phase: phase, round: round, date: j ? j.date : '', generatedAt: new Date(),
         teams: S.teams, compositions: res[0] || [], players: S.players, availabilities: S.availabilities,
-        contexts: contexts, forfeits: forfeits, burnLabels: BURN_LABELS
+        squads: S.squads, contexts: contexts, forfeits: forfeits, burnLabels: BURN_LABELS
       };
     });
   }
