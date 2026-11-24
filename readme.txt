@@ -3,7 +3,7 @@ Contributors: robinos33
 Tags: table tennis, fftt, club, rankings, results
 Requires at least: 6.4
 Tested up to: 7.1
-Stable tag: 2.11.0
+Stable tag: 2.12.0
 Requires PHP: 8.4
 License: GPLv2
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -85,6 +85,9 @@ Player data is refreshed on manual sync only. League standings and results are c
 Yes. The plugin exposes six filters: `monclubtt_get_evenements`, `monclubtt_get_joueurs`, `monclubtt_get_equipes`, `monclubtt_get_classement_poule`, `monclubtt_get_rencontres_poule`, `monclubtt_get_feuille_rencontre`. See the documentation for usage.
 
 == Changelog ==
+
+= 2.12.0 =
+* Added: FFTT data sync runs automatically on Sunday at 8 pm and Monday at 6 am (site time) through WP-Cron; team management players follow. The Connection tab and the dashboard widget show the slots, the next run and the reason of the last failure
 
 = 2.11.0 =
 * Security: team management: players (name, phone, e-mail, licence number), availabilities and squads are only readable when logged in

@@ -5,6 +5,12 @@ Format : [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/)
 
 ---
 
+## [2.12.0] — 2026-11-24
+
+### Ajouté
+
+- **Données FFTT** : synchronisation automatique le dimanche à 20 h et le lundi à 6 h, heure du site, par le cron de WordPress : les joueurs de la gestion des équipes suivent. *Connexion* et le widget du tableau de bord affichent les créneaux, le prochain passage et la raison du dernier échec (#58).
+
 ## [2.11.0] — 2026-11-24
 
 ### Sécurité

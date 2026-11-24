@@ -3,7 +3,7 @@
   Plugin Name: Mon Club TT
   Plugin URI: https://github.com/robinos33/MonClubTT
   Description: Display your table tennis club's players, teams, and rankings from the official FFTT Smartping API. Not affiliated with or endorsed by the FFTT.
-  Version: 2.11.0
+  Version: 2.12.0
   Author: Robin Aldasoro
   Author URI: https://github.com/robinos33
   License: GPLv2
@@ -29,6 +29,7 @@ define( 'MONCLUBTT_PLUGIN_FILE', __FILE__ );
 // Gestion des équipes (ex-TT Team Planner).
 require_once( __DIR__ . '/modules/gestion-equipes/gestion-equipes.php' );
 register_deactivation_hook( __FILE__, 'monclubtt_ge_desactiver' );
+register_deactivation_hook( __FILE__, array( 'MonClubTT_SynchroFFTTWP', 'desplanifier' ) );
 
 class MonClubTT_Plugin
 {
@@ -114,6 +115,9 @@ class MonClubTT_Plugin
 
         // Pages d'équipe ajoutables à l'écran d'accueil (manifest, bandeau).
         new MonClubTT_AppliWP(__FILE__);
+
+        // Synchronisation FFTT automatique, le dimanche soir et le lundi matin.
+        MonClubTT_SynchroFFTTWP::enregistrer();
 
         // Articles créés depuis les visuels de la page « Réseaux sociaux ».
         new MonClubTT_ArticleSocialWP();
@@ -2134,70 +2138,9 @@ class MonClubTT_Plugin
             return;
         }
 
-        $this->reinitialiser_api();
-        $api = MonClubTT_AccesFFTTApi::getInstance();
-        if (!is_object($api)) {
-            wp_send_json_error(array('message' => 'Erreur de connexion à l\'API FFTT'));
-            return;
-        }
-
+        $debugLog = array();
         try {
-            $numClub = MonClubTT_ParametresPlugin::getNumClub();
-            $syncResults = array();
-            $debugLog = array();
-
-            // Vérifier les paramètres de connexion
-            if (empty($numClub)) {
-                throw new Exception('Numéro de club non configuré');
-            }
-            $debugLog[] = "Numéro de club: " . $numClub;
-
-            $idApp = MonClubTT_ParametresPlugin::getIdApplication();
-            $motDePasse = MonClubTT_ParametresPlugin::getMotDePasse();
-            if (empty($idApp) || empty($motDePasse)) {
-                throw new Exception('Identifiants API FFTT non configurés');
-            }
-            $debugLog[] = "ID Application: configuré";
-
-            // Synchronisation des joueurs
-            $api->clearJoueursCache($numClub);
-            $debugLog[] = "Cache joueurs effacé";
-
-            $joueurs = new MonClubTT_Joueurs();
-            $joueursListe = $joueurs->getJoueurs('MF');
-            $syncResults['joueurs'] = count($joueursListe);
-            $debugLog[] = "Joueurs récupérés: " . $syncResults['joueurs'];
-
-            // Synchronisation des équipes
-            $api->clearEquipesCache($numClub);
-            $debugLog[] = "Cache équipes effacé";
-
-            $equipesM = $api->getEquipesByClub($numClub, 'M');
-            $equipesF = $api->getEquipesByClub($numClub, 'F');
-            $syncResults['equipes'] = count($equipesM) + count($equipesF);
-            $debugLog[] = "Équipes M récupérées: " . count($equipesM);
-            $debugLog[] = "Équipes F récupérées: " . count($equipesF);
-
-            // Vérifier si aucune donnée n'a été récupérée
-            if ($syncResults['joueurs'] === 0 && $syncResults['equipes'] === 0) {
-                throw new Exception('Aucune donnée récupérée. Vérifiez vos identifiants API et le numéro de club.');
-            }
-
-            // Pour chaque équipe, synchroniser classements et rencontres
-            $allEquipes = array_merge($equipesM, $equipesF);
-            foreach ($allEquipes as $equipe) {
-                if (isset($equipe['iddiv']) && isset($equipe['idpoule'])) {
-                    $api->clearPouleCache($equipe['iddiv'], $equipe['idpoule']);
-                    $api->getPouleClassement($equipe['iddiv'], $equipe['idpoule']);
-                    $api->getPouleRencontres($equipe['iddiv'], $equipe['idpoule']);
-                }
-            }
-
-            // Enregistrer l'horodatage de la dernière synchronisation
-            update_option('monclubtt_last_sync', time());
-
-            /** Données FFTT synchronisées : la gestion des équipes met à jour ses joueurs. */
-            do_action('monclubtt_apres_synchro');
+            $syncResults = MonClubTT_SynchroFFTTWP::lancer($debugLog);
 
             wp_send_json_success(array(
                 'message' => 'Synchronisation réussie',
@@ -2208,7 +2151,7 @@ class MonClubTT_Plugin
         } catch (Exception $e) {
             wp_send_json_error(array(
                 'message' => 'Erreur lors de la synchronisation: ' . $e->getMessage(),
-                'debug' => isset($debugLog) ? $debugLog : array()
+                'debug' => $debugLog
             ));
         }
     }
@@ -2428,6 +2371,7 @@ class MonClubTT_Plugin
             <?php else: ?>
                 <p><em>Aucune synchronisation effectuée</em></p>
             <?php endif; ?>
+            <?php echo MonClubTT_SynchroFFTTWP::etat_html(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- HTML construit avec esc_html() ?>
 
             <p>
                 <button id="monclubtt-dashboard-sync-button" class="button button-primary button-large" style="width:100%; display:inline-flex; align-items:center; justify-content:center; gap:6px; line-height:1;">
