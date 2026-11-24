@@ -8,6 +8,7 @@ use WP_REST_Response;
 use MonClubTT\GestionEquipes\Repository\PhaseSquadRepository;
 use MonClubTT\GestionEquipes\Repository\AvailabilityRepository;
 use MonClubTT\GestionEquipes\Repository\TeamCompositionRepository;
+use MonClubTT\GestionEquipes\Capabilities;
 
 class PhaseSquadController
 {
@@ -186,6 +187,6 @@ class PhaseSquadController
 
     public function canWrite(): bool
     {
-        return current_user_can('edit_posts');
+        return Capabilities::canManagePlanner();
     }
 }

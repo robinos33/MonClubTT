@@ -12,6 +12,7 @@ use MonClubTT\GestionEquipes\Mail\MagicLinkMailer;
 use MonClubTT\GestionEquipes\Repository\AvailabilityRepository;
 use MonClubTT\GestionEquipes\Repository\MagicLinkRepository;
 use MonClubTT\GestionEquipes\Repository\PlayerRepository;
+use MonClubTT\GestionEquipes\Capabilities;
 
 /**
  * Endpoints publics accessibles via un lien magique (token à usage personnel,
@@ -142,6 +143,6 @@ class MagicLinkController
 
     public function canWrite(): bool
     {
-        return current_user_can('edit_posts');
+        return Capabilities::canManagePlanner();
     }
 }

@@ -8,6 +8,7 @@ use WP_REST_Response;
 use MonClubTT\GestionEquipes\Repository\PlayerRepository;
 use MonClubTT\GestionEquipes\Repository\AvailabilityRepository;
 use MonClubTT\GestionEquipes\Repository\TeamCompositionRepository;
+use MonClubTT\GestionEquipes\Capabilities;
 
 class TeamsController
 {
@@ -90,6 +91,6 @@ class TeamsController
 
     public function canWrite(): bool
     {
-        return current_user_can('edit_posts');
+        return Capabilities::canManagePlanner();
     }
 }
