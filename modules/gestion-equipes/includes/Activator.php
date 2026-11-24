@@ -42,7 +42,6 @@ class Activator
             best_official_season varchar(20)   NOT NULL DEFAULT '',
             usual_team     varchar(20)         NOT NULL DEFAULT '',
             is_foreign     tinyint(1)          NOT NULL DEFAULT 0,
-            is_captain     tinyint(1)          NOT NULL DEFAULT 0,
             is_young       tinyint(1)          NOT NULL DEFAULT 0,
             is_mutation    tinyint(1)          NOT NULL DEFAULT 0,
             is_active      tinyint(1)          NOT NULL DEFAULT 1,
@@ -192,11 +191,16 @@ class Activator
         global $wpdb;
         $players = "{$wpdb->prefix}monclubtt_ge_players";
 
-        // is_burned : drapeau manuel jamais exposé, remplacé par le brûlage calculé (#24).
-        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- nom de table issu de $wpdb->prefix
-        if ($wpdb->get_var($wpdb->prepare("SHOW COLUMNS FROM {$players} LIKE %s", 'is_burned')) !== null) {
-            // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.DirectDatabaseQuery.SchemaChange,WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- migration de schéma
-            $wpdb->query("ALTER TABLE {$players} DROP COLUMN is_burned");
+        $retired = [
+            'is_burned',  // drapeau manuel jamais exposé, remplacé par le brûlage calculé (#24)
+            'is_captain', // jamais renseigné, remplacé par le capitaine de phase et de journée
+        ];
+        foreach ($retired as $column) {
+            // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- nom de table issu de $wpdb->prefix
+            if ($wpdb->get_var($wpdb->prepare("SHOW COLUMNS FROM {$players} LIKE %s", $column)) !== null) {
+                // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.DirectDatabaseQuery.SchemaChange,WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- migration de schéma, colonne issue de la liste ci-dessus
+                $wpdb->query("ALTER TABLE {$players} DROP COLUMN {$column}");
+            }
         }
     }
 

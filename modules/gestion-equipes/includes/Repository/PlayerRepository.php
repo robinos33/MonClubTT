@@ -75,8 +75,8 @@ class PlayerRepository
 
     /**
      * Upsert depuis DataPing : met à jour uniquement les champs FFTT.
-     * Les champs manuels (phone, usual_team, is_captain, is_mutation,
-     * notes) sont préservés lors des mises à jour.
+     * Les champs manuels (phone, usual_team, is_mutation, notes) sont
+     * préservés lors des mises à jour.
      */
     public function upsertFromMonClubTT(array $data): int
     {
@@ -123,7 +123,6 @@ class PlayerRepository
             'phone'       => '',
             'email'       => '',
             'usual_team'  => '',
-            'is_captain'  => 0,
             'is_mutation' => 0,
             'is_active'   => 1,
             'notes'       => '',
@@ -154,7 +153,6 @@ class PlayerRepository
             'ranking'        => (int) ($data['ranking'] ?? 0),
             'usual_team'     => sanitize_text_field($data['usual_team']     ?? ''),
             'is_foreign'     => (int) (bool) ($data['is_foreign']           ?? false),
-            'is_captain'     => (int) (bool) ($data['is_captain']           ?? false),
             'is_young'       => (int) (bool) ($data['is_young']             ?? false),
             'is_mutation'    => (int) (bool) ($data['is_mutation']          ?? false),
             'notes'          => sanitize_textarea_field($data['notes']      ?? ''),

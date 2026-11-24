@@ -556,7 +556,7 @@ class SettingsPage
         echo '<h2>' . esc_html__('Joueurs', 'mon-club-tt') . '</h2>';
         echo '<p>';
         echo esc_html__('Les joueurs sont repris des données FFTT et mis à jour à chaque synchronisation (Données FFTT › Connexion). Le bouton ci-dessous relance seulement cette mise à jour.', 'mon-club-tt');
-        echo '<br><em>' . esc_html__('Les données saisies dans l\'application (téléphone, e-mail, équipe habituelle, capitaine, notes) sont conservées.', 'mon-club-tt') . '</em>';
+        echo '<br><em>' . esc_html__('Les données saisies dans l\'application (téléphone, e-mail, équipe habituelle, notes) sont conservées.', 'mon-club-tt') . '</em>';
         echo '</p>';
 
         echo '<table class="form-table" role="presentation" style="margin-bottom:12px">';
