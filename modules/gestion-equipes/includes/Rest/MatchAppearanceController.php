@@ -7,6 +7,7 @@ namespace MonClubTT\GestionEquipes\Rest;
 use WP_REST_Request;
 use WP_REST_Response;
 use MonClubTT\GestionEquipes\Domain\BurnageChecker;
+use MonClubTT\GestionEquipes\Domain\ProjectedAppearanceHistory;
 use MonClubTT\GestionEquipes\Repository\MatchAppearanceRepository;
 use MonClubTT\GestionEquipes\Repository\TeamCompositionRepository;
 use MonClubTT\GestionEquipes\Repository\TeamForfeitRepository;
@@ -198,6 +199,14 @@ class MatchAppearanceController
         ];
     }
 
+    /**
+     * Statut de brûlage de chaque joueur pour une équipe et une journée.
+     *
+     * `burned`, `reason` et `detail` ne tiennent compte que des journées
+     * validées. Quand le joueur n'est pas brûlé, `projected` dit s'il le serait
+     * si les journées précédentes non validées se jouaient comme composées
+     * ({reason, detail}), ou vaut null.
+     */
     public function getBurnageStatus(WP_REST_Request $request): WP_REST_Response
     {
         $season   = sanitize_text_field($request->get_param('season') ?? get_option('monclubtt_ge_active_season', ''));
@@ -212,10 +221,32 @@ class MatchAppearanceController
             return new WP_REST_Response([], 200);
         }
 
-        $checker = new BurnageChecker();
-        $result  = [];
+        $checker   = new BurnageChecker();
+        $projected = new BurnageChecker(
+            new ProjectedAppearanceHistory(
+                new MatchAppearanceRepository(),
+                new TeamCompositionRepository(),
+                new ValidatedRoundRepository(),
+                new TeamForfeitRepository(),
+                $season,
+                $phase,
+                $round
+            )
+        );
+
+        $result = [];
         foreach ($playerIds as $playerId) {
-            $result[$playerId] = $checker->statusFor($season, $phase, $round, $teamCode, $playerId)->toArray();
+            $status = $checker->statusFor($season, $phase, $round, $teamCode, $playerId);
+            $row    = $status->toArray() + ['projected' => null];
+
+            if (! $status->burned) {
+                $projectedStatus = $projected->statusFor($season, $phase, $round, $teamCode, $playerId);
+                if ($projectedStatus->burned) {
+                    $row['projected'] = ['reason' => $projectedStatus->reason, 'detail' => $projectedStatus->detail];
+                }
+            }
+
+            $result[$playerId] = $row;
         }
 
         return new WP_REST_Response($result, 200);
