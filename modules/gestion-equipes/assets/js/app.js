@@ -138,9 +138,18 @@
     return (cfg.smsTemplates && cfg.smsTemplates[kind]) || w.TTPSms.DEFAULTS[kind];
   }
 
-  function smsHref(phone, firstName, jn, date) {
-    var body = w.TTPSms.body(smsTemplate('availability'), { prenom: firstName, journee: jn, date: date });
-    return w.TTPSms.href(phone, body);
+  // {equipe} : l'équipe où le joueur est placé pour une confirmation, son
+  // équipe habituelle pour une demande de dispo.
+  function smsHref(kind, p, jn, date, teamName) {
+    var body = w.TTPSms.body(smsTemplate(kind), {
+      prenom: p.first_name, nom: p.last_name, equipe: teamName, journee: jn, date: date
+    });
+    return w.TTPSms.href(p.phone, body);
+  }
+
+  function availabilitySmsHref(p, jn, date) {
+    var team = S.teams.find(function (tm) { return (tm.code || tm.id) === p.usual_team; });
+    return smsHref('availability', p, jn, date, team ? team.name : p.usual_team);
   }
 
   // ═══════════════════════════════════════════
@@ -1019,7 +1028,7 @@
       h += '<span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:999px;background:' + ((team && team.color) || C.pri) + ';color:white;flex-shrink:0">' + esc(e.team) + '</span>';
     }
     if (smsDate !== undefined && phone) {
-      h += '<a href="' + esc(smsHref(phone, p.first_name || '', S.journeeN, smsDate)) + '" title="Demander sa dispo par SMS" style="width:30px;height:30px;border-radius:8px;background:' + t.priSoft + ';color:' + C.priInk + ';display:flex;align-items:center;justify-content:center;text-decoration:none;font-size:13px;flex-shrink:0">💬</a>';
+      h += '<a href="' + esc(availabilitySmsHref(p, S.journeeN, smsDate)) + '" title="Demander sa dispo par SMS" style="width:30px;height:30px;border-radius:8px;background:' + t.priSoft + ';color:' + C.priInk + ';display:flex;align-items:center;justify-content:center;text-decoration:none;font-size:13px;flex-shrink:0">💬</a>';
     }
     return h + '</div>';
   }
@@ -1247,7 +1256,7 @@
       h += '<div style="display:flex;gap:6px;flex-shrink:0">';
       if (phone && !inactive) {
         h += '<a href="tel:' + esc(phone.replace(/\s/g, '')) + '" onclick="event.stopPropagation()" style="width:34px;height:34px;border-radius:8px;background:' + C.okSoft + ';color:#15803d;display:flex;align-items:center;justify-content:center;text-decoration:none;font-size:14px">📞</a>';
-        h += '<a href="' + esc(smsHref(phone, p.first_name || '', S.journeeN, jDate)) + '" onclick="event.stopPropagation()" style="width:34px;height:34px;border-radius:8px;background:' + t.priSoft + ';color:' + C.priInk + ';display:flex;align-items:center;justify-content:center;text-decoration:none;font-size:14px">💬</a>';
+        h += '<a href="' + esc(availabilitySmsHref(p, S.journeeN, jDate)) + '" onclick="event.stopPropagation()" style="width:34px;height:34px;border-radius:8px;background:' + t.priSoft + ';color:' + C.priInk + ';display:flex;align-items:center;justify-content:center;text-decoration:none;font-size:14px">💬</a>';
       }
       h += deleteRestoreBtn(p, dark, 34);
       h += '</div>';
@@ -1319,7 +1328,7 @@
     // Quick actions
     h += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px">';
     h += '<a href="tel:' + esc(phone.replace(/\s/g, '')) + '" style="display:flex;align-items:center;justify-content:center;gap:6px;background:' + C.ok + ';color:white;padding:12px;border-radius:10px;text-decoration:none;font-size:13px;font-weight:600">📞 Appeler</a>';
-    h += '<a href="' + esc(smsHref(phone, p.first_name || '', S.journeeN, jDate)) + '" style="display:flex;align-items:center;justify-content:center;gap:6px;background:' + C.pri + ';color:white;padding:12px;border-radius:10px;text-decoration:none;font-size:13px;font-weight:600">💬 SMS</a>';
+    h += '<a href="' + esc(availabilitySmsHref(p, S.journeeN, jDate)) + '" style="display:flex;align-items:center;justify-content:center;gap:6px;background:' + C.pri + ';color:white;padding:12px;border-radius:10px;text-decoration:none;font-size:13px;font-weight:600">💬 SMS</a>';
     h += '</div>';
 
     // Availability grids — both phases, interactive
