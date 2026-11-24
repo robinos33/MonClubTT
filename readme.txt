@@ -87,6 +87,7 @@ Yes. The plugin exposes six filters: `monclubtt_get_evenements`, `monclubtt_get_
 == Changelog ==
 
 = Unreleased =
+* Changed: pong mode picker: a plain Classic button and an arcade-style Arcade button, special shots picked on a matching dark panel
 * Changed: pong Arcade mode: each special shot has its icon, on its card, under the scores and in the freeze-frame cut-in
 
 = 2.10.0 =

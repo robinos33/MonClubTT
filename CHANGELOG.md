@@ -9,6 +9,7 @@ Format : [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/)
 
 ### Modifié
 
+- **Pong › mode Arcade** : choix du mode en deux boutons distincts, Classique sobre et Arcade façon borne de jeu (dégradé néon, éclair, reflet qui passe) ; choix du coup spécial dans un panneau sombre assorti. Ni reflet ni pulsation quand l'appareil demande de réduire les animations.
 - **Pong › mode Arcade** : chaque coup spécial a son picto (flamme, zigzag, fantôme, boomerang, flocon), sur sa carte au choix du coup, sous les scores et en filigrane de l'arrêt sur image.
 
 ## [2.10.0] — 2026-11-23

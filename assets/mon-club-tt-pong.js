@@ -1151,18 +1151,25 @@
 
         /* Mode : Classique (règles du ping, tableau des scores) ou Arcade
          * (coups spéciaux, hors tableau). Gardé sur l'appareil. */
-        var modes = el('div', 'pong-niveaux pong-modes');
+        var modes = el('div', 'pong-modes');
         modes.setAttribute('role', 'group');
         modes.setAttribute('aria-label', 'Mode de jeu');
-        [['classique', 'Classique'], ['arcade', 'Arcade']].forEach(function (m) {
-            var b = el('button', 'pong-niveau', m[1]);
+        [['classique', 'Classique', 'Les règles du ping'], ['arcade', 'Arcade', 'Coups spéciaux']].forEach(function (m) {
+            var b = el('button', 'pong-mode pong-mode--' + m[0]);
             b.type = 'button';
             b.dataset.mode = m[0];
+            if (m[0] === 'arcade') {
+                var eclair = el('span', 'pong-mode-eclair');
+                eclair.innerHTML = '<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><path d="M13.5 2 4.5 13.5H11L9.5 22l10-12.5H13z" fill="currentColor"/></svg>';
+                b.appendChild(eclair);
+            }
+            b.appendChild(el('strong', 'pong-mode-nom', m[1]));
+            b.appendChild(el('span', 'pong-mode-sous', m[2]));
             modes.appendChild(b);
         });
         var aideMode = el('p', 'pong-mode-aide');
         function majModes() {
-            modes.querySelectorAll('.pong-niveau').forEach(function (x) {
+            modes.querySelectorAll('.pong-mode').forEach(function (x) {
                 x.setAttribute('aria-pressed', String(x.dataset.mode === etat.mode));
             });
             aideMode.textContent = etat.mode === 'arcade'
@@ -1170,7 +1177,7 @@
                 : 'Les règles du ping, et le tableau des meilleurs scores.';
         }
         modes.addEventListener('click', function (e) {
-            var b = e.target.closest('.pong-niveau');
+            var b = e.target.closest('.pong-mode');
             if (!b) return;
             etat.mode = b.dataset.mode;
             ecrirePref('arcade', etat.mode === 'arcade');
