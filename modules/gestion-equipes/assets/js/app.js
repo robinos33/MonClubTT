@@ -1655,6 +1655,7 @@
         '<div style="font-size:10px;color:' + t.ink2 + ';font-weight:600;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px">Aperçu</div>' +
         '<div data-sms-preview style="font-size:13px;color:' + t.ink + ';background:' + t.priSoft + ';border-radius:12px;padding:10px 12px;margin-bottom:12px;white-space:pre-wrap;word-break:break-word">' + esc(smsPreview(se.text)) + '</div>' +
         (se.error ? '<div style="font-size:12px;color:' + C.err + ';background:' + C.errSoft + ';border-radius:8px;padding:8px 10px;margin-bottom:12px">' + esc(se.error) + '</div>' : '') +
+        (isSmsCustom(se.kind) ? '<div style="text-align:right;margin:-4px 0 10px"><button data-action="sms-edit-reset"' + (se.saving ? ' disabled' : '') + ' style="padding:2px 0;background:none;border:none;color:' + t.ink2 + ';font-size:11px;text-decoration:underline;cursor:pointer">Revenir au modèle du club</button></div>' : '') +
         '<div style="display:flex;gap:8px">' +
           '<button data-action="sms-edit-close" style="' + btn + ';border:1px solid ' + t.bord + ';background:transparent;color:' + t.ink + '">Annuler</button>' +
           '<button data-action="sms-edit-save"' + (se.saving ? ' disabled' : '') + ' style="' + btn + ';border:none;background:' + C.pri + ';color:white;opacity:' + (se.saving ? '0.6' : '1') + '">' + (se.saving ? 'Enregistrement…' : 'Enregistrer') + '</button>' +
@@ -1685,6 +1686,14 @@
     payload[se.kind] = se.text;
     setState({ smsEdit: Object.assign({}, se, { saving: true, error: null }) });
     apiFetch('/sms-templates', { method: 'PUT', body: JSON.stringify(payload) })
+      .then(applySmsTemplates, smsEditFailed);
+  }
+
+  function resetSmsEdit() {
+    var se = S.smsEdit;
+    if (!se || se.saving) return;
+    setState({ smsEdit: Object.assign({}, se, { saving: true, error: null }) });
+    apiFetch('/sms-templates/' + se.kind, { method: 'DELETE' })
       .then(applySmsTemplates, smsEditFailed);
   }
 
@@ -2323,6 +2332,7 @@
         break;
       case 'audit-round-clear':  S.auditFilter.phase = 0; S.auditFilter.round = 0; render(); break;
       case 'sms-edit-save':      saveSmsEdit(); break;
+      case 'sms-edit-reset':     resetSmsEdit(); break;
       case 'sms-edit-close':     setState({ smsEdit: null }); break;
     }
   }

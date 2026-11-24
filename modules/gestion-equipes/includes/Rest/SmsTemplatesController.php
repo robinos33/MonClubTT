@@ -17,6 +17,10 @@ use MonClubTT\GestionEquipes\Repository\SmsTemplateRepository;
  *
  * Body JSON : { "availability"?: string, "confirmation"?: string }
  * Réponse : { templates: { availability, confirmation }, custom: { availability, confirmation } }
+ *
+ * DELETE /monclubtt-equipes/v1/sms-templates/{availability|confirmation}
+ *
+ * Supprime le modèle personnel : le membre revient à celui du club.
  */
 class SmsTemplatesController
 {
@@ -32,6 +36,12 @@ class SmsTemplatesController
                 'availability' => ['type' => 'string'],
                 'confirmation' => ['type' => 'string'],
             ],
+        ]);
+
+        register_rest_route(self::NS, '/sms-templates/(?P<kind>availability|confirmation)', [
+            'methods'             => 'DELETE',
+            'callback'            => [$this, 'reset'],
+            'permission_callback' => [$this, 'canWrite'],
         ]);
     }
 
@@ -59,6 +69,16 @@ class SmsTemplatesController
         foreach ($changes as $kind => $value) {
             $repo->save($userId, $kind, $value);
         }
+
+        return new WP_REST_Response($repo->forUser($userId), 200);
+    }
+
+    /** Le membre abandonne son modèle personnel et revient à celui du club. */
+    public function reset(WP_REST_Request $request): WP_REST_Response
+    {
+        $repo   = new SmsTemplateRepository();
+        $userId = get_current_user_id();
+        $repo->reset($userId, (string) $request->get_param('kind'));
 
         return new WP_REST_Response($repo->forUser($userId), 200);
     }
