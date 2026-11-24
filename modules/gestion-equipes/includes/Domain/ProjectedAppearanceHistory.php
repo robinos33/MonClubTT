@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace MonClubTT\GestionEquipes\Domain;
@@ -82,7 +83,8 @@ final class ProjectedAppearanceHistory implements AppearanceHistory
 
         $planned = [];
         foreach ($this->compositions->findByPhase($this->season, $this->phase) as $slot) {
-            if ($slot->round >= $this->untilRound
+            if (
+                $slot->round >= $this->untilRound
                 || $slot->playerId === null
                 || $this->validations->isValidated($this->season, $this->phase, $slot->round, $slot->teamCode)
                 || $this->forfeits->isForfeit($this->season, $this->phase, $slot->round, $slot->teamCode)
