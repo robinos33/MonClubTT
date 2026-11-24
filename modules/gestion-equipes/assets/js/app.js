@@ -302,10 +302,9 @@
       method: 'POST',
       body: JSON.stringify({ season: cfg.season || '', phase: S.phase + 1, round: round, team_code: teamCode })
     }).then(function () {
-      var key = burnageKey(teamCode, round);
-      var v = Object.assign({}, S.validations); v[key] = true;
-      var b = Object.assign({}, S.burnage); delete b[key];
-      setState({ validations: v, burnage: b });
+      var v = Object.assign({}, S.validations); v[burnageKey(teamCode, round)] = true;
+      setState({ validations: v, burnage: burnageBefore(round) });
+      loadBurnageContext(teamCode, round);
     }).catch(function (err) { alert('Erreur : ' + err.message); });
   }
 
@@ -315,10 +314,9 @@
       method: 'DELETE',
       body: JSON.stringify({ season: cfg.season || '', phase: S.phase + 1, round: round, team_code: teamCode })
     }).then(function () {
-      var key = burnageKey(teamCode, round);
-      var v = Object.assign({}, S.validations); v[key] = false;
-      var b = Object.assign({}, S.burnage); delete b[key];
-      setState({ validations: v, burnage: b });
+      var v = Object.assign({}, S.validations); v[burnageKey(teamCode, round)] = false;
+      setState({ validations: v, burnage: burnageBefore(round) });
+      loadBurnageContext(teamCode, round);
     }).catch(function (err) { alert('Erreur : ' + err.message); });
   }
 
@@ -341,6 +339,17 @@
       setState({ forfeits: fo, burnage: {} });
       loadBurnageContext(currentTeamCode(), S.journeeN);
     }).catch(function (err) { alert('Erreur : ' + err.message); });
+  }
+
+  // Brûlage en cache des journées antérieures à `round` : une journée validée
+  // ou recomposée change le brûlage de toutes les équipes aux journées suivantes.
+  function burnageBefore(round) {
+    var b = {};
+    Object.keys(S.burnage).forEach(function (key) {
+      var m = /_r(\d+)$/.exec(key);
+      if (m && Number(m[1]) < round) b[key] = S.burnage[key];
+    });
+    return b;
   }
 
   function invalidateBurnage(teamCode, round) {
