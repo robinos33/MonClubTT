@@ -50,6 +50,8 @@ if ( ! function_exists( 'monclubtt_ge_charger' ) ) {
             'Domain/Availability.php',
             'Domain/TeamComposition.php',
             'Domain/MagicLink.php',
+            'Domain/Division.php',
+            'Domain/QualificationRules.php',
             'Domain/PhaseSquad.php',
             'Domain/MatchAppearance.php',
             'Domain/AppearanceHistory.php',
