@@ -463,7 +463,6 @@
       if (f === 'capt')  return !!p.is_captain;
       if (f === 'E')     return !!p.is_foreign;
       if (f === 'jeune') return !!p.is_young;
-      if (f === 'brule') return !!p.is_burned;
       return true;
     });
   }
@@ -496,7 +495,6 @@
     if (p.is_foreign) h += badge('E', 'purple', dark, true);
     if (p.is_young)   h += badge('Jeune', 'ok', dark, true);
     if (p.is_mutation)h += badge('Mut.', 'warn', dark, true);
-    if (p.is_burned)  h += badge('🔥 Brûlé', 'danger', dark, true);
     if (burnStatus && burnStatus.burned) {
       h += badge(BURN_LABELS[burnStatus.reason] || '🔥 Brûlé', 'danger', dark, true);
     }
@@ -845,7 +843,7 @@
         if (!p) { h += '<div style="padding:10px;background:' + t.surf + ';border:1px solid ' + t.bord + ';border-radius:10px;font-size:12px;color:' + t.ink2 + '">Joueur introuvable</div>'; return; }
         var avail = getAvail(p.id);
         var burnStatus = burnMap[p.id];
-        var danger = avail === 'unavailable' || p.is_burned || (burnStatus && burnStatus.burned);
+        var danger = avail === 'unavailable' || (burnStatus && burnStatus.burned);
         var init = initials((p.first_name || '') + ' ' + (p.last_name || ''));
         h += '<div style="display:flex;align-items:center;background:' + (danger ? C.errSoft : t.surf) + ';border:' + (danger ? '2px' : '1px') + ' solid ' + (danger ? C.err : t.bord) + ';border-radius:10px;overflow:hidden">' +
           '<button data-action="player" data-value="' + esc(p.id) + '" style="flex:1;display:flex;align-items:center;gap:10px;padding:10px;background:transparent;border:none;cursor:pointer;text-align:left;min-width:0">' +
@@ -1001,7 +999,7 @@
       '<span style="font-size:14px;opacity:0.6">🔍</span>' +
       '<input data-input="search" value="' + esc(S.searchQ) + '" placeholder="Rechercher…" style="flex:1;border:none;background:transparent;outline:none;color:' + t.ink + ';font-size:13px">' +
     '</div>';
-    var filters = [['all','Tous'],['ko','🚫 Indispo'],['capt','© Capitaines'],['E','E Étrangers'],['jeune','Jeunes'],['brule','🔥 Brûlés']];
+    var filters = [['all','Tous'],['ko','🚫 Indispo'],['capt','© Capitaines'],['E','E Étrangers'],['jeune','Jeunes']];
     h += '<div style="display:flex;gap:6px;margin-top:10px;overflow-x:auto;-webkit-overflow-scrolling:touch">';
     filters.forEach(function (f) {
       var active = S.playerFilter === f[0];
