@@ -1230,7 +1230,8 @@
     var jDate = (S.journees[S.journeeN - 1] || {}).date || '';
     var inactive = p.is_active === false;
     var selected = !!S.bulkSelected[String(p.id)];
-    var h = '<div style="background:' + t.surf + ';border:1px solid ' + (bulkMode && selected ? C.pri : t.bord) + ';border-radius:10px;padding:10px;display:flex;align-items:center;gap:10px;opacity:' + (inactive ? '0.6' : '1') + '">';
+    // En mode sélection, toute la carte (pastille comprise) bascule la sélection
+    var h = '<div' + (bulkMode ? ' data-action="bulk-toggle" data-value="' + esc(p.id) + '"' : '') + ' style="background:' + t.surf + ';border:1px solid ' + (bulkMode && selected ? C.pri : t.bord) + ';border-radius:10px;padding:10px;display:flex;align-items:center;gap:10px;opacity:' + (inactive ? '0.6' : '1') + (bulkMode ? ';cursor:pointer' : '') + '">';
     h += '<button data-action="' + (bulkMode ? 'bulk-toggle' : 'player') + '" data-value="' + esc(p.id) + '" style="flex:1;display:flex;align-items:center;gap:10px;background:transparent;border:none;padding:0;cursor:pointer;text-align:left;min-width:0">' +
       avatar(init, avail, dark, 38) +
       '<div style="flex:1;min-width:0">' +
