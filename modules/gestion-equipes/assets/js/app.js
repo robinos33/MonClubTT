@@ -1773,7 +1773,9 @@
       var file = new File([blob], name, { type: 'image/png' });
       var canShare = false;
       try { canShare = !!(navigator.canShare && navigator.canShare({ files: [file] })); } catch (e) {}
-      setState({ share: { url: URL.createObjectURL(blob), file: file, name: name, canShare: canShare, title: 'Compos J' + round } });
+      // Lien vers la journée, joint au partage : un lien dessiné dans l'image ne serait pas cliquable.
+      var link = w.location.href.split('#')[0] + screenToHash({ screen: 'journee', journeeN: round });
+      setState({ share: { url: URL.createObjectURL(blob), file: file, name: name, canShare: canShare, title: 'Compos J' + round, link: link } });
     }).catch(function (err) {
       if (seq !== shareSeq) return;
       setState({ share: { error: (err && err.message) || String(err) } });
@@ -1785,7 +1787,7 @@
   function sendShare() {
     var sh = S.share;
     if (!sh || !sh.file) return;
-    navigator.share({ files: [sh.file], title: sh.title }).catch(function (err) {
+    navigator.share({ files: [sh.file], title: sh.title, text: sh.title + ' : ' + sh.link }).catch(function (err) {
       if (err && err.name === 'AbortError') return; // partage annulé
       alert('Partage impossible : ' + (err && err.message) + '\nUtilisez « Télécharger ».');
     });
