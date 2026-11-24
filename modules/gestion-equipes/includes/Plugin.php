@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace MonClubTT\GestionEquipes;
 
 use MonClubTT\GestionEquipes\Admin\BackOfficeGuard;
+use MonClubTT\GestionEquipes\Audit\AuditRecorder;
 use MonClubTT\GestionEquipes\Admin\SettingsPage;
 use MonClubTT\GestionEquipes\Front\Assets;
 use MonClubTT\GestionEquipes\Front\MagicLinkTemplate;
@@ -27,6 +28,8 @@ final class Plugin
 {
     private static ?Plugin $instance = null;
 
+    private AuditRecorder $audit;
+
     public static function getInstance(): self
     {
         if (self::$instance === null) {
@@ -37,6 +40,10 @@ final class Plugin
 
     private function __construct()
     {
+        // Journal des actions : toute écriture de l'API y laisse une entrée.
+        $this->audit = new AuditRecorder();
+        $this->audit->register();
+
         add_action('plugins_loaded', [Activator::class, 'maybeUpgrade']);
         add_action('init', [$this, 'init']);
         add_action('rest_api_init', [$this, 'registerRestRoutes']);

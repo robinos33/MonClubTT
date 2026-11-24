@@ -156,6 +156,23 @@ class Activator
             UNIQUE KEY season_phase_round_team (season, phase, round, team_code)
         ) $charset;";
 
+        // Journal des actions : summary est la phrase affichée, le reste sert aux filtres.
+        $sql[] = "CREATE TABLE {$wpdb->prefix}monclubtt_ge_audit_log (
+            id          bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,
+            created_at  datetime            NOT NULL,
+            user_id     bigint(20) UNSIGNED NOT NULL DEFAULT 0,
+            actor       varchar(100)        NOT NULL DEFAULT '',
+            source      varchar(20)         NOT NULL DEFAULT '',
+            action      varchar(60)         NOT NULL DEFAULT '',
+            summary     text                NOT NULL,
+            season      varchar(20)         NOT NULL DEFAULT '',
+            phase       tinyint(1)          NOT NULL DEFAULT 0,
+            round       tinyint(2)          NOT NULL DEFAULT 0,
+            team_code   varchar(20)         NOT NULL DEFAULT '',
+            PRIMARY KEY (id),
+            KEY created_at (created_at)
+        ) $charset;";
+
         require_once ABSPATH . 'wp-admin/includes/upgrade.php';
         foreach ($sql as $query) {
             dbDelta($query);
