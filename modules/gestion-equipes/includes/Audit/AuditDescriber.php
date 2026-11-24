@@ -232,6 +232,41 @@ class AuditDescriber
         return null;
     }
 
+    /**
+     * Changement d'un réglage du back-office.
+     *
+     * @return array<string, mixed>|null
+     */
+    public function describeOption(string $option, mixed $old, mixed $new): ?array
+    {
+        $entry = fn (string $summary, int $phase = 0): array => [
+            'action' => 'settings.' . $option, 'summary' => $summary,
+            'season' => '', 'phase' => $phase, 'round' => 0, 'team_code' => '',
+        ];
+
+        if (preg_match('/^ttp_journee_dates_p([12])$/', $option, $m)) {
+            $changes = [];
+            foreach ((array) $new as $i => $date) {
+                $before = (string) (((array) $old)[$i] ?? '');
+                if ((string) $date !== $before) {
+                    $changes[] = sprintf('J%d %s → %s', $i + 1, self::day($before), self::day((string) $date));
+                }
+            }
+            return $changes ? $entry(sprintf('a modifié les dates de la phase %s : %s', $m[1], implode(', ', $changes)), (int) $m[1]) : null;
+        }
+
+        if (preg_match('/^ttp_sms_template_(availability|confirmation)$/', $option, $m)) {
+            return $entry(sprintf('a modifié le SMS du club « %s »', self::SMS_LABELS[$m[1]]));
+        }
+
+        return match ($option) {
+            'monclubtt_ge_teams'       => $entry('a modifié les équipes'),
+            'monclubtt_ge_club_name'   => $entry(sprintf('a renommé le club en « %s »', (string) $new)),
+            'monclubtt_ge_pwa_enabled' => $entry($new ? "a activé l'installation de l'application" : "a désactivé l'installation de l'application"),
+            default           => null,
+        };
+    }
+
     private function magicLinkSnapshot(array $p): array
     {
         return $this->lookup->magicLink(self::str($p, 'token')) ?? [];
@@ -245,6 +280,12 @@ class AuditDescriber
     private static function status(string $status): string
     {
         return self::STATUS_LABELS[$status] ?? $status;
+    }
+
+    /** « 2026-11-07 » → « 07/11 », une date vide → « — ». */
+    private static function day(string $iso): string
+    {
+        return preg_match('/^\d{4}-(\d{2})-(\d{2})$/', $iso, $m) ? $m[2] . '/' . $m[1] : '—';
     }
 
     /** @param list<string> $items */

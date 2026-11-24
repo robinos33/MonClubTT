@@ -13,13 +13,16 @@ use WP_REST_Response;
 /**
  * Accroche le journal aux écritures, à un seul endroit : toute requête
  * monclubtt-equipes/v1 autre que GET qui réussit est enregistrée, sans rien toucher aux
- * contrôleurs.
+ * contrôleurs. S'y ajoutent les réglages du back-office.
  *
  * Le journal ne doit jamais faire échouer l'action qu'il raconte : toute
  * erreur de journalisation est avalée.
  */
 class AuditRecorder
 {
+    /** Réglages du back-office suivis. */
+    private const OPTIONS = '/^ttp_(journee_dates_p[12]|sms_template_(availability|confirmation)|teams|club_name|pwa_enabled)$/';
+
     /** @var array<int, array<string, mixed>> état d'avant, par requête */
     private array $pending = [];
 
@@ -33,6 +36,9 @@ class AuditRecorder
     {
         add_filter('rest_request_before_callbacks', [$this, 'beforeCallbacks'], 10, 3);
         add_filter('rest_request_after_callbacks', [$this, 'afterCallbacks'], 10, 3);
+        add_action('updated_option', [$this, 'optionUpdated'], 10, 3);
+        // Première saisie : update_option() crée l'option sans passer par updated_option.
+        add_action('added_option', fn (string $option, mixed $value) => $this->optionUpdated($option, null, $value), 10, 2);
     }
 
     /**
@@ -75,6 +81,22 @@ class AuditRecorder
         } catch (Throwable) {
         }
         return $response;
+    }
+
+    public function optionUpdated(string $option, mixed $old, mixed $new): void
+    {
+        // Une écriture de l'API (remise à zéro des dates…) ou d'une tâche
+        // automatique a déjà sa propre entrée.
+        if (! preg_match(self::OPTIONS, $option) || (defined('REST_REQUEST') && REST_REQUEST) || wp_doing_cron()) {
+            return;
+        }
+        try {
+            $entry = $this->describer->describeOption($option, $old, $new);
+            if ($entry !== null) {
+                $this->record($entry, 'back-office');
+            }
+        } catch (Throwable) {
+        }
     }
 
     /** @param array<string, mixed> $entry */
