@@ -6,7 +6,8 @@
  *   paint(canvas, model, dpr)  → comment elle le dit (dessin)
  *
  * Exposé sur window.TTPShareImage, utilisé par app.js. Dépend de
- * window.TTPRoster (roster.js), chargé avant.
+ * window.TTPRoster (roster.js) et window.TTPTeamCheck (team-check.js),
+ * chargés avant.
  */
 (function (w) {
   'use strict';
@@ -56,11 +57,19 @@
     };
   }
 
-  function teamStatus(forfeit, validated, filled) {
+  // lost : équipe régionale à moins de 4 dans la semaine de la journée.
+  function teamStatus(forfeit, validated, filled, lost) {
     if (forfeit)      return chip('Forfait', 'danger');
     if (validated)    return chip('✓ Validée', 'ok');
     if (filled === 4) return chip('Complète', 'ok');
+    if (lost)         return chip('Incomplète ' + filled + '/4 · rencontre perdue', 'danger');
     return chip('Incomplète ' + filled + '/4', 'warn');
+  }
+
+  function isoDay(date) {
+    return date.getFullYear() + '-' +
+      String(date.getMonth() + 1).padStart(2, '0') + '-' +
+      String(date.getDate()).padStart(2, '0');
   }
 
   function formatDay(iso) {
@@ -91,6 +100,7 @@
     var round = input.round;
     var burnLabels = input.burnLabels || {};
     var contexts = input.contexts || {};
+    var today = isoDay(input.generatedAt || new Date());
 
     var players = {};
     (input.players || []).forEach(function (p) { players[String(p.id)] = p; });
@@ -123,6 +133,7 @@
         return playerSlot(num, p, availOf(p.id), burnMap[p.id], burnLabels);
       });
       var filled = slots.filter(function (s) { return !s.empty; }).length;
+      var lost = !forfeit && w.TTPTeamCheck.completeness(team, filled, input.date, today) === 'alert';
 
       return {
         name: team.name || code || 'Équipe',
@@ -130,7 +141,7 @@
         color: team.color || '#2563eb',
         forfeit: forfeit,
         filled: filled,
-        status: teamStatus(forfeit, ctx.validated === true, filled),
+        status: teamStatus(forfeit, ctx.validated === true, filled, lost),
         // Une image sans badge doit vouloir dire « rien à signaler », pas « pas chargé ».
         unverified: ctx.burnage == null || ctx.validated == null || input.forfeits == null,
         slots: slots
