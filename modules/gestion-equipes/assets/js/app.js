@@ -353,6 +353,10 @@
     var ph = S.phase + 1, rn = S.journeeN, se = cfg.season || '';
     var compos = S.compositions.filter(function (c) {
       return !(c.team_code === teamCode && c.slot_number === slotNum);
+    }).map(function (c) {
+      // Comme le serveur (clearPlayerFromRound) : un joueur déjà placé
+      // ailleurs dans la journée quitte son ancien slot.
+      return Number(c.player_id) === playerId ? Object.assign({}, c, { player_id: null }) : c;
     });
     compos.push({ team_code: teamCode, slot_number: slotNum, player_id: playerId, phase: ph, round: rn, season: se });
     invalidateBurnage(teamCode, rn);
