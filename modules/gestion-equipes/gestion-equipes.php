@@ -65,6 +65,7 @@ if ( ! function_exists( 'monclubtt_ge_charger' ) ) {
             'Admin/DataExporter.php',
             'Admin/DataImporter.php',
             'Admin/SettingsPage.php',
+            'Admin/BackOfficeGuard.php',
             'Sync/AppearanceImporter.php',
             'Rest/PhaseSquadController.php',
             'Rest/PlayersController.php',

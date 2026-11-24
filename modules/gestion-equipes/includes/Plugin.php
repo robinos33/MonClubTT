@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace MonClubTT\GestionEquipes;
 
+use MonClubTT\GestionEquipes\Admin\BackOfficeGuard;
 use MonClubTT\GestionEquipes\Admin\SettingsPage;
 use MonClubTT\GestionEquipes\Front\Assets;
 use MonClubTT\GestionEquipes\Front\MagicLinkTemplate;
@@ -52,6 +53,10 @@ final class Plugin
 
         // Les joueurs suivent automatiquement chaque synchronisation de Données FFTT.
         add_action('monclubtt_apres_synchro', [SyncController::class, 'syncPlayers']);
+
+        // Le gestionnaire planner n'a pas de back-office : admin_init le
+        // renvoie vers le planner, show_admin_bar lui masque la barre.
+        (new BackOfficeGuard())->register();
 
         if (is_admin()) {
             add_action('admin_menu', [$this, 'registerAdminMenu'], 15);
