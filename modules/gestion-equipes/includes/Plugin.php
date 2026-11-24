@@ -41,7 +41,8 @@ final class Plugin
 
     private function __construct()
     {
-        // Journal des actions : toute écriture de l'API y laisse une entrée.
+        // Journal des actions : écritures de l'API, réglages du back-office et
+        // tâches automatiques (relances, import des feuilles de match).
         $this->audit = new AuditRecorder();
         $this->audit->register();
 
@@ -88,12 +89,18 @@ final class Plugin
 
     public function sendAvailabilityReminders(): void
     {
-        (new AvailabilityReminder())->run();
+        $sent = (new AvailabilityReminder())->run();
+        if ($sent > 0) {
+            $this->audit->automatic('availability.remind', sprintf('a relancé %d joueur(s) sans réponse sur leurs dispos', $sent));
+        }
     }
 
     public function importAppearances(): void
     {
-        (new AppearanceImporter())->run();
+        $report = (new AppearanceImporter())->run();
+        if ($report['imported'] > 0) {
+            $this->audit->automatic('appearances.import', sprintf('a importé %d participation(s) depuis les feuilles de match', $report['imported']));
+        }
     }
 
     public function registerRestRoutes(): void

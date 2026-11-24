@@ -13,7 +13,8 @@ use WP_REST_Response;
 /**
  * Accroche le journal aux écritures, à un seul endroit : toute requête
  * monclubtt-equipes/v1 autre que GET qui réussit est enregistrée, sans rien toucher aux
- * contrôleurs. S'y ajoutent les réglages du back-office.
+ * contrôleurs. S'y ajoutent les réglages du back-office et les tâches
+ * automatiques (voir Plugin).
  *
  * Le journal ne doit jamais faire échouer l'action qu'il raconte : toute
  * erreur de journalisation est avalée.
@@ -95,6 +96,19 @@ class AuditRecorder
             if ($entry !== null) {
                 $this->record($entry, 'back-office');
             }
+        } catch (Throwable) {
+        }
+    }
+
+    /** Une ligne par exécution d'une tâche automatique qui a fait quelque chose. */
+    public function automatic(string $action, string $summary): void
+    {
+        try {
+            $this->log->add([
+                'user_id' => 0, 'actor' => 'Automatique', 'source' => 'automatique',
+                'action' => $action, 'summary' => $summary,
+                'season' => '', 'phase' => 0, 'round' => 0, 'team_code' => '',
+            ]);
         } catch (Throwable) {
         }
     }
