@@ -17,7 +17,7 @@ class AvailabilityController
         register_rest_route(self::NS, '/availability', [
             'methods'             => 'GET',
             'callback'            => [$this, 'getAvailability'],
-            'permission_callback' => '__return_true',
+            'permission_callback' => [$this, 'canRead'],
         ]);
 
         register_rest_route(self::NS, '/availability', [
