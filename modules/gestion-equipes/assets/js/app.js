@@ -332,8 +332,19 @@
     return !!(S.forfeits['p' + (S.phase + 1)] || {})[burnageKey(teamCode, round)];
   }
 
+  // Une équipe qui a joué incomplète n'est pas forfait (LNATT 4.6.2) : la
+  // déclarer forfait appliquerait à tort II.112.2 au brûlage des autres.
+  function forfeitQuestion(teamCode, round) {
+    var question = 'Déclarer le forfait de cette équipe pour la J' + round + ' ? Les règles de qualification des autres équipes en tiennent compte.';
+    var placed = getCompoSlots(teamCode).filter(function (s) { return s.player_id; }).length;
+    if (!placed) return question;
+    return (placed > 1 ? placed + ' joueurs sont placés' : '1 joueur est placé') + ' dans cette compo.\n\n' +
+      'Une équipe qui a joué incomplète n’est PAS forfait : sa rencontre est perdue, mais ses joueurs ont joué et le brûlage des autres équipes n’est pas modifié.\n\n' +
+      'Déclarer quand même le forfait pour la J' + round + ' ?';
+  }
+
   function setForfeit(teamCode, round, declared) {
-    if (declared && !confirm('Déclarer le forfait de cette équipe pour la J' + round + ' ? Les règles de qualification des autres équipes en tiennent compte.')) return;
+    if (declared && !confirm(forfeitQuestion(teamCode, round))) return;
     var ph = S.phase + 1;
     apiFetch('/forfeits', {
       method: declared ? 'POST' : 'DELETE',
