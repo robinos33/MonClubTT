@@ -16,7 +16,7 @@ Plugin WordPress non-officiel pour afficher les données d'un club issues de l'[
 - **Feuilles de match** — au clic sur un résultat, la composition des deux équipes et le détail partie par partie s'affichent (chargement AJAX, mis en cache)
 - **Comité directeur** — le bureau (photo, nom, poste) puis les autres membres du comité avec leurs commissions
 - **Calendrier du club** — agenda de la saison, prochain rendez-vous d'une série (tour du Grand Prix, stage…) qui avance tout seul, listes de dates, abonnement des adhérents dans leur agenda
-- **Application de gestion des équipes** (staff, connexion requise, installable sur mobile) — disponibilités des joueurs, compositions par journée, effectifs de phase, contrôle du brûlage, SMS pré-rédigés, liens magiques pour que chaque joueur donne ses disponibilités sans compte
+- **Application de gestion des équipes** (staff, connexion requise, installable sur mobile) — disponibilités des joueurs, compositions par journée, effectifs de phase, capitaines de phase et de journée, contrôle du brûlage (y compris projeté sur les journées à venir), image des compos à partager, SMS pré-rédigés, journal des actions, liens magiques pour que chaque joueur donne ses disponibilités sans compte ; rôle *Membre commission équipe* pour gérer les équipes sans accès au back-office
 
 ### Côté administration
 
@@ -218,7 +218,9 @@ Ancienne extension *TT Team Planner*, intégrée au plugin (`modules/gestion-equ
 
 **Application du staff.** Une page contenant le shortcode `[tt_team_planner]` (bouton *Créer la page* dans *Gestion des équipes › Général*) est remplacée par l'application, sans le thème. Connexion WordPress requise. Installable sur l'écran d'accueil (PWA) si l'option est cochée.
 
-**Joueurs.** Repris des données FFTT et mis à jour à chaque synchronisation de *Données FFTT*. Les informations saisies dans l'application (téléphone, e-mail, équipe habituelle, capitaine, notes) sont conservées.
+**Qui peut modifier.** Les données de l'application ne se lisent qu'une fois connecté. Les modifier demande le droit *Gérer les équipes* (`monclubtt_ge_manage_planner`), que portent les administrateurs, les éditeurs et le rôle **Membre commission équipe**. Ce rôle n'a que ce droit et la lecture : un capitaine qui l'a ouvre l'application, wp-admin le renvoie vers elle et la barre d'admin lui est masquée. Le journal des actions est réservé aux administrateurs.
+
+**Joueurs.** Repris des données FFTT et mis à jour à chaque synchronisation de *Données FFTT*. Les informations saisies dans l'application (téléphone, e-mail, équipe habituelle, notes) sont conservées. Le capitaine se nomme par équipe, pour la phase (écran *Effectifs*) et pour une journée (vue *Journée*).
 
 **Migration depuis TT Team Planner.**
 
@@ -226,7 +228,7 @@ Ancienne extension *TT Team Planner*, intégrée au plugin (`modules/gestion-equ
 2. *Gestion des équipes › Import / export* : *Importer depuis TT Team Planner* (tables encore présentes sur le site) ou importer le fichier JSON de son export (pour une migration d'un site à l'autre).
 3. Vérifier dans l'application, puis supprimer TT Team Planner.
 
-L'import remplace les données de la gestion des équipes et conserve les identifiants. Les liens magiques ne sont pas repris : en renvoyer depuis l'application. L'adresse de l'application et son shortcode ne changent pas, les mobiles où elle est installée continuent de l'ouvrir.
+L'import remplace les données de la gestion des équipes (journal des actions et SMS personnels des membres compris) et conserve les identifiants. Les membres qui avaient le rôle *Membre commission équipe* de TT Team Planner reçoivent celui du module. Les liens magiques ne sont pas repris : en renvoyer depuis l'application. L'adresse de l'application et son shortcode ne changent pas, les mobiles où elle est installée continuent de l'ouvrir.
 
 **Export.** *Gestion des équipes › Import / export › Exporter en JSON* : sauvegarde complète, réimportable sur ce site ou un autre.
 
