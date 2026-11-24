@@ -138,6 +138,7 @@ class Activator
             team_code  varchar(20)         NOT NULL DEFAULT '',
             player_id  bigint(20) UNSIGNED NOT NULL,
             position   smallint(5)         NOT NULL DEFAULT 0,
+            is_captain tinyint(1)          NOT NULL DEFAULT 0,
             created_at datetime            NOT NULL DEFAULT CURRENT_TIMESTAMP,
             PRIMARY KEY (id),
             UNIQUE KEY season_phase_team_player (season, phase, team_code, player_id),

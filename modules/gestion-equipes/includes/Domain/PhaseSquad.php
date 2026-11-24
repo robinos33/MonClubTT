@@ -13,6 +13,7 @@ final class PhaseSquad
         public readonly string $teamCode,
         public readonly int $playerId,
         public readonly int $position,
+        public readonly bool $isCaptain = false,
     ) {}
 
     public static function fromRow(array $row): self
@@ -24,6 +25,7 @@ final class PhaseSquad
             teamCode: (string) $row['team_code'],
             playerId: (int)    $row['player_id'],
             position: (int)    ($row['position'] ?? 0),
+            isCaptain: (bool)  ($row['is_captain'] ?? false),
         );
     }
 
@@ -35,7 +37,8 @@ final class PhaseSquad
             'phase'     => $this->phase,
             'team_code' => $this->teamCode,
             'player_id' => $this->playerId,
-            'position'  => $this->position,
+            'position'   => $this->position,
+            'is_captain' => $this->isCaptain,
         ];
     }
 }

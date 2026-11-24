@@ -113,6 +113,27 @@ class PhaseSquadRepository
     }
 
     /**
+     * Nomme le capitaine de l'équipe pour la phase, en une requête : le
+     * drapeau passe sur ce joueur et quitte tous les autres, d'où un seul
+     * capitaine par équipe et par phase. Avec 0, l'équipe n'en a plus.
+     * Le joueur doit être dans l'effectif : sinon, plus personne n'est
+     * capitaine (à vérifier avant l'appel).
+     */
+    public function setCaptain(string $season, int $phase, string $teamCode, int $playerId): void
+    {
+        global $wpdb;
+        $wpdb->query($wpdb->prepare( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+            "UPDATE {$this->table} SET is_captain = (player_id = %d) WHERE season = %s AND phase = %d AND team_code = %s", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- table name from $wpdb->prefix in constructor, not user input
+            $playerId,
+            $season,
+            $phase,
+            $teamCode
+        ));
+
+        wp_cache_flush_group(self::CACHE_GROUP);
+    }
+
+    /**
      * Retire un joueur de tous les effectifs de phase (toutes saisons/phases/
      * équipes confondues) — utilisé lors de la suppression d'un joueur de
      * l'effectif.
