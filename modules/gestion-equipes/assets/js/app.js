@@ -62,7 +62,8 @@
     burnage: {}, validations: {}, forfeits: {},
     teams: cfg.teams || [],
     journees: buildJournees(cfg.phase || 0),
-    pwaPrompt: null, pwaIos: false, pwaDismissed: !!localStorage.getItem('ttp-pwa-dismissed')
+    pwaPrompt: null, pwaIos: false, pwaDismissed: !!localStorage.getItem('ttp-pwa-dismissed'),
+    share: null
   };
 
   function todayISO() {
@@ -561,6 +562,36 @@
     '</div>';
   }
 
+  function renderShare() {
+    var t = tk(S.dark);
+    var sh = S.share;
+    var btn = 'flex:1;padding:10px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;text-align:center;text-decoration:none;display:block';
+    var body;
+    if (sh.loading) {
+      body = '<div style="padding:28px 0;text-align:center;font-size:13px;color:' + t.ink2 + ';line-height:1.6">Préparation de l’image…<br><small>Brûlage et validation de chaque équipe</small></div>';
+    } else if (sh.error) {
+      body = '<div style="font-size:13px;color:' + C.err + ';line-height:1.5">Impossible de générer l’image : ' + esc(sh.error) + '</div>';
+    } else {
+      body = '<div style="max-height:58vh;overflow-y:auto;border:1px solid ' + t.bord + ';border-radius:8px;margin-bottom:12px;-webkit-overflow-scrolling:touch">' +
+          '<img src="' + esc(sh.url) + '" alt="Compositions de la journée" style="display:block;width:100%">' +
+        '</div>' +
+        '<div style="display:flex;gap:8px">' +
+          (sh.canShare ? '<button data-action="share-send" style="' + btn + ';border:none;background:' + C.pri + ';color:white">📤 Partager</button>' : '') +
+          '<a href="' + esc(sh.url) + '" download="' + esc(sh.name) + '" style="' + btn + ';border:1px solid ' + t.bord + ';background:transparent;color:' + t.ink + '">⬇️ Télécharger</a>' +
+        '</div>';
+    }
+    return '<div style="position:absolute;inset:0;z-index:60;display:flex;align-items:center;justify-content:center;padding:16px">' +
+      '<div data-action="share-close" style="position:absolute;inset:0;background:rgba(0,0,0,0.5)"></div>' +
+      '<div style="position:relative;background:' + t.surf + ';border-radius:14px;padding:16px;max-width:420px;width:100%;box-shadow:0 10px 40px rgba(0,0,0,0.3)">' +
+        '<div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">' +
+          '<div style="flex:1;font-size:15px;font-weight:700;color:' + t.ink + '">Partager les compos</div>' +
+          '<button data-action="share-close" style="width:28px;height:28px;border-radius:8px;border:none;background:' + t.surf2 + ';color:' + t.ink2 + ';font-size:14px;cursor:pointer">✕</button>' +
+        '</div>' +
+        body +
+      '</div>' +
+    '</div>';
+  }
+
   function renderWipeConfirm() {
     var dark = S.dark; var t = tk(dark);
     var p = getPlayer(S.wipeConfirm);
@@ -696,7 +727,10 @@
     var teams = S.teams;
 
     var tcLabel = tc ? ((j.complete || 0) + '/' + tc + ' compos') : 'Pas d\'équipe configurée';
-    var h = topBar('Journée ' + jn, (j.date ? esc(j.date) + ' · ' : '') + tcLabel, dark, true);
+    var shareBtn = tc
+      ? '<button data-action="share-open" title="Image des compos de toutes les équipes, à partager" style="height:32px;padding:0 10px;border-radius:8px;border:none;background:' + C.pri + ';color:white;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;flex-shrink:0">📤 Partager les compos</button>'
+      : '';
+    var h = topBar('Journée ' + jn, (j.date ? esc(j.date) + ' · ' : '') + tcLabel, dark, true, shareBtn);
 
     // Journée tabs (scrollable)
     h += '<div style="display:flex;overflow-x:auto;padding:10px 12px;gap:6px;background:' + t.surf + ';border-bottom:1px solid ' + t.bord + ';-webkit-overflow-scrolling:touch">';
@@ -1449,6 +1483,7 @@
       (S.deleteConfirm ? renderDeleteConfirm() : '') +
       (S.bulkResult ? renderBulkResult() : '') +
       (S.wipeConfirm ? renderWipeConfirm() : '') +
+      (S.share ? renderShare() : '') +
     '</div>';
   }
 
@@ -1644,6 +1679,98 @@
     });
   }
 
+  // ═══════════════════════════════════════════
+  // PARTAGE DES COMPOS — image de toutes les équipes de la journée
+  // ═══════════════════════════════════════════
+  /**
+   * Rassemble ce que montre l'image. La vue Journée ne charge le brûlage et la
+   * validation que de l'équipe affichée : ici, on les charge pour chacune.
+   * Un chargement en échec (hors ligne sans cache) donne null, que l'image
+   * signale « non vérifié » plutôt que de l'omettre.
+   */
+  function loadShareInput(phase, round) {
+    var orNull = function (p) { return p.then(null, function () { return null; }); };
+    var codes = S.teams.map(function (tm) { return tm.code || tm.id || ''; });
+    var compos = apiFetch('/compositions?season=' + encodeURIComponent(cfg.season || '') + '&phase=' + phase + '&round=' + round)
+      .catch(function (err) {
+        // Pas de réseau ni de cache : les compos à l'écran sont celles de cette journée.
+        if (round === S.journeeN && phase === S.phase + 1) return S.compositions;
+        throw err;
+      });
+
+    return Promise.all([
+      compos,
+      orNull(fetchForfeits(phase)),
+      Promise.all(codes.map(function (code) {
+        var key = burnageKey(code, round);
+        return Promise.all([
+          S.validations[key] !== undefined ? S.validations[key] : orNull(fetchValidation(code, round)),
+          S.burnage[key] ? S.burnage[key] : orNull(fetchBurnage(code, round))
+        ]);
+      }))
+    ]).then(function (res) {
+      var contexts = {};
+      codes.forEach(function (code, i) { contexts[code] = { validated: res[2][i][0], burnage: res[2][i][1] }; });
+      var forfeits = null;
+      if (res[1]) {
+        forfeits = {};
+        codes.forEach(function (code) { if (res[1][burnageKey(code, round)]) forfeits[code] = true; });
+      }
+      var j = S.journees.find(function (x) { return x.n === round; });
+      return {
+        clubName: cfg.clubName, phase: phase, round: round, date: j ? j.date : '', generatedAt: new Date(),
+        teams: S.teams, compositions: res[0] || [], players: S.players, availabilities: S.availabilities,
+        contexts: contexts, forfeits: forfeits, burnLabels: BURN_LABELS
+      };
+    });
+  }
+
+  // Incrémenté à chaque ouverture / fermeture : une génération qui revient
+  // après qu'on a fermé ou relancé la modale est ignorée.
+  var shareSeq = 0;
+
+  function openShare() {
+    var lib = w.TTPShareImage;
+    if (!lib) return;
+    var seq = ++shareSeq;
+    var phase = S.phase + 1, round = S.journeeN;
+    setState({ share: { loading: true } });
+
+    loadShareInput(phase, round).then(function (input) {
+      var canvas = lib.paint(d.createElement('canvas'), lib.buildModel(input), w.devicePixelRatio);
+      return new Promise(function (resolve, reject) {
+        canvas.toBlob(function (blob) { if (blob) resolve(blob); else reject(new Error('image vide')); }, 'image/png');
+      });
+    }).then(function (blob) {
+      if (seq !== shareSeq) return;
+      var name = 'compos-phase' + phase + '-j' + round + '.png';
+      var file = new File([blob], name, { type: 'image/png' });
+      var canShare = false;
+      try { canShare = !!(navigator.canShare && navigator.canShare({ files: [file] })); } catch (e) {}
+      setState({ share: { url: URL.createObjectURL(blob), file: file, name: name, canShare: canShare, title: 'Compos J' + round } });
+    }).catch(function (err) {
+      if (seq !== shareSeq) return;
+      setState({ share: { error: (err && err.message) || String(err) } });
+    });
+  }
+
+  // Le partage part d'un second tap, dans la modale : iOS exige un geste
+  // utilisateur récent pour navigator.share, et les chargements l'ont consommé.
+  function sendShare() {
+    var sh = S.share;
+    if (!sh || !sh.file) return;
+    navigator.share({ files: [sh.file], title: sh.title }).catch(function (err) {
+      if (err && err.name === 'AbortError') return; // partage annulé
+      alert('Partage impossible : ' + (err && err.message) + '\nUtilisez « Télécharger ».');
+    });
+  }
+
+  function closeShare() {
+    shareSeq++;
+    if (S.share && S.share.url) URL.revokeObjectURL(S.share.url);
+    setState({ share: null });
+  }
+
   function restorePlayer(id) {
     apiFetch('/players/' + id + '/restore', { method: 'POST' }).then(function (updated) {
       S.players = S.players.map(function (p) { return String(p.id) === String(id) ? updated : p; });
@@ -1747,6 +1874,9 @@
         break;
       case 'bulk-generate':      sendMagicLinks(); break;
       case 'bulk-result-close':  setState({ bulkResult: null }); break;
+      case 'share-open':         openShare(); break;
+      case 'share-send':         sendShare(); break;
+      case 'share-close':        closeShare(); break;
     }
   }
 
