@@ -38,11 +38,7 @@
     else if (avail === 'unknown')   chips.push(chip('Non renseigné', 'neutral'));
 
     var burned = !!(burn && burn.burned);
-    if (p.is_burned) chips.push(chip('🔥 Brûlé', 'danger'));
-    if (burned) {
-      var label = burnLabels[burn.reason] || '🔥 Brûlé';
-      if (!(p.is_burned && label === '🔥 Brûlé')) chips.push(chip(label, 'danger'));
-    }
+    if (burned) chips.push(chip(burnLabels[burn.reason] || '🔥 Brûlé', 'danger'));
 
     if (p.is_foreign)  chips.push(chip('E', 'purple'));
     if (p.is_mutation) chips.push(chip('Mut.', 'warn'));
@@ -54,7 +50,7 @@
       name: fullName(p) || 'Joueur #' + p.id,
       points: p.ranking || 0,
       // Même règle que la ligne rouge de la vue Journée.
-      danger: avail === 'unavailable' || !!p.is_burned || burned,
+      danger: avail === 'unavailable' || burned,
       chips: chips
     };
   }
