@@ -54,7 +54,7 @@ final class Plugin
         // Les joueurs suivent automatiquement chaque synchronisation de Données FFTT.
         add_action('monclubtt_apres_synchro', [SyncController::class, 'syncPlayers']);
 
-        // Le gestionnaire planner n'a pas de back-office : admin_init le
+        // La commission équipe n'a pas de back-office : admin_init le
         // renvoie vers le planner, show_admin_bar lui masque la barre.
         (new BackOfficeGuard())->register();
 
