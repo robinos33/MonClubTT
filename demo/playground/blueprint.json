@@ -6,7 +6,7 @@
     "author": "robinos33"
   },
   "landingPage": "/jeu-de-pong/",
-  "preferredVersions": { "php": "8.2", "wp": "latest" },
+  "preferredVersions": { "php": "8.4", "wp": "latest" },
   "features": { "networking": true },
   "login": true,
   "steps": [
