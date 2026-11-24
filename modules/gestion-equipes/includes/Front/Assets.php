@@ -112,6 +112,7 @@ class Assets
             // Modèle personnel du membre, à défaut celui du club.
             'smsTemplates'      => $sms['templates'],
             'smsCustom'         => $sms['custom'],
+            'canViewAuditLog'   => current_user_can('manage_options'),
             'pwaEnabled'        => self::pwaEnabled(),
             'swUrl'             => self::pwaEnabled() ? self::serviceWorkerUrl() : null,
         ];

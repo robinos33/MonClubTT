@@ -66,6 +66,7 @@
     pwaPrompt: null, pwaIos: false, pwaDismissed: !!localStorage.getItem('ttp-pwa-dismissed'),
     share: null,
     smsEdit: null,
+    audit: null, auditFilter: { team: '', member: '', phase: 0, round: 0 },
     rulesOpen: false, rulesDetail: {}
   };
 
@@ -902,6 +903,8 @@
     }
     var ghostBtn = 'margin-top:10px;width:100%;padding:9px;border-radius:8px;background:transparent;border:1px solid ' + t.bord + ';color:' + t.ink2 + ';font-size:12px;font-weight:600;cursor:pointer';
     var roundAttrs = ' data-team="' + esc(tcode) + '" data-round="' + round + '"';
+    var linkBtn = 'padding:2px 0;background:none;border:none;color:' + t.ink2 + ';font-size:11px;text-decoration:underline;cursor:pointer';
+    var headerLinks = [];
     if (validated) {
       h += '<button data-action="round-unvalidate"' + roundAttrs + ' style="' + ghostBtn + '">Annuler la validation</button>';
     } else if (forfeit) {
@@ -915,7 +918,13 @@
       }
       // Rare (une fois par saison, au plus) : un lien discret, pas un bouton
       // au niveau de la validation.
-      h += '<div style="margin-top:8px;text-align:right"><button data-action="round-forfeit"' + roundAttrs + ' style="padding:2px 0;background:none;border:none;color:' + t.ink2 + ';font-size:11px;text-decoration:underline;cursor:pointer">Déclarer un forfait</button></div>';
+      headerLinks.push('<button data-action="round-forfeit"' + roundAttrs + ' style="' + linkBtn + '">Déclarer un forfait</button>');
+    }
+    if (cfg.canViewAuditLog) {
+      headerLinks.push('<button data-action="audit-open"' + roundAttrs + ' data-phase="' + (S.phase + 1) + '" style="' + linkBtn + '">Historique</button>');
+    }
+    if (headerLinks.length) {
+      h += '<div style="margin-top:8px;display:flex;justify-content:flex-end;gap:14px">' + headerLinks.join('') + '</div>';
     }
     h += '</div>';
 
@@ -1580,6 +1589,15 @@
       smsEditRow('availability', t) + smsEditRow('confirmation', t),
       dark);
 
+    if (cfg.canViewAuditLog) {
+      h += sectionWrap('Historique',
+        '<button data-action="audit-open" style="width:100%;display:flex;justify-content:space-between;padding:8px 12px;font-size:12px;align-items:center;background:transparent;border:none;cursor:pointer;text-align:left">' +
+          '<span style="color:' + t.ink2 + '">Qui a modifié quoi, sur 7 jours</span>' +
+          '<span style="color:' + C.pri + ';font-weight:600">Voir →</span>' +
+        '</button>',
+        dark);
+    }
+
     // About
     h += sectionWrap('À propos',
       infoRow('Version', esc(cfg.version || '—'), dark, false),
@@ -1682,6 +1700,100 @@
     setState({ smsEdit: Object.assign({}, S.smsEdit, { saving: false, error: apiErrorMessage(err) }) });
   }
 
+  // ═══════════════════════════════════════════
+  // HISTORIQUE — journal des actions (administrateurs)
+  // ═══════════════════════════════════════════
+  var AUDIT_SOURCES = { 'back-office': 'back-office', 'lien joueur': 'lien joueur', automatique: 'automatique' };
+
+  function openAudit(filter) {
+    S.auditFilter = Object.assign({ team: '', member: '', phase: 0, round: 0 }, filter || {});
+    setState({ screen: 'historique', tab: filter && filter.round ? 'journees' : 'reglages' });
+    loadAudit();
+  }
+
+  function loadAudit() {
+    setState({ audit: { loading: true } });
+    apiFetch('/audit-log').then(function (entries) {
+      setState({ audit: { entries: entries || [] } });
+    }).catch(function (err) {
+      setState({ audit: { error: apiErrorMessage(err) } });
+    });
+  }
+
+  function auditEntries() {
+    var f = S.auditFilter;
+    return ((S.audit && S.audit.entries) || []).filter(function (e) {
+      return (!f.team || e.team_code === f.team) &&
+        (!f.member || e.actor === f.member) &&
+        (!f.round || (e.phase === f.phase && e.round === f.round));
+    });
+  }
+
+  function auditDay(date) {
+    var today = new Date(); today.setHours(0, 0, 0, 0);
+    var day = new Date(date); day.setHours(0, 0, 0, 0);
+    var diff = Math.round((today - day) / 86400000);
+    if (diff === 0) return 'Aujourd’hui';
+    if (diff === 1) return 'Hier';
+    return date.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' });
+  }
+
+  function renderHistorique() {
+    var dark = S.dark; var t = tk(dark);
+    var f = S.auditFilter;
+    var a = S.audit || { loading: true };
+    var h = topBar('Historique', 'Qui a modifié quoi, sur les 7 derniers jours', dark, true, '');
+    h += '<div style="padding:12px 16px;display:flex;flex-direction:column;gap:10px">';
+
+    var sel = 'flex:1;min-width:0;padding:8px;border-radius:8px;border:1px solid ' + t.bord + ';background:' + t.surf + ';color:' + t.ink + ';font-size:13px';
+    var members = [];
+    ((a.entries) || []).forEach(function (e) { if (members.indexOf(e.actor) === -1) members.push(e.actor); });
+    members.sort(function (x, y) { return x.localeCompare(y, 'fr'); });
+    h += '<div style="display:flex;gap:8px">' +
+      '<select data-input="audit-team" aria-label="Équipe" style="' + sel + '"><option value="">Toutes les équipes</option>' +
+        S.teams.map(function (tm) { var c = tm.code || tm.id; return '<option value="' + esc(c) + '"' + (f.team === c ? ' selected' : '') + '>' + esc(tm.name || c) + '</option>'; }).join('') +
+      '</select>' +
+      '<select data-input="audit-member" aria-label="Membre" style="' + sel + '"><option value="">Tout le monde</option>' +
+        members.map(function (m) { return '<option value="' + esc(m) + '"' + (f.member === m ? ' selected' : '') + '>' + esc(m) + '</option>'; }).join('') +
+      '</select>' +
+    '</div>';
+    if (f.round) {
+      h += '<div><button data-action="audit-round-clear" style="padding:5px 10px;border-radius:999px;border:1px solid ' + C.pri + ';background:' + t.priSoft + ';color:' + t.ink + ';font-size:12px;font-weight:600;cursor:pointer">J' + f.round + ' de la phase ' + f.phase + ' ✕</button></div>';
+    }
+
+    if (a.loading) {
+      h += '<div style="padding:28px 0;text-align:center;font-size:13px;color:' + t.ink2 + '">Chargement…</div>';
+    } else if (a.error) {
+      h += '<div style="padding:10px;background:' + C.errSoft + ';border-radius:8px;font-size:12px;color:' + C.err + '">' + esc(a.error) + '</div>';
+    } else {
+      var list = auditEntries();
+      if (!list.length) {
+        h += '<div style="padding:28px 0;text-align:center;font-size:13px;color:' + t.ink2 + '">Aucune action ' + (f.team || f.member || f.round ? 'pour ce filtre ' : '') + 'sur les 7 derniers jours.</div>';
+      }
+      var lastDay = null;
+      list.forEach(function (e) {
+        var date = new Date(e.created_at);
+        var day = auditDay(date);
+        if (day !== lastDay) {
+          if (lastDay !== null) h += '</div>';
+          h += '<div style="font-size:10px;color:' + t.ink2 + ';font-weight:600;text-transform:uppercase;letter-spacing:0.5px;margin:6px 2px 0">' + esc(day) + '</div>' +
+            '<div style="background:' + t.surf + ';border:1px solid ' + t.bord + ';border-radius:10px;overflow:hidden">';
+          lastDay = day;
+        }
+        var src = AUDIT_SOURCES[e.source];
+        h += '<div style="display:flex;gap:10px;padding:9px 12px;border-top:1px solid ' + t.bord + ';margin-top:-1px;font-size:12px;line-height:1.45">' +
+          '<span style="color:' + t.ink2 + ';font-variant-numeric:tabular-nums;flex-shrink:0">' + date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) + '</span>' +
+          '<span style="color:' + t.ink + ';min-width:0"><strong style="font-weight:700">' + esc(e.actor) + '</strong> ' + esc(e.summary) +
+            (src ? ' <span style="font-size:10px;font-weight:600;padding:1px 6px;border-radius:999px;background:' + t.surf2 + ';color:' + t.ink2 + ';white-space:nowrap">' + esc(src) + '</span>' : '') +
+          '</span>' +
+        '</div>';
+      });
+      if (lastDay !== null) h += '</div>';
+    }
+    h += '</div>';
+    return h;
+  }
+
   function renderToggle(label, value, action, t) {
     var bg = value ? C.pri : t.surf2;
     var left = value ? '18px' : '2px';
@@ -1760,6 +1872,7 @@
         case 'player':   screen = renderPlayerDetail(); break;
         case 'squads':   screen = renderSquads();  break;
         case 'reglages': screen = renderReglages(); break;
+        case 'historique': screen = renderHistorique(); break;
         default:         screen = renderDashboard(); break;
       }
     }
@@ -1825,6 +1938,10 @@
     if (ee) ee.addEventListener('input', function (e) { S.editEmail = e.target.value; });
     var en = root.querySelector('[data-input="edit-notes"]');
     if (en) en.addEventListener('input', function (e) { S.editNotes = e.target.value; });
+    var at = root.querySelector('[data-input="audit-team"]');
+    if (at) at.addEventListener('change', function (e) { S.auditFilter.team = e.target.value; render(); });
+    var am = root.querySelector('[data-input="audit-member"]');
+    if (am) am.addEventListener('change', function (e) { S.auditFilter.member = e.target.value; render(); });
     // L'aperçu se met à jour sans re-rendre : la saisie garde le focus.
     var st = root.querySelector('[data-input="sms-text"]');
     if (st) st.addEventListener('input', function (e) {
@@ -2201,6 +2318,10 @@
       case 'share-copy-link':    copyShareLink(); break;
       case 'share-close':        closeShare(); break;
       case 'sms-edit':           openSmsEdit(v); break;
+      case 'audit-open':
+        openAudit(el.dataset.round ? { team: el.dataset.team, phase: parseInt(el.dataset.phase), round: parseInt(el.dataset.round) } : null);
+        break;
+      case 'audit-round-clear':  S.auditFilter.phase = 0; S.auditFilter.round = 0; render(); break;
       case 'sms-edit-save':      saveSmsEdit(); break;
       case 'sms-edit-close':     setState({ smsEdit: null }); break;
     }
@@ -2215,6 +2336,7 @@
     if (s.screen === 'joueurs')  return '#joueurs';
     if (s.screen === 'squads')   return '#squads';
     if (s.screen === 'reglages') return '#reglages';
+    if (s.screen === 'historique') return '#historique';
     return '#';
   }
 
@@ -2224,6 +2346,7 @@
     if (h === 'joueurs')  return { screen: 'joueurs',  tab: 'joueurs' };
     if (h === 'squads')   return { screen: 'squads',   tab: 'squads' };
     if (h === 'reglages') return { screen: 'reglages', tab: 'reglages' };
+    if (h === 'historique') return cfg.canViewAuditLog ? { screen: 'historique', tab: 'reglages' } : { screen: 'reglages', tab: 'reglages' };
     var m = h.match(/^journee\/(\d+)$/);
     if (m) return { screen: 'journee', tab: 'journees', journeeN: parseInt(m[1]) };
     m = h.match(/^joueur\/(\d+)$/);
@@ -2244,6 +2367,7 @@
   }
 
   function goBack() {
+    if (S.screen === 'historique') { setState({ screen: S.tab === 'journees' ? 'journee' : 'reglages' }); return; }
     if (S.screen === 'player')  { setState({ screen: S.tab === 'joueurs' ? 'joueurs' : 'journee' }); }
     else if (S.screen === 'journee') { setState({ screen: 'dashboard', tab: 'dashboard' }); }
     else { setState({ screen: 'dashboard', tab: 'dashboard' }); }
@@ -2283,6 +2407,7 @@
     var parsed = hashToState(w.location.hash);
     Object.assign(S, parsed);
     if (parsed.screen === 'journee') { loadCompositions(); }
+    if (parsed.screen === 'historique' && !S.audit) { loadAudit(); return; }
     render();
   }
 
@@ -2308,6 +2433,7 @@
       var h = hashToState(w.location.hash);
       if (h.screen !== 'dashboard') { Object.assign(S, h); render(); }
       if (h.screen === 'journee') { loadCompositions(); }
+      if (h.screen === 'historique') { loadAudit(); }
     });
     registerSW();
     initPwa();
