@@ -1597,8 +1597,12 @@
   function smsEditRow(kind, t) {
     return '<button data-action="sms-edit" data-value="' + kind + '" style="width:100%;display:flex;justify-content:space-between;padding:8px 12px;font-size:12px;align-items:center;background:transparent;border:none;cursor:pointer;text-align:left">' +
       '<span style="color:' + t.ink2 + '">' + esc(SMS_KINDS[kind].label) + '</span>' +
-      '<span style="color:' + C.pri + ';font-weight:600">Modifier →</span>' +
+      '<span style="color:' + C.pri + ';font-weight:600">' + (isSmsCustom(kind) ? '<span style="color:' + t.ink2 + ';font-weight:500">Personnalisé · </span>' : '') + 'Modifier →</span>' +
     '</button>';
+  }
+
+  function isSmsCustom(kind) {
+    return !!(cfg.smsCustom && cfg.smsCustom[kind]);
   }
 
   // Joueur fictif, prochaine journée datée (à défaut, aujourd'hui) : l'aperçu
@@ -1627,7 +1631,7 @@
           '<div style="flex:1;font-size:15px;font-weight:700;color:' + t.ink + '">' + esc(kind.label) + '</div>' +
           '<button data-action="sms-edit-close" style="width:28px;height:28px;border-radius:8px;border:none;background:' + t.surf2 + ';color:' + t.ink2 + ';font-size:14px;cursor:pointer">✕</button>' +
         '</div>' +
-        '<div style="font-size:11px;color:' + t.ink2 + ';line-height:1.5;margin-bottom:10px">' + esc(kind.help) + '</div>' +
+        '<div style="font-size:11px;color:' + t.ink2 + ';line-height:1.5;margin-bottom:10px">' + esc(kind.help) + '<br>Ce texte n’est utilisé que par vous ; ' + (isSmsCustom(se.kind) ? 'les autres membres gardent le leur.' : 'tant que vous ne le modifiez pas, c’est celui du club.') + '</div>' +
         '<textarea data-input="sms-text" rows="5" aria-label="Texte du SMS" style="width:100%;box-sizing:border-box;padding:10px;border-radius:8px;border:1px solid ' + t.bord + ';background:' + t.surf2 + ';color:' + t.ink + ';font-size:16px;font-family:inherit;line-height:1.4;resize:vertical">' + esc(se.text) + '</textarea>' +
         '<div style="font-size:11px;color:' + t.ink2 + ';margin:6px 0 12px;line-height:1.8">Variables : ' + vars + '</div>' +
         '<div style="font-size:10px;color:' + t.ink2 + ';font-weight:600;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px">Aperçu</div>' +
@@ -1662,13 +1666,20 @@
     var payload = {};
     payload[se.kind] = se.text;
     setState({ smsEdit: Object.assign({}, se, { saving: true, error: null }) });
-    apiFetch('/sms-templates', { method: 'PUT', body: JSON.stringify(payload) }).then(function (templates) {
-      cfg.smsTemplates = templates;
-      setState({ smsEdit: null });
-    }).catch(function (err) {
-      if (!S.smsEdit) return;
-      setState({ smsEdit: Object.assign({}, S.smsEdit, { saving: false, error: apiErrorMessage(err) }) });
-    });
+    apiFetch('/sms-templates', { method: 'PUT', body: JSON.stringify(payload) })
+      .then(applySmsTemplates, smsEditFailed);
+  }
+
+  // Réponse du serveur : { templates, custom } du membre connecté.
+  function applySmsTemplates(res) {
+    cfg.smsTemplates = res.templates;
+    cfg.smsCustom = res.custom;
+    setState({ smsEdit: null });
+  }
+
+  function smsEditFailed(err) {
+    if (!S.smsEdit) return;
+    setState({ smsEdit: Object.assign({}, S.smsEdit, { saving: false, error: apiErrorMessage(err) }) });
   }
 
   function renderToggle(label, value, action, t) {

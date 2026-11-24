@@ -7,25 +7,20 @@ namespace MonClubTT\GestionEquipes\Rest;
 use WP_REST_Request;
 use WP_REST_Response;
 use MonClubTT\GestionEquipes\Capabilities;
+use MonClubTT\GestionEquipes\Repository\SmsTemplateRepository;
 
 /**
  * PUT /monclubtt-equipes/v1/sms-templates
  *
- * Modifie les SMS pré-rédigés depuis le front (Réglages), pour ceux qui gèrent
- * le planner sans accès au back-office.
+ * Enregistre les SMS pré-rédigés propres au membre connecté. Le modèle du
+ * club, réglé au back-office, reste celui des autres membres.
  *
  * Body JSON : { "availability"?: string, "confirmation"?: string }
- * Réponse : les deux modèles enregistrés.
+ * Réponse : { templates: { availability, confirmation }, custom: { availability, confirmation } }
  */
 class SmsTemplatesController
 {
     private const NS = 'monclubtt-equipes/v1';
-
-    /** Clé côté API => option WordPress. */
-    private const OPTIONS = [
-        'availability' => 'monclubtt_ge_sms_template_availability',
-        'confirmation' => 'monclubtt_ge_sms_template_confirmation',
-    ];
 
     public function registerRoutes(): void
     {
@@ -47,8 +42,8 @@ class SmsTemplatesController
     public function update(WP_REST_Request $request): WP_REST_Response
     {
         $changes = [];
-        foreach (self::OPTIONS as $key => $option) {
-            $value = $request->get_param($key);
+        foreach (SmsTemplateRepository::KINDS as $kind) {
+            $value = $request->get_param($kind);
             if ($value === null) {
                 continue;
             }
@@ -56,19 +51,16 @@ class SmsTemplatesController
             if (trim($value) === '') {
                 return new WP_REST_Response(['message' => __('Le texte du SMS ne peut pas être vide.', 'mon-club-tt')], 400);
             }
-            $changes[$option] = $value;
+            $changes[$kind] = $value;
         }
 
-        foreach ($changes as $option => $value) {
-            update_option($option, $value);
+        $repo   = new SmsTemplateRepository();
+        $userId = get_current_user_id();
+        foreach ($changes as $kind => $value) {
+            $repo->save($userId, $kind, $value);
         }
 
-        $templates = [];
-        foreach (self::OPTIONS as $key => $option) {
-            $templates[$key] = (string) get_option($option, '');
-        }
-
-        return new WP_REST_Response($templates, 200);
+        return new WP_REST_Response($repo->forUser($userId), 200);
     }
 
     public function canWrite(): bool

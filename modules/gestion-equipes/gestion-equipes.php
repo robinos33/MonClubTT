@@ -66,6 +66,7 @@ if ( ! function_exists( 'monclubtt_ge_charger' ) ) {
             'Repository/MatchAppearanceRepository.php',
             'Repository/ValidatedRoundRepository.php',
             'Repository/TeamForfeitRepository.php',
+            'Repository/SmsTemplateRepository.php',
             'Repository/AuditLogRepository.php',
             'Audit/AuditLookup.php',
             'Audit/AuditDescriber.php',

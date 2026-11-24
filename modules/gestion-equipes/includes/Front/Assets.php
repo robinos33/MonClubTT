@@ -6,6 +6,7 @@ namespace MonClubTT\GestionEquipes\Front;
 
 use MonClubTT\GestionEquipes\Domain\Division;
 use MonClubTT\GestionEquipes\Domain\QualificationRules;
+use MonClubTT\GestionEquipes\Repository\SmsTemplateRepository;
 
 class Assets
 {
@@ -91,6 +92,7 @@ class Assets
         $season = self::computeSeason();
         $phase  = self::detectPhase();
         $teams  = get_option('monclubtt_ge_teams', []);
+        $sms    = (new SmsTemplateRepository())->forUser(get_current_user_id());
 
         return [
             'apiBase'           => rest_url('monclubtt-equipes/v1'),
@@ -107,10 +109,9 @@ class Assets
             'rules'             => QualificationRules::all(),
             'version'           => MONCLUBTT_GE_VERSION,
             'maxForeignPlayers' => self::MAX_FOREIGN,
-            'smsTemplates'      => [
-                'availability' => get_option('monclubtt_ge_sms_template_availability', ''),
-                'confirmation' => get_option('monclubtt_ge_sms_template_confirmation', ''),
-            ],
+            // Modèle personnel du membre, à défaut celui du club.
+            'smsTemplates'      => $sms['templates'],
+            'smsCustom'         => $sms['custom'],
             'pwaEnabled'        => self::pwaEnabled(),
             'swUrl'             => self::pwaEnabled() ? self::serviceWorkerUrl() : null,
         ];

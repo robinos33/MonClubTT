@@ -226,6 +226,7 @@ class SettingsPage
         echo '</table>';
 
         echo '<h2>' . esc_html__('SMS pré-rédigés', 'mon-club-tt') . '</h2>';
+        echo '<p class="description">' . esc_html__('Modèles du club. Chaque membre peut les remplacer pour lui-même depuis l\'application (Réglages) ; sans modèle personnel, il envoie celui du club.', 'mon-club-tt') . '</p>';
         echo '<p class="description">' . esc_html__('Variables : {prenom}, {nom}, {journee}, {date}, {equipe}', 'mon-club-tt') . '</p>';
         echo '<table class="form-table" role="presentation">';
         echo '<tr>';
