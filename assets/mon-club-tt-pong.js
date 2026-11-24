@@ -86,6 +86,42 @@
         { cle: 'boomerang', nom: 'Boomerang', couleur: '90,230,140', desc: "Part sur le côté et revient" },
         { cle: 'glace', nom: 'Glace', couleur: '150,220,255', desc: "Fige l'adversaire dans un glaçon" }
     ];
+    /* Picto de chaque coup (viewBox 24×24) : des tracés, pleins (plein) ou
+     * en trait, partagés entre le HTML (SVG) et le cut-in (Path2D). */
+    var PICTOS_COUPS = {
+        feu: [{ plein: true, d: 'M12 2.5c.6 3.2 2.6 4.9 4 6.9 1.2 1.7 2 3.4 2 5.3a6 6 0 0 1-12 0c0-2.4 1.1-4.3 2.6-5.6.1 1.6.8 2.8 2 3.3-.4-3.4.1-6.4 1.4-9.9z' }],
+        zigzag: [{ d: 'M2.5 19l2-4.5 3 2.5 2-5 3 2.5 2-5' }, { plein: true, d: 'M18.5 3.5a3 3 0 1 1 0 6 3 3 0 1 1 0-6z' }],
+        fantome: [{ d: 'M6 20.5V11a6 6 0 0 1 12 0v9.5l-2-1.6-2 1.6-2-1.6-2 1.6-2-1.6z' },
+            { plein: true, d: 'M10 9.6a1.4 1.4 0 1 1 0 2.8 1.4 1.4 0 1 1 0-2.8zM14 9.6a1.4 1.4 0 1 1 0 2.8 1.4 1.4 0 1 1 0-2.8z' }],
+        boomerang: [{ plein: true, d: 'M20.5 7C15 3.5 8 3 4.5 4.5 3 8 3.5 15 7 20.5c1.5 1 3 0 2.8-1.5-.8-4-.8-7.5 0-9.2 1.7-.8 5.2-.8 9.2 0 1.5.2 2.5-1.3 1.5-2.8z' }],
+        glace: [{ d: 'M12 3v18M4.2 7.5l15.6 9M4.2 16.5l15.6-9M12 5.8l-1.7-2M12 5.8l1.7-2M6.6 8.9l-2.5.5M6.6 8.9l-.9-2.4M6.6 15.1l-.9 2.4M6.6 15.1l-2.5-.5M12 18.2l1.7 2M12 18.2l-1.7 2M17.4 15.1l2.5-.5M17.4 15.1l.9 2.4M17.4 8.9l.9-2.4M17.4 8.9l2.5.5' }]
+    };
+    var TRAIT_PICTO = 2.2;
+
+    function pictoCoup(coup, taille) {
+        var contenu = (PICTOS_COUPS[coup.cle] || []).map(function (t) {
+            return t.plein
+                ? '<path d="' + t.d + '" fill="currentColor"/>'
+                : '<path d="' + t.d + '" fill="none" stroke="currentColor" stroke-width="' + TRAIT_PICTO + '" stroke-linecap="round" stroke-linejoin="round"/>';
+        }).join('');
+        return '<svg viewBox="0 0 24 24" width="' + taille + '" height="' + taille + '" aria-hidden="true" focusable="false">' + contenu + '</svg>';
+    }
+
+    /* Même picto sur le canvas, centré en (x, y), de côté `taille`. */
+    function dessinerPictoCoup(ctx, coup, x, y, taille) {
+        if (typeof Path2D === 'undefined') return;
+        var k = taille / 24;
+        ctx.save();
+        ctx.translate(x - taille / 2, y - taille / 2);
+        ctx.scale(k, k);
+        ctx.lineWidth = TRAIT_PICTO;
+        ctx.lineCap = ctx.lineJoin = 'round';
+        (PICTOS_COUPS[coup.cle] || []).forEach(function (t) {
+            var chemin = new Path2D(t.d);
+            if (t.plein) ctx.fill(chemin); else ctx.stroke(chemin);
+        });
+        ctx.restore();
+    }
     /* Remplissage de la jauge : frappe d'un échange long (à partir de la
      * 4e), point gagné, et surtout les effets : lifté ou coupé marqué, balle
      * courbée (effet latéral à plus de la moitié du maximum). Cumulables :
@@ -436,8 +472,11 @@
         });
     };
     Marqueur.prototype.coups = function (j, a) {
-        this.camps.joueur.coup.textContent = j;
-        this.camps.adversaire.coup.textContent = a;
+        [[this.camps.joueur.coup, j], [this.camps.adversaire.coup, a]].forEach(function (x) {
+            x[0].innerHTML = pictoCoup(x[1], 12);
+            x[0].appendChild(document.createTextNode(x[1].nom));
+            x[0].style.setProperty('--pong-coup', 'rgb(' + x[1].couleur + ')');
+        });
     };
     Marqueur.prototype.maj = function (m) {
         this.camps.joueur.points.set(m.points.joueur);
@@ -1156,6 +1195,9 @@
             b.type = 'button';
             b.dataset.coup = c.cle;
             b.style.setProperty('--pong-coup', 'rgb(' + c.couleur + ')');
+            var picto = el('span', 'pong-coup-picto');
+            picto.innerHTML = pictoCoup(c, 22);
+            b.appendChild(picto);
             b.appendChild(el('strong', 'pong-coup-nom', c.nom));
             b.appendChild(el('span', 'pong-coup-desc', c.desc));
             choixCoups.appendChild(b);
@@ -1702,7 +1744,7 @@
             figJ.gele = figA.gele = 0;
             var hauteurMarqueur = marqueur.el.offsetHeight;
             marqueur.el.classList.toggle('pong-marqueur--arcade', modeArcade());
-            marqueur.coups(coupJoueur().nom, coupSignature(adv).nom);
+            marqueur.coups(coupJoueur(), coupSignature(adv));
             majJauges();
             // Jauges affichées ou retirées : la table se recale sur la hauteur restante.
             if (marqueur.el.offsetHeight !== hauteurMarqueur) dimensionner();
@@ -2358,6 +2400,9 @@
             ctx.fillStyle = 'rgba(255,255,255,0.9)';
             ctx.fillRect(-W, -62, W * 2, 5);
             ctx.fillRect(-W, 57, W * 2, 5);
+            // Picto du coup en filigrane, en bout de bandeau.
+            ctx.fillStyle = ctx.strokeStyle = 'rgba(255,255,255,0.28)';
+            dessinerPictoCoup(ctx, c.coup, 140, 0, 96);
             var s = sprites[c.cote];
             if (s && s.corps.cd) {
                 var h = 150, k = h / SVG.h, w = SVG.l * k, x = -100, top = -88;
