@@ -82,6 +82,7 @@ if ( ! function_exists( 'monclubtt_ge_charger' ) ) {
             'Front/StandaloneTemplate.php',
             'Front/SitemapExclusion.php',
             'Front/MagicLinkTemplate.php',
+            'Capabilities.php',
             'Activator.php',
             'Plugin.php',
         ) as $monclubtt_fichier ) {

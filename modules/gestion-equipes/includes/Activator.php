@@ -15,6 +15,7 @@ class Activator
         if (get_option('monclubtt_ge_db_version') === MONCLUBTT_GE_VERSION) {
             return;
         }
+        Capabilities::install();
         self::createTables(); // dbDelta() ajoute les colonnes manquantes sans rien casser
         self::seedDefaultOptions();
     }
