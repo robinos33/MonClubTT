@@ -3,6 +3,8 @@ declare(strict_types=1);
 
 namespace MonClubTT\GestionEquipes\Admin;
 
+use MonClubTT\GestionEquipes\Repository\SmsTemplateRepository;
+
 /**
  * Import des données de la gestion des équipes.
  *
@@ -243,6 +245,9 @@ class DataImporter
             'format_version' => 1,
             'options'        => $options,
             'tables'         => $tables,
+            'user_sms_templates' => DataExporter::userSmsTemplates(
+                static fn(string $kind): string => self::LEGACY_OPTION_PREFIX . 'sms_template_' . $kind
+            ),
         ];
     }
 
@@ -315,6 +320,7 @@ class DataImporter
         // phpcs:enable
 
         $this->importOptions(is_array($data['options'] ?? null) ? $data['options'] : [], $format, (string) ($data['club_name'] ?? ''));
+        self::importUserSmsTemplates(is_array($data['user_sms_templates'] ?? null) ? $data['user_sms_templates'] : []);
         self::flushCaches();
 
         return ['counts' => $counts, 'skipped' => $skipped];
@@ -337,6 +343,32 @@ class DataImporter
         $clubName = sanitize_text_field($clubName);
         if ($clubName !== '' && trim((string) get_option(\MonClubTT_Constantes::MONCLUBTT_NOM_CLUB, '')) === '') {
             update_option(\MonClubTT_Constantes::MONCLUBTT_NOM_CLUB, $clubName);
+        }
+    }
+
+    /**
+     * Modèles SMS personnels : chaque membre est retrouvé par son login, à
+     * défaut par son e-mail ; un membre absent de ce site est ignoré.
+     *
+     * @param array<mixed> $rows
+     */
+    private static function importUserSmsTemplates(array $rows): void
+    {
+        foreach ($rows as $row) {
+            if (! is_array($row)) {
+                continue;
+            }
+            $user = get_user_by('login', (string) ($row['user_login'] ?? ''))
+                ?: get_user_by('email', (string) ($row['user_email'] ?? ''));
+            if (! $user) {
+                continue;
+            }
+            foreach (SmsTemplateRepository::KINDS as $kind) {
+                $text = $row[$kind] ?? null;
+                if (is_string($text) && $text !== '') {
+                    update_user_meta($user->ID, SmsTemplateRepository::key($kind), sanitize_textarea_field($text));
+                }
+            }
         }
     }
 

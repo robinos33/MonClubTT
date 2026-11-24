@@ -3,6 +3,8 @@ declare(strict_types=1);
 
 namespace MonClubTT\GestionEquipes\Admin;
 
+use MonClubTT\GestionEquipes\Repository\SmsTemplateRepository;
+
 /**
  * Export complet des données de la gestion des équipes au format JSON
  * (sauvegarde, transfert vers un autre site), relu par DataImporter. Même
@@ -125,7 +127,42 @@ class DataExporter
             'counts'         => array_map('count', $tables),
             'options'        => $options,
             'tables'         => $tables,
+            'user_sms_templates' => self::userSmsTemplates([SmsTemplateRepository::class, 'key']),
         ];
+    }
+
+    /**
+     * SMS personnalisés par les membres, avec leur login et e-mail pour
+     * retrouver le compte à l'import (les ID utilisateurs peuvent différer).
+     *
+     * @param callable(string): string $metaKey clé de user meta d'un type de SMS
+     * @return list<array<string, mixed>>
+     */
+    public static function userSmsTemplates(callable $metaKey): array
+    {
+        $query = ['relation' => 'OR'];
+        foreach (SmsTemplateRepository::KINDS as $kind) {
+            $query[] = ['key' => $metaKey($kind), 'compare' => 'EXISTS'];
+        }
+        $users = get_users([
+            'fields'     => ['ID', 'user_login', 'user_email'],
+            'meta_query' => $query, // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query -- export ponctuel
+        ]);
+
+        $result = [];
+        foreach ($users as $user) {
+            $row = [
+                'user_id'    => (int) $user->ID,
+                'user_login' => (string) $user->user_login,
+                'user_email' => (string) $user->user_email,
+            ];
+            foreach (SmsTemplateRepository::KINDS as $kind) {
+                $value      = get_user_meta((int) $user->ID, $metaKey($kind), true);
+                $row[$kind] = is_string($value) && $value !== '' ? $value : null;
+            }
+            $result[] = $row;
+        }
+        return $result;
     }
 
     /**
