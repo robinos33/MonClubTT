@@ -62,7 +62,7 @@ class MagicLinkTemplate
                 '<p style="font-size:13px;line-height:1.5">' . esc_html__('Demande un nouveau lien à ton club.', 'mon-club-tt') . '</p>' .
                 '</div>';
         } else {
-            $jsUrl      = esc_url(MONCLUBTT_GE_URL . 'assets/js/magic-link.js?v=' . MONCLUBTT_GE_VERSION);
+            $jsUrl      = MONCLUBTT_GE_URL . 'assets/js/magic-link.js?v=' . MONCLUBTT_GE_VERSION;
             $configJson = wp_json_encode([
                 'apiBase' => rest_url('monclubtt-equipes/v1'),
                 'token'   => $token,
