@@ -105,9 +105,11 @@
     function availOf(id) { return avail[String(id)] || 'unknown'; }
 
     var slotsByTeam = {};
+    var placed = {};
     (input.compositions || []).forEach(function (c) {
       var n = Number(c.slot_number);
       if (!c.player_id || n < 1 || n > 4) return;
+      placed[String(c.player_id)] = true;
       (slotsByTeam[c.team_code] = slotsByTeam[c.team_code] || {})[n] = c.player_id;
     });
 
@@ -116,10 +118,10 @@
       var ctx = contexts[code] || {};
       var burnMap = ctx.burnage || {};
       var forfeit = !!(input.forfeits && input.forfeits[code]);
-      var placed = slotsByTeam[code] || {};
+      var teamSlots = slotsByTeam[code] || {};
 
       var slots = [1, 2, 3, 4].map(function (num) {
-        var pid = placed[num];
+        var pid = teamSlots[num];
         if (!pid) return { num: num, empty: true };
         var p = players[String(pid)];
         if (!p) return { num: num, empty: false, name: 'Joueur inconnu', points: null, danger: false, chips: [] };
@@ -144,6 +146,12 @@
     var complete = playing.filter(function (t) { return t.filled === 4; }).length;
     var forfeits = teams.length - playing.length;
 
+    // « Qui peut remplacer X ? » : la question qui suit, en discussion.
+    var bench = (input.players || [])
+      .filter(function (p) { return p.is_active !== false && !placed[String(p.id)] && availOf(p.id) === 'available'; })
+      .sort(function (a, b) { return (b.ranking || 0) - (a.ranking || 0); })
+      .map(function (p) { return fullName(p) + ' · ' + (p.ranking || 0); });
+
     return {
       title: input.clubName || 'Mon Club TT',
       subtitle: 'Journée ' + round + ' · Phase ' + phase,
@@ -153,6 +161,7 @@
         complete === playing.length ? 'ok' : 'warn'
       ),
       teams: teams,
+      bench: bench,
       footer: 'Généré le ' + formatStamp(input.generatedAt || new Date())
     };
   }
@@ -385,6 +394,12 @@
     m.teams.forEach(function (t) {
       y = drawTeam(P, t, PAD, y, cw) + 12;
     });
+
+    if (m.bench.length) {
+      P.text('DISPONIBLES NON PLACÉS · ' + m.bench.length, PAD + 2, y + 8, font(700, 12), COL.ink2);
+      y += 22;
+      y += flowChips(P, m.bench.map(function (label) { return { label: label, tone: 'neutral' }; }), PAD, y, cw) + 12;
+    }
 
     P.text(m.footer, W / 2, y + 8, font(500, 12), COL.ink2, 'center');
     return y + 16 + PAD;
