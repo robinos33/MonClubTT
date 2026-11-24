@@ -18,7 +18,7 @@ class PhaseSquadController
         register_rest_route(self::NS, '/phase-squads', [
             'methods'             => 'GET',
             'callback'            => [$this, 'getSquads'],
-            'permission_callback' => '__return_true',
+            'permission_callback' => [$this, 'canRead'],
         ]);
 
         register_rest_route(self::NS, '/phase-squads', [
@@ -177,6 +177,11 @@ class PhaseSquadController
             /* translators: %d: number of slots filled */
             'message' => sprintf(__('%d slot(s) rempli(s).', 'mon-club-tt'), $placed),
         ], 200);
+    }
+
+    public function canRead(): bool
+    {
+        return current_user_can('read');
     }
 
     public function canWrite(): bool

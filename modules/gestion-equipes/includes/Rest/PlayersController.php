@@ -21,13 +21,13 @@ class PlayersController
         register_rest_route(self::NS, '/players', [
             'methods'             => 'GET',
             'callback'            => [$this, 'getPlayers'],
-            'permission_callback' => '__return_true',
+            'permission_callback' => [$this, 'canRead'],
         ]);
 
         register_rest_route(self::NS, '/players/(?P<id>\d+)', [
             'methods'             => 'GET',
             'callback'            => [$this, 'getPlayer'],
-            'permission_callback' => '__return_true',
+            'permission_callback' => [$this, 'canRead'],
             'args' => ['id' => ['validate_callback' => fn($v) => is_numeric($v)]],
         ]);
 
