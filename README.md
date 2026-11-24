@@ -22,7 +22,7 @@ Plugin WordPress non-officiel pour afficher les données d'un club issues de l'[
 
 Menu *Mon Club TT* :
 
-- **Données FFTT** — onglets *Joueurs* (licenciés, photos), *Équipes* (génération / suppression automatique des pages d'équipe, corbeille réversible) et *Connexion* (identifiants de l'API, synchronisation, logs de l'API activables pour diagnostiquer un problème)
+- **Données FFTT** — onglets *Joueurs* (licenciés, photos), *Équipes* (génération / suppression automatique des pages d'équipe, corbeille réversible) et *Connexion* (identifiants de l'API, synchronisation, logs de l'API activables pour diagnostiquer un problème). La synchronisation se lance aussi seule, le dimanche à 20 h et le lundi à 6 h (heure du site) ; un échec s'affiche sous la date de la dernière synchronisation
 - **Gestion des équipes** — réglages de l'application du staff : PWA, SMS, équipes et dates des journées, joueurs et rencontres jouées (importées des feuilles de match FFTT), règles de brûlage, import / export
 - **Widget tableau de bord** avec bouton de synchronisation rapide
 - **Calendrier** — événements saisis à la main ou importés du tableur de la saison (CSV ou JSON), rangés par série et par catégorie
@@ -220,7 +220,7 @@ Ancienne extension *TT Team Planner*, intégrée au plugin (`modules/gestion-equ
 
 **Qui peut modifier.** Les données de l'application ne se lisent qu'une fois connecté. Les modifier demande le droit *Gérer les équipes* (`monclubtt_ge_manage_planner`), que portent les administrateurs, les éditeurs et le rôle **Membre commission équipe**. Ce rôle n'a que ce droit et la lecture : un capitaine qui l'a ouvre l'application, wp-admin le renvoie vers elle et la barre d'admin lui est masquée. Le journal des actions est réservé aux administrateurs.
 
-**Joueurs.** Repris des données FFTT et mis à jour à chaque synchronisation de *Données FFTT*. Les informations saisies dans l'application (téléphone, e-mail, équipe habituelle, notes) sont conservées. Le capitaine se nomme par équipe, pour la phase (écran *Effectifs*) et pour une journée (vue *Journée*).
+**Joueurs.** Repris des données FFTT et mis à jour à chaque synchronisation de *Données FFTT*, manuelle ou automatique (dimanche soir et lundi matin). Les informations saisies dans l'application (téléphone, e-mail, équipe habituelle, notes) sont conservées. Le capitaine se nomme par équipe, pour la phase (écran *Effectifs*) et pour une journée (vue *Journée*).
 
 **Migration depuis TT Team Planner.**
 
