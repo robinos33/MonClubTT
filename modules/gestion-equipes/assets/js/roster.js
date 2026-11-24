@@ -3,6 +3,7 @@
  *
  * Exposé sur window.TTPRoster. Utilisé par app.js (onglet Dispos de la vue
  * Journée) et par share-image.js (joueurs dispo non placés, en pied d'image).
+ * captain() donne le capitaine d'une équipe pour la journée, aux deux.
  */
 (function (w) {
   'use strict';
@@ -71,5 +72,32 @@
     return groups;
   }
 
-  w.TTPRoster = { group: group };
+  /**
+   * Capitaine d'une équipe pour une journée, ou null :
+   *   1. le joueur nommé capitaine de la journée (vue Journée) ;
+   *   2. sinon le capitaine de phase (écran Effectifs), s'il joue ;
+   *   3. sinon personne : le capitaine est facultatif.
+   * Le capitaine est toujours un joueur de la compo.
+   *
+   * compositions — les slots de la journée, toutes équipes
+   * squads       — les effectifs de phase
+   */
+  function captain(teamCode, phase, compositions, squads) {
+    var playing = {};
+    var named = null;
+    (compositions || []).forEach(function (c) {
+      var n = Number(c.slot_number);
+      if (c.team_code !== teamCode || !c.player_id || n < 1 || n > 4) return;
+      playing[String(c.player_id)] = true;
+      if (c.is_captain) named = c.player_id;
+    });
+    if (named) return named;
+
+    var ofPhase = (squads || []).find(function (s) {
+      return s.team_code === teamCode && Number(s.phase) === Number(phase) && s.is_captain;
+    });
+    return ofPhase && playing[String(ofPhase.player_id)] ? ofPhase.player_id : null;
+  }
+
+  w.TTPRoster = { group: group, captain: captain };
 })(window);
