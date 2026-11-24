@@ -440,6 +440,9 @@
     return '<span style="display:inline-flex;align-items:center;gap:4px;background:' + p.bg + ';color:' + p.fg + ';font-size:' + sz + ';font-weight:600;padding:' + pad + ';border-radius:999px;line-height:1.2;white-space:nowrap">' + esc(text) + '</span>';
   }
 
+  // Motif de brûlage renvoyé par /burnage → libellé affiché. Partagé avec l'image de partage.
+  var BURN_LABELS = { rule3: '⚠ Limite J2', min_points: '⚠ Points min.', foreign: '⚠ 2e étranger', forfeit: '⚠ Forfait' };
+
   function playerBadges(p, dark, burnStatus) {
     var h = '<div style="display:flex;gap:3px;flex-wrap:wrap;margin-top:3px">';
     if (p.is_active === false) h += badge('🗑️ Hors effectif', 'neutral', dark, true);
@@ -449,8 +452,7 @@
     if (p.is_mutation)h += badge('Mut.', 'warn', dark, true);
     if (p.is_burned)  h += badge('🔥 Brûlé', 'danger', dark, true);
     if (burnStatus && burnStatus.burned) {
-      var burnLabels = { rule3: '⚠ Limite J2', min_points: '⚠ Points min.', foreign: '⚠ 2e étranger', forfeit: '⚠ Forfait' };
-      h += badge(burnLabels[burnStatus.reason] || '🔥 Brûlé', 'danger', dark, true);
+      h += badge(BURN_LABELS[burnStatus.reason] || '🔥 Brûlé', 'danger', dark, true);
     }
     h += '</div>';
     return h;
