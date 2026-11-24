@@ -87,6 +87,7 @@ if ( ! function_exists( 'monclubtt_ge_charger' ) ) {
             'Rest/SeasonController.php',
             'Rest/ManifestController.php',
             'Rest/SmsTemplatesController.php',
+            'Rest/AuditLogController.php',
             'Front/Shortcode.php',
             'Front/Assets.php',
             'Front/StandaloneTemplate.php',

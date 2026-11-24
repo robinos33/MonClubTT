@@ -24,6 +24,7 @@ use MonClubTT\GestionEquipes\Rest\SyncController;
 use MonClubTT\GestionEquipes\Rest\SeasonController;
 use MonClubTT\GestionEquipes\Rest\ManifestController;
 use MonClubTT\GestionEquipes\Rest\SmsTemplatesController;
+use MonClubTT\GestionEquipes\Rest\AuditLogController;
 
 final class Plugin
 {
@@ -115,6 +116,7 @@ final class Plugin
         (new MagicLinkController())->registerRoutes();
         (new ManifestController())->registerRoutes();
         (new SmsTemplatesController())->registerRoutes();
+        (new AuditLogController())->registerRoutes();
     }
 
     /** Entrée « Gestion des équipes » du menu Mon Club TT, après Données FFTT. */
