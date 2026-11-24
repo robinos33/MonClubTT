@@ -68,6 +68,12 @@ final class QualificationRules
             ],
             [
                 'status'    => self::CONTROLLED,
+                'title'     => __('Équipe complète (régional)', 'mon-club-tt'),
+                'reference' => 'LNATT 4.6.2',
+                'detail'    => __('En Pré-Nationale, R1, R2 et R3, une équipe doit compter 4 joueurs ayant disputé au moins une partie. Une équipe incomplète perd la rencontre (0 point rencontre, 0 point parties) et paie une pénalité de 30 €. Ce n\'est pas un forfait : la caution n\'est pas confisquée, rien ne compte pour le forfait général et le brûlage des joueurs présents se calcule normalement ; ne déclarez donc pas de forfait. Un joueur qui n\'entre pas dans l\'aire de jeu pour sa 1re partie, même blessé, rend l\'équipe incomplète. L\'application signale une équipe régionale de moins de 4 joueurs, en rouge à partir de 6 jours avant la journée, d\'après le niveau saisi pour chaque équipe. En départementale, une équipe peut jouer à 3.', 'mon-club-tt'),
+            ],
+            [
+                'status'    => self::CONTROLLED,
                 'title'     => __('Forfait, exempt et forfait adverse', 'mon-club-tt'),
                 'reference' => 'FFTT II.112.2',
                 'detail'    => __('Forfait de l\'équipe à la 1re journée : à la 2e journée, elle ne peut aligner que des joueurs n\'ayant pas joué la 1re journée dans une autre équipe. Forfait à une autre journée : les joueurs ayant disputé la journée précédente dans l\'équipe forfait ne peuvent pas jouer, ce jour-là, dans une équipe de numéro supérieur. Le forfait se déclare depuis la journée de l\'équipe dans l\'application. Équipe exempte ou bénéficiant d\'un forfait : les joueurs inscrits sur la feuille sont réputés avoir joué ; ces feuilles n\'étant pas publiées par la FFTT, validez la composition à la main.', 'mon-club-tt'),
