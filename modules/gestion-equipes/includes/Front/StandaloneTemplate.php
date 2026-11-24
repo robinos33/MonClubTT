@@ -40,6 +40,7 @@ class StandaloneTemplate
         $rosterJsUrl = esc_url(MONCLUBTT_GE_URL . 'assets/js/roster.js?v=' . MONCLUBTT_GE_VERSION);
         $checkJsUrl  = esc_url(MONCLUBTT_GE_URL . 'assets/js/team-check.js?v=' . MONCLUBTT_GE_VERSION);
         $shareJsUrl  = esc_url(MONCLUBTT_GE_URL . 'assets/js/share-image.js?v=' . MONCLUBTT_GE_VERSION);
+        $smsJsUrl    = esc_url(MONCLUBTT_GE_URL . 'assets/js/sms.js?v=' . MONCLUBTT_GE_VERSION);
         $pwaEnabled  = Assets::pwaEnabled();
 
         // On prend la main sur la réponse
@@ -71,6 +72,7 @@ class StandaloneTemplate
         echo '<script src="' . $rosterJsUrl . '"></script>'; // phpcs:ignore WordPress.WP.EnqueuedResources.NonEnqueuedScript -- app shell autonome, wp_enqueue_script() non applicable
         echo '<script src="' . $checkJsUrl . '"></script>'; // phpcs:ignore WordPress.WP.EnqueuedResources.NonEnqueuedScript -- app shell autonome, wp_enqueue_script() non applicable
         echo '<script src="' . $shareJsUrl . '"></script>'; // phpcs:ignore WordPress.WP.EnqueuedResources.NonEnqueuedScript -- app shell autonome, wp_enqueue_script() non applicable
+        echo '<script src="' . $smsJsUrl . '"></script>'; // phpcs:ignore WordPress.WP.EnqueuedResources.NonEnqueuedScript -- app shell autonome, wp_enqueue_script() non applicable
         echo '<script src="' . $jsUrl . '"></script>'; // phpcs:ignore WordPress.WP.EnqueuedResources.NonEnqueuedScript -- app shell autonome, wp_enqueue_script() non applicable
         echo '</body></html>';
         // phpcs:enable

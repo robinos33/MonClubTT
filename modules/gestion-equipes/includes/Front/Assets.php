@@ -68,7 +68,8 @@ class Assets
         wp_enqueue_script('ttp-roster', MONCLUBTT_GE_URL . 'assets/js/roster.js', [], MONCLUBTT_GE_VERSION, true);
         wp_enqueue_script('ttp-team-check', MONCLUBTT_GE_URL . 'assets/js/team-check.js', [], MONCLUBTT_GE_VERSION, true);
         wp_enqueue_script('ttp-share-image', MONCLUBTT_GE_URL . 'assets/js/share-image.js', ['ttp-roster', 'ttp-team-check'], MONCLUBTT_GE_VERSION, true);
-        wp_enqueue_script('ttp-app', MONCLUBTT_GE_URL . 'assets/js/app.js', ['ttp-roster', 'ttp-team-check', 'ttp-share-image'], MONCLUBTT_GE_VERSION, true);
+        wp_enqueue_script('ttp-sms', MONCLUBTT_GE_URL . 'assets/js/sms.js', [], MONCLUBTT_GE_VERSION, true);
+        wp_enqueue_script('ttp-app', MONCLUBTT_GE_URL . 'assets/js/app.js', ['ttp-roster', 'ttp-team-check', 'ttp-share-image', 'ttp-sms'], MONCLUBTT_GE_VERSION, true);
         wp_localize_script('ttp-app', 'TTPConfig', $this->buildConfig());
     }
 

@@ -134,14 +134,13 @@
     return tk(dark).ink2;
   }
 
+  function smsTemplate(kind) {
+    return (cfg.smsTemplates && cfg.smsTemplates[kind]) || w.TTPSms.DEFAULTS[kind];
+  }
+
   function smsHref(phone, firstName, jn, date) {
-    var tmpl = (cfg.smsTemplates && cfg.smsTemplates.availability) ||
-      'Bonjour {prenom}, es-tu dispo pour la J{journee} ({date}) ?';
-    var body = tmpl
-      .replace('{prenom}', firstName || '')
-      .replace('{journee}', String(jn || ''))
-      .replace('{date}', date || '');
-    return 'sms:' + (phone || '').replace(/\s/g, '') + '?body=' + encodeURIComponent(body);
+    var body = w.TTPSms.body(smsTemplate('availability'), { prenom: firstName, journee: jn, date: date });
+    return w.TTPSms.href(phone, body);
   }
 
   // ═══════════════════════════════════════════
