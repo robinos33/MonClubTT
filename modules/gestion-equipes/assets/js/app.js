@@ -881,6 +881,9 @@
     var burnMap   = S.burnage[bKey] || {};
     var validated = !!S.validations[bKey];
     var forfeit   = isForfeit(tcode, round);
+    // Rien à confirmer pour une rencontre jouée ou forfait.
+    var canConfirm = !validated && !forfeit;
+    var roundDate  = (S.journees[round - 1] || {}).date || '';
     var check     = forfeit ? null : teamCompleteness(team, filled, round);
 
     var h = '<div style="padding:12px">';
@@ -951,6 +954,9 @@
               playerBadges(p, dark, burnStatus) +
             '</div>' +
           '</button>' +
+          (canConfirm && p.phone
+            ? '<a href="' + esc(smsHref('confirmation', p, round, roundDate, team.name || tcode)) + '" title="Confirmer sa place par SMS" style="width:40px;min-height:56px;align-self:stretch;border-left:1px solid ' + t.bord + ';color:' + C.pri + ';display:flex;align-items:center;justify-content:center;text-decoration:none;font-size:15px;flex-shrink:0">💬</a>'
+            : '') +
           '<button data-action="slot-remove" data-team="' + tcodeAttr + '" data-slot="' + num + '" style="width:40px;height:100%;min-height:56px;border:none;border-left:1px solid ' + t.bord + ';background:transparent;color:' + t.ink2 + ';font-size:15px;cursor:pointer;flex-shrink:0" title="Retirer">✕</button>' +
         '</div>';
       }
