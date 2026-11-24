@@ -60,9 +60,7 @@ final class BurnageChecker
      */
     public static function minimumPointsForLevel(string $level): ?int
     {
-        $normalized = strtolower(remove_accents(trim($level)));
-        $normalized = (string) preg_replace('/[^a-z0-9]+/', ' ', $normalized);
-        $normalized = trim($normalized);
+        $normalized = Division::normalize($level);
 
         if (in_array($normalized, ['pn', 'pre nationale', 'pre national'], true)) {
             return 1200;
