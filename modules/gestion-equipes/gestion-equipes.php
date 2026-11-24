@@ -52,6 +52,7 @@ if ( ! function_exists( 'monclubtt_ge_charger' ) ) {
             'Domain/MagicLink.php',
             'Domain/PhaseSquad.php',
             'Domain/MatchAppearance.php',
+            'Domain/AppearanceHistory.php',
             'Domain/BurnageStatus.php',
             'Domain/BurnageChecker.php',
             'Repository/PlayerRepository.php',

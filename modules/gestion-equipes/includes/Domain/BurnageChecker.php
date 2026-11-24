@@ -47,7 +47,7 @@ final class BurnageChecker
     private const PROMOTION_MIN_APPEARANCES = 3;
 
     public function __construct(
-        private readonly MatchAppearanceRepository $appearances = new MatchAppearanceRepository(),
+        private readonly AppearanceHistory $appearances = new MatchAppearanceRepository(),
         private readonly TeamCompositionRepository $compositions = new TeamCompositionRepository(),
         private readonly PlayerRepository $players = new PlayerRepository(),
         private readonly TeamForfeitRepository $forfeits = new TeamForfeitRepository(),
