@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace MonClubTT\GestionEquipes\Admin;
 
+use MonClubTT\GestionEquipes\Domain\QualificationRules;
 use MonClubTT\GestionEquipes\Repository\PlayerRepository;
 
 class SettingsPage
@@ -449,62 +450,15 @@ class SettingsPage
     }
 
     /**
-     * Récapitulatif en lecture seule des règles de qualification (brûlage) :
-     * ce que l'application contrôle, ce qu'elle se contente de signaler et ce
-     * qui reste à la charge du capitaine. Sources : règlements sportifs FFTT
-     * (juillet 2025) et mémo du championnat régional LNATT 2025-2026.
+     * Récapitulatif en lecture seule des règles de qualification (brûlage),
+     * tiré de QualificationRules.
      */
     private function renderBurnageRulesSection(): void
     {
         $statuses = [
-            'auto'   => ['#15803d', __('Contrôlé', 'mon-club-tt')],
-            'signal' => ['#b45309', __('Signalé', 'mon-club-tt')],
-            'none'   => ['#b91c1c', __('Non contrôlé', 'mon-club-tt')],
-        ];
-
-        $rules = [
-            [
-                'signal',
-                __('Une seule rencontre par journée', 'mon-club-tt'),
-                'FFTT II.112.1',
-                __('Un joueur ne peut disputer qu\'une rencontre, dans une seule équipe, au titre d\'une même journée. L\'application signale un joueur déjà placé dans une autre équipe pour la journée, sans l\'empêcher.', 'mon-club-tt'),
-            ],
-            [
-                'auto',
-                __('Brûlage après 2 rencontres', 'mon-club-tt'),
-                'FFTT II.112.1',
-                __('Un joueur ayant disputé 2 rencontres d\'une même phase, consécutives ou non, dans une équipe de numéro N (ou dans des équipes différentes) ne peut plus jouer dans une équipe de numéro supérieur à N.', 'mon-club-tt'),
-            ],
-            [
-                'auto',
-                __('Limite de la 2e journée', 'mon-club-tt'),
-                'FFTT II.112.1',
-                __('À la 2e journée d\'une phase, une équipe de 3 ou 4 joueurs ne peut comporter plus d\'un joueur ayant disputé la 1re journée dans une équipe de numéro inférieur.', 'mon-club-tt'),
-            ],
-            [
-                'auto',
-                __('Joueurs étrangers', 'mon-club-tt'),
-                'FFTT II.609',
-                __('Au plus 1 joueur étranger (hors UE, EEE et Suisse) par équipe de 4 joueurs. Un deuxième étranger est signalé « 2e étranger ». Les étrangers de moins de 18 ans nés en France ne comptent pas, mais l\'application ne sait pas les distinguer : à vérifier à la main.', 'mon-club-tt'),
-            ],
-            [
-                'signal',
-                __('Joueurs mutés', 'mon-club-tt'),
-                'FFTT II.610',
-                __('Nombre de mutés non limité, quelle que soit la phase ou le type de mutation. Le badge « Mut. » est purement informatif.', 'mon-club-tt'),
-            ],
-            [
-                'auto',
-                __('Points minimum (Nouvelle-Aquitaine)', 'mon-club-tt'),
-                'LNATT 4.1 / FFTT II.112.4',
-                __('Pré-Nationale : 1200 points minimum ; Régionale 1 : 1000 points minimum, atteints lors de l\'un des deux classements officiels de la saison. Pas de minimum en R2 et R3. Exception : si l\'équipe monte à l\'issue de la phase 1, les joueurs ayant disputé au moins 3 rencontres avec elle en phase 1 restent qualifiés. L\'application compare au meilleur classement officiel relevé à chaque synchronisation des données FFTT (resynchronisez après la parution de chaque classement) et se fonde sur le niveau saisi pour chaque équipe.', 'mon-club-tt'),
-            ],
-            [
-                'auto',
-                __('Forfait, exempt et forfait adverse', 'mon-club-tt'),
-                'FFTT II.112.2',
-                __('Forfait de l\'équipe à la 1re journée : à la 2e journée, elle ne peut aligner que des joueurs n\'ayant pas joué la 1re journée dans une autre équipe. Forfait à une autre journée : les joueurs ayant disputé la journée précédente dans l\'équipe forfait ne peuvent pas jouer, ce jour-là, dans une équipe de numéro supérieur. Le forfait se déclare depuis la journée de l\'équipe dans l\'application. Équipe exempte ou bénéficiant d\'un forfait : les joueurs inscrits sur la feuille sont réputés avoir joué ; ces feuilles n\'étant pas publiées par la FFTT, validez la composition à la main.', 'mon-club-tt'),
-            ],
+            QualificationRules::CONTROLLED     => ['#15803d', __('Contrôlé', 'mon-club-tt')],
+            QualificationRules::SIGNALED       => ['#b45309', __('Signalé', 'mon-club-tt')],
+            QualificationRules::NOT_CONTROLLED => ['#b91c1c', __('Non contrôlé', 'mon-club-tt')],
         ];
 
         echo '<h2>' . esc_html__('Règles de brûlage et de qualification', 'mon-club-tt') . '</h2>';
@@ -518,12 +472,12 @@ class SettingsPage
         echo '<th style="width:110px">' . esc_html__('Application', 'mon-club-tt') . '</th>';
         echo '</tr></thead><tbody>';
 
-        foreach ($rules as [$status, $title, $ref, $detail]) {
-            [$color, $label] = $statuses[$status];
+        foreach (QualificationRules::all() as $rule) {
+            [$color, $label] = $statuses[$rule['status']];
             echo '<tr>';
-            echo '<td><strong>' . esc_html($title) . '</strong></td>';
-            echo '<td>' . esc_html($detail) . '</td>';
-            echo '<td><code>' . esc_html($ref) . '</code></td>';
+            echo '<td><strong>' . esc_html($rule['title']) . '</strong></td>';
+            echo '<td>' . esc_html($rule['detail']) . '</td>';
+            echo '<td><code>' . esc_html($rule['reference']) . '</code></td>';
             echo '<td><span style="color:' . esc_attr($color) . ';font-weight:600">' . esc_html($label) . '</span></td>';
             echo '</tr>';
         }
