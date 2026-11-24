@@ -192,7 +192,7 @@ class Activator
         $players = "{$wpdb->prefix}monclubtt_ge_players";
 
         $retired = [
-            'is_burned',  // drapeau manuel jamais exposé, remplacé par le brûlage calculé (#24)
+            'is_burned',  // drapeau manuel jamais exposé, remplacé par le brûlage calculé (robinos33/tt-team-planner#24)
             'is_captain', // jamais renseigné, remplacé par le capitaine de phase et de journée
         ];
         foreach ($retired as $column) {
