@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace MonClubTT\GestionEquipes\Rest;
@@ -109,7 +110,7 @@ class SyncController
 
         if ($errors > 0) {
             /* translators: %d: number of skipped entries */
-            $message .= ' ' . sprintf( __('%d entrée(s) ignorée(s) (données invalides).', 'mon-club-tt'), $errors );
+            $message .= ' ' . sprintf(__('%d entrée(s) ignorée(s) (données invalides).', 'mon-club-tt'), $errors);
         }
 
         return [

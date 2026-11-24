@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace MonClubTT\GestionEquipes\Rest;
@@ -33,7 +34,6 @@ class TeamsController
             'callback'            => [$this, 'clearSlot'],
             'permission_callback' => [$this, 'canWrite'],
         ]);
-
     }
 
     public function getCompositions(WP_REST_Request $request): WP_REST_Response

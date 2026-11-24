@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace MonClubTT\GestionEquipes\Domain;
@@ -18,11 +19,11 @@ final class Availability
     ];
 
     public function __construct(
-        public readonly int    $id,
-        public readonly int    $playerId,
+        public readonly int $id,
+        public readonly int $playerId,
         public readonly string $season,
-        public readonly int    $phase,
-        public readonly int    $round,
+        public readonly int $phase,
+        public readonly int $round,
         public readonly string $status,
         public readonly string $comment,
     ) {}

@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace MonClubTT\GestionEquipes\Domain;
@@ -6,9 +7,9 @@ namespace MonClubTT\GestionEquipes\Domain;
 final class BurnageStatus
 {
     public function __construct(
-        public readonly bool    $burned,
+        public readonly bool $burned,
         public readonly ?string $reason,
-        public readonly string  $detail,
+        public readonly string $detail,
     ) {}
 
     public static function ok(): self

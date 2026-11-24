@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace MonClubTT\GestionEquipes\Repository;
@@ -30,7 +31,9 @@ class TeamCompositionRepository
         $rows   = $wpdb->get_results( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
             $wpdb->prepare(
                 "SELECT * FROM {$this->table} WHERE season = %s AND phase = %d AND round = %d ORDER BY team_code, slot_number", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- table name from $wpdb->prefix in constructor, not user input
-                $season, $phase, $round
+                $season,
+                $phase,
+                $round
             ),
             ARRAY_A
         );
@@ -53,7 +56,8 @@ class TeamCompositionRepository
         $rows   = $wpdb->get_results( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
             $wpdb->prepare(
                 "SELECT * FROM {$this->table} WHERE season = %s AND phase = %d ORDER BY round, team_code, slot_number", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- table name from $wpdb->prefix in constructor, not user input
-                $season, $phase
+                $season,
+                $phase
             ),
             ARRAY_A
         );
@@ -76,7 +80,10 @@ class TeamCompositionRepository
         $rows   = $wpdb->get_results( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
             $wpdb->prepare(
                 "SELECT * FROM {$this->table} WHERE season = %s AND phase = %d AND round = %d AND team_code = %s ORDER BY slot_number", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- table name from $wpdb->prefix in constructor, not user input
-                $season, $phase, $round, $teamCode
+                $season,
+                $phase,
+                $round,
+                $teamCode
             ),
             ARRAY_A
         );
@@ -96,7 +103,12 @@ class TeamCompositionRepository
             "INSERT INTO {$this->table} (season, phase, round, team_code, slot_number, player_id)" . // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
             " VALUES (%s, %d, %d, %s, %d, %d)" .
             " ON DUPLICATE KEY UPDATE player_id = VALUES(player_id), updated_at = NOW()",
-            $season, $phase, $round, $teamCode, $slot, $playerId
+            $season,
+            $phase,
+            $round,
+            $teamCode,
+            $slot,
+            $playerId
         ));
 
         wp_cache_flush_group(self::CACHE_GROUP);
@@ -109,7 +121,11 @@ class TeamCompositionRepository
             "INSERT INTO {$this->table} (season, phase, round, team_code, slot_number, player_id)" . // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
             " VALUES (%s, %d, %d, %s, %d, NULL)" .
             " ON DUPLICATE KEY UPDATE player_id = NULL, updated_at = NOW()",
-            $season, $phase, $round, $teamCode, $slot
+            $season,
+            $phase,
+            $round,
+            $teamCode,
+            $slot
         ));
 
         wp_cache_flush_group(self::CACHE_GROUP);

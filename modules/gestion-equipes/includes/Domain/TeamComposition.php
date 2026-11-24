@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace MonClubTT\GestionEquipes\Domain;
@@ -6,13 +7,13 @@ namespace MonClubTT\GestionEquipes\Domain;
 final class TeamComposition
 {
     public function __construct(
-        public readonly int    $id,
+        public readonly int $id,
         public readonly string $season,
-        public readonly int    $phase,
-        public readonly int    $round,
+        public readonly int $phase,
+        public readonly int $round,
         public readonly string $teamCode,
-        public readonly int    $slotNumber,
-        public readonly ?int   $playerId,
+        public readonly int $slotNumber,
+        public readonly ?int $playerId,
     ) {}
 
     public static function fromRow(array $row): self

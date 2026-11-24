@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace MonClubTT\GestionEquipes\Domain;
@@ -6,10 +7,10 @@ namespace MonClubTT\GestionEquipes\Domain;
 final class MagicLink
 {
     public function __construct(
-        public readonly int     $id,
-        public readonly int     $playerId,
-        public readonly string  $season,
-        public readonly string  $expiresAt,
+        public readonly int $id,
+        public readonly int $playerId,
+        public readonly string $season,
+        public readonly string $expiresAt,
         public readonly ?string $usedAt,
     ) {}
 

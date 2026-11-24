@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace MonClubTT\GestionEquipes;
@@ -37,8 +38,8 @@ final class Plugin
     private function __construct()
     {
         add_action('plugins_loaded', [Activator::class, 'maybeUpgrade']);
-        add_action('init',           [$this, 'init']);
-        add_action('rest_api_init',  [$this, 'registerRestRoutes']);
+        add_action('init', [$this, 'init']);
+        add_action('rest_api_init', [$this, 'registerRestRoutes']);
 
         // Relances de disponibilité : le handler doit être accroché à chaque
         // chargement (WP-Cron s'exécute dans une requête où rien d'autre du

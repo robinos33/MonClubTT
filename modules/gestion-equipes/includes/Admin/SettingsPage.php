@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace MonClubTT\GestionEquipes\Admin;
@@ -251,15 +252,16 @@ class SettingsPage
         echo '<h2>' . esc_html__('Équipes', 'mon-club-tt') . '</h2>';
         echo '<p class="description">' . esc_html__('Définissez les équipes du club. Le code est utilisé pour grouper les joueurs par équipe habituelle.', 'mon-club-tt') . '</p>';
 
-        echo '<datalist id="ttp-levels-list">';
-        foreach ([
+        $levels = [
             'Pro A', 'Pro B',
             'Nationale 1', 'Nationale 2', 'Nationale 3',
             'Pré-Nationale',
             'Régionale 1', 'Régionale 2', 'Régionale 3',
             'Pré-Régionale',
             'Départementale 1', 'Départementale 2', 'Départementale 3', 'Départementale 4', 'Départementale 5',
-        ] as $lvl) {
+        ];
+        echo '<datalist id="ttp-levels-list">';
+        foreach ($levels as $lvl) {
             echo '<option value="' . esc_attr($lvl) . '">';
         }
         echo '</datalist>';

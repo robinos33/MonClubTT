@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace MonClubTT\GestionEquipes\Repository;
@@ -30,7 +31,9 @@ class AvailabilityRepository
         $rows   = $wpdb->get_results( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
             $wpdb->prepare(
                 "SELECT * FROM {$this->table} WHERE season = %s AND phase = %d AND round = %d", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- table name from $wpdb->prefix in constructor, not user input
-                $season, $phase, $round
+                $season,
+                $phase,
+                $round
             ),
             ARRAY_A
         );
@@ -53,7 +56,8 @@ class AvailabilityRepository
         $rows   = $wpdb->get_results( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
             $wpdb->prepare(
                 "SELECT * FROM {$this->table} WHERE player_id = %d AND season = %s ORDER BY phase, round", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- table name from $wpdb->prefix in constructor, not user input
-                $playerId, $season
+                $playerId,
+                $season
             ),
             ARRAY_A
         );
@@ -99,7 +103,8 @@ class AvailabilityRepository
         $rows   = $wpdb->get_results( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
             $wpdb->prepare(
                 "SELECT * FROM {$this->table} WHERE season = %s AND phase = %d ORDER BY player_id, round", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- table name from $wpdb->prefix in constructor, not user input
-                $season, $phase
+                $season,
+                $phase
             ),
             ARRAY_A
         );
@@ -129,7 +134,12 @@ class AvailabilityRepository
             "INSERT INTO {$this->table} (player_id, season, phase, round, status, comment)" . // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
             " VALUES (%d, %s, %d, %d, %s, %s)" .
             " ON DUPLICATE KEY UPDATE status = VALUES(status), comment = VALUES(comment), updated_at = NOW()",
-            $playerId, $season, $phase, $round, $status, $comment
+            $playerId,
+            $season,
+            $phase,
+            $round,
+            $status,
+            $comment
         ));
 
         wp_cache_flush_group(self::CACHE_GROUP);

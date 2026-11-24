@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace MonClubTT\GestionEquipes\Front;
@@ -11,8 +12,8 @@ class Assets
     public function register(): void
     {
         add_action('wp_enqueue_scripts', [$this, 'enqueueFrontend']);
-        add_action('wp_head',           [$this, 'injectManifestLink']);
-        add_action('template_redirect',  [$this, 'maybeServeServiceWorker'], 0);
+        add_action('wp_head', [$this, 'injectManifestLink']);
+        add_action('template_redirect', [$this, 'maybeServeServiceWorker'], 0);
     }
 
     /**
@@ -60,7 +61,7 @@ class Assets
             return;
         }
 
-        wp_enqueue_style('ttp-app',  MONCLUBTT_GE_URL . 'assets/css/app.css', [], MONCLUBTT_GE_VERSION);
+        wp_enqueue_style('ttp-app', MONCLUBTT_GE_URL . 'assets/css/app.css', [], MONCLUBTT_GE_VERSION);
         wp_enqueue_script('ttp-share-image', MONCLUBTT_GE_URL . 'assets/js/share-image.js', [], MONCLUBTT_GE_VERSION, true);
         wp_enqueue_script('ttp-app', MONCLUBTT_GE_URL . 'assets/js/app.js', ['ttp-share-image'], MONCLUBTT_GE_VERSION, true);
         wp_localize_script('ttp-app', 'TTPConfig', $this->buildConfig());
