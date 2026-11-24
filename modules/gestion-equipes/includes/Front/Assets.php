@@ -62,8 +62,9 @@ class Assets
         }
 
         wp_enqueue_style('ttp-app', MONCLUBTT_GE_URL . 'assets/css/app.css', [], MONCLUBTT_GE_VERSION);
-        wp_enqueue_script('ttp-share-image', MONCLUBTT_GE_URL . 'assets/js/share-image.js', [], MONCLUBTT_GE_VERSION, true);
-        wp_enqueue_script('ttp-app', MONCLUBTT_GE_URL . 'assets/js/app.js', ['ttp-share-image'], MONCLUBTT_GE_VERSION, true);
+        wp_enqueue_script('ttp-roster', MONCLUBTT_GE_URL . 'assets/js/roster.js', [], MONCLUBTT_GE_VERSION, true);
+        wp_enqueue_script('ttp-share-image', MONCLUBTT_GE_URL . 'assets/js/share-image.js', ['ttp-roster'], MONCLUBTT_GE_VERSION, true);
+        wp_enqueue_script('ttp-app', MONCLUBTT_GE_URL . 'assets/js/app.js', ['ttp-roster', 'ttp-share-image'], MONCLUBTT_GE_VERSION, true);
         wp_localize_script('ttp-app', 'TTPConfig', $this->buildConfig());
     }
 

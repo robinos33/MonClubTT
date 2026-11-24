@@ -5,7 +5,8 @@
  *   buildModel(input)          → ce que dit l'image (pur : données in, modèle out)
  *   paint(canvas, model, dpr)  → comment elle le dit (dessin)
  *
- * Exposé sur window.TTPShareImage, utilisé par app.js.
+ * Exposé sur window.TTPShareImage, utilisé par app.js. Dépend de
+ * window.TTPRoster (roster.js), chargé avant.
  */
 (function (w) {
   'use strict';
@@ -101,11 +102,9 @@
     function availOf(id) { return avail[String(id)] || 'unknown'; }
 
     var slotsByTeam = {};
-    var placed = {};
     (input.compositions || []).forEach(function (c) {
       var n = Number(c.slot_number);
       if (!c.player_id || n < 1 || n > 4) return;
-      placed[String(c.player_id)] = true;
       (slotsByTeam[c.team_code] = slotsByTeam[c.team_code] || {})[n] = c.player_id;
     });
 
@@ -143,10 +142,8 @@
     var forfeits = teams.length - playing.length;
 
     // « Qui peut remplacer X ? » : la question qui suit, en discussion.
-    var bench = (input.players || [])
-      .filter(function (p) { return p.is_active !== false && !placed[String(p.id)] && availOf(p.id) === 'available'; })
-      .sort(function (a, b) { return (b.ranking || 0) - (a.ranking || 0); })
-      .map(function (p) { return fullName(p) + ' · ' + (p.ranking || 0); });
+    var bench = w.TTPRoster.group(input).free
+      .map(function (e) { return fullName(e.player) + ' · ' + (e.player.ranking || 0); });
 
     return {
       title: input.clubName || 'Mon Club TT',
