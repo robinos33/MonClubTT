@@ -179,13 +179,13 @@
     });
   }
 
-  function countCompleteTeams(phase, round) {
+  function countCompleteTeams(compos, phase, round) {
     var tc = S.teams.length;
     if (!tc) return 0;
     var complete = 0;
     S.teams.forEach(function (team) {
       var code  = team.code || team.id || '';
-      var slots = S.phaseCompositions.filter(function (c) {
+      var slots = compos.filter(function (c) {
         return c.team_code === code && Number(c.phase) === phase && Number(c.round) === round && c.player_id;
       });
       if (slots.length >= 4) complete++;
@@ -686,7 +686,7 @@
     h += '<div style="background:linear-gradient(135deg,' + C.pri + ',' + C.priInk + ');color:white;border-radius:14px;padding:14px;position:relative;overflow:hidden">' +
       '<div style="font-size:11px;opacity:0.85;font-weight:500;letter-spacing:0.4px;text-transform:uppercase">Prochaine journée' + esc(nextPhaseLabel) + '</div>' +
       '<div style="font-size:22px;font-weight:700;margin-top:4px;letter-spacing:-0.3px">J' + next.round + (next.date ? ' · ' + esc(next.date) : '') + '</div>' +
-      '<div style="font-size:12px;opacity:0.9;margin-top:2px">' + countCompleteTeams(next.phase, next.round) + ' / ' + tc + ' compositions complètes</div>' +
+      '<div style="font-size:12px;opacity:0.9;margin-top:2px">' + countCompleteTeams(S.phaseCompositions, next.phase, next.round) + ' / ' + tc + ' compositions complètes</div>' +
       '<div style="display:flex;gap:6px;margin-top:12px">' +
         '<button ' + nextAction + ' style="background:white;color:' + C.priInk + ';border:none;padding:8px 14px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer">Préparer les compos →</button>' +
       '</div>' +
@@ -705,7 +705,7 @@
         '<div style="flex:1;min-width:0;text-align:left">' +
           '<div style="font-size:13px;font-weight:600;color:' + t.ink + '">' + (j.date ? esc(j.date) : 'Journée ' + j.n) + '</div>' +
           '<div style="font-size:11px;color:' + t.ink2 + ';margin-top:1px">' +
-            (j.done ? 'Terminée' : (countCompleteTeams(S.phase + 1, j.n) + ' / ' + tc + ' compos')) +
+            (j.done ? 'Terminée' : (countCompleteTeams(S.phaseCompositions, S.phase + 1, j.n) + ' / ' + tc + ' compos')) +
           '</div>' +
         '</div>' +
         (j.done ? '<span style="font-size:14px">✅</span>' : '') +
@@ -726,7 +726,7 @@
     var tc = S.teams.length;
     var teams = S.teams;
 
-    var tcLabel = tc ? ((j.complete || 0) + '/' + tc + ' compos') : 'Pas d\'équipe configurée';
+    var tcLabel = tc ? (countCompleteTeams(S.compositions, S.phase + 1, jn) + '/' + tc + ' compos') : 'Pas d\'équipe configurée';
     var shareBtn = tc
       ? '<button data-action="share-open" title="Image des compos de toutes les équipes, à partager" style="height:32px;padding:0 10px;border-radius:8px;border:none;background:' + C.pri + ';color:white;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;flex-shrink:0">📤 Partager les compos</button>'
       : '';
