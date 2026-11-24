@@ -3,7 +3,7 @@ Contributors: robinos33
 Tags: table tennis, fftt, club, rankings, results
 Requires at least: 6.4
 Tested up to: 7.1
-Stable tag: 2.10.1
+Stable tag: 2.11.0
 Requires PHP: 8.4
 License: GPLv2
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -85,6 +85,12 @@ Player data is refreshed on manual sync only. League standings and results are c
 Yes. The plugin exposes six filters: `monclubtt_get_evenements`, `monclubtt_get_joueurs`, `monclubtt_get_equipes`, `monclubtt_get_classement_poule`, `monclubtt_get_rencontres_poule`, `monclubtt_get_feuille_rencontre`. See the documentation for usage.
 
 == Changelog ==
+
+= 2.11.0 =
+* Security: team management: players (name, phone, e-mail, licence number), availabilities and squads are only readable when logged in
+* Added: team management: "Team committee member" role, allowed to manage teams without access to the WordPress dashboard; writes require the new "Manage teams" capability, held by administrators, editors and this role
+* Added: team management: phase and match-day captains, shareable line-up image, projected burn status, availabilities tab, regional incomplete-team warning, per-member SMS templates, action log for administrators
+* Added: team management export and import include the action log and members' own SMS templates
 
 = 2.10.1 =
 * Changed: pong mode picker: a plain Classic button and an arcade-style Arcade button, special shots picked on a matching dark panel
@@ -336,6 +342,9 @@ Yes. The plugin exposes six filters: `monclubtt_get_evenements`, `monclubtt_get_
 * Automatic team page generation and deletion
 
 == Upgrade Notice ==
+
+= 2.11.0 =
+Security fix: team management players, availabilities and squads are no longer readable without logging in. Writing now requires the "Manage teams" capability (administrators, editors, Team committee member role): give it to contributors or authors who used to edit line-ups.
 
 = 2.2.0 =
 The team management page no longer appears in the WordPress sitemap.
