@@ -55,6 +55,7 @@ if ( ! function_exists( 'monclubtt_ge_charger' ) ) {
             'Domain/AppearanceHistory.php',
             'Domain/BurnageStatus.php',
             'Domain/BurnageChecker.php',
+            'Domain/ProjectedAppearanceHistory.php',
             'Repository/PlayerRepository.php',
             'Repository/AvailabilityRepository.php',
             'Repository/TeamCompositionRepository.php',
