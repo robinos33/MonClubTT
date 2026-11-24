@@ -116,6 +116,7 @@ class DataImporter
             'match_appearances' => __('participations', 'mon-club-tt'),
             'validated_rounds'  => __('journées validées', 'mon-club-tt'),
             'team_forfeits'     => __('forfaits', 'mon-club-tt'),
+            'audit_log'         => __('entrées du journal', 'mon-club-tt'),
         ];
         echo '<div class="notice notice-success"><p><strong>' . esc_html__('Import terminé.', 'mon-club-tt') . '</strong></p><ul style="list-style:disc;margin-left:20px">';
         foreach ($labels as $key => $label) {
@@ -197,6 +198,11 @@ class DataImporter
         $counts = [];
         foreach (DataExporter::TABLES as $key => $def) {
             $table = $wpdb->prefix . self::legacyTable($def['table']);
+            // Une version ancienne de TT Team Planner n'a pas toutes les tables (journal : 1.13).
+            if (! DataExporter::tableExists($table)) {
+                $counts[$key] = 0;
+                continue;
+            }
             $counts[$key] = (int) $wpdb->get_var("SELECT COUNT(*) FROM `{$table}`"); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter -- nom de table issu de $wpdb->prefix et d'une constante
         }
         return $counts;
@@ -225,6 +231,10 @@ class DataImporter
         $tables = [];
         foreach (DataExporter::TABLES as $key => $def) {
             $table = $wpdb->prefix . self::legacyTable($def['table']);
+            if (! DataExporter::tableExists($table)) {
+                $tables[$key] = [];
+                continue;
+            }
             $tables[$key] = (array) $wpdb->get_results("SELECT * FROM `{$table}` ORDER BY id", ARRAY_A); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter -- import ponctuel, nom de table issu de $wpdb->prefix et d'une constante
         }
 

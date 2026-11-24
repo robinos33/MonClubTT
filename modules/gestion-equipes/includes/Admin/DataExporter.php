@@ -63,6 +63,10 @@ class DataExporter
             'table' => 'monclubtt_ge_team_forfeits',
             'ints'  => ['id', 'phase', 'round', 'declared_by'],
         ],
+        'audit_log' => [
+            'table' => 'monclubtt_ge_audit_log',
+            'ints'  => ['id', 'user_id', 'phase', 'round'],
+        ],
     ];
 
     public function register(): void
@@ -133,6 +137,12 @@ class DataExporter
         global $wpdb;
         $table = $wpdb->prefix . $suffix;
 
+        // Table absente (migration pas encore passée) : liste vide plutôt
+        // qu'une erreur SQL imprimée au milieu du fichier téléchargé.
+        if (! self::tableExists($table)) {
+            return [];
+        }
+
         $rows = $wpdb->get_results( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter -- export ponctuel ; table issue de $wpdb->prefix et d'une constante
             "SELECT * FROM {$table} ORDER BY id", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- nom de table issu de $wpdb->prefix et d'une constante
             ARRAY_A
@@ -155,5 +165,11 @@ class DataExporter
             $result[] = $row;
         }
         return $result;
+    }
+
+    public static function tableExists(string $table): bool
+    {
+        global $wpdb;
+        return $wpdb->get_var($wpdb->prepare('SHOW TABLES LIKE %s', $wpdb->esc_like($table))) === $table; // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- vérification ponctuelle
     }
 }
