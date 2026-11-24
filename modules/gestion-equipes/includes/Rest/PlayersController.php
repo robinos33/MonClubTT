@@ -11,6 +11,7 @@ use MonClubTT\GestionEquipes\Repository\TeamCompositionRepository;
 use MonClubTT\GestionEquipes\Repository\PhaseSquadRepository;
 use MonClubTT\GestionEquipes\Repository\AvailabilityRepository;
 use MonClubTT\GestionEquipes\Repository\MatchAppearanceRepository;
+use MonClubTT\GestionEquipes\Capabilities;
 
 class PlayersController
 {
@@ -193,6 +194,6 @@ class PlayersController
 
     public function canWrite(): bool
     {
-        return current_user_can('edit_posts');
+        return Capabilities::canManagePlanner();
     }
 }

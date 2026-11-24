@@ -11,6 +11,7 @@ use MonClubTT\GestionEquipes\Repository\TeamCompositionRepository;
 use MonClubTT\GestionEquipes\Repository\TeamForfeitRepository;
 use MonClubTT\GestionEquipes\Repository\ValidatedRoundRepository;
 use MonClubTT\GestionEquipes\Sync\AppearanceImporter;
+use MonClubTT\GestionEquipes\Capabilities;
 
 class MatchAppearanceController
 {
@@ -226,7 +227,7 @@ class MatchAppearanceController
 
     public function canWrite(): bool
     {
-        return current_user_can('edit_posts');
+        return Capabilities::canManagePlanner();
     }
 
     public function canManage(): bool

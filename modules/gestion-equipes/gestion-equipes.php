@@ -65,6 +65,7 @@ if ( ! function_exists( 'monclubtt_ge_charger' ) ) {
             'Admin/DataExporter.php',
             'Admin/DataImporter.php',
             'Admin/SettingsPage.php',
+            'Admin/BackOfficeGuard.php',
             'Sync/AppearanceImporter.php',
             'Rest/PhaseSquadController.php',
             'Rest/PlayersController.php',
@@ -82,6 +83,7 @@ if ( ! function_exists( 'monclubtt_ge_charger' ) ) {
             'Front/StandaloneTemplate.php',
             'Front/SitemapExclusion.php',
             'Front/MagicLinkTemplate.php',
+            'Capabilities.php',
             'Activator.php',
             'Plugin.php',
         ) as $monclubtt_fichier ) {
