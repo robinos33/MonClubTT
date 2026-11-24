@@ -822,7 +822,9 @@
       if (filled === 4) {
         h += '<button data-action="round-validate"' + roundAttrs + ' style="margin-top:10px;width:100%;padding:9px;border-radius:8px;background:' + C.pri + ';border:none;color:white;font-size:12px;font-weight:600;cursor:pointer">✓ Valider cette composition (rencontre jouée)</button>';
       }
-      h += '<button data-action="round-forfeit"' + roundAttrs + ' style="' + ghostBtn + '">Déclarer forfait</button>';
+      // Rare (une fois par saison, au plus) : un lien discret, pas un bouton
+      // au niveau de la validation.
+      h += '<div style="margin-top:8px;text-align:right"><button data-action="round-forfeit"' + roundAttrs + ' style="padding:2px 0;background:none;border:none;color:' + t.ink2 + ';font-size:11px;text-decoration:underline;cursor:pointer">Déclarer un forfait</button></div>';
     }
     h += '</div>';
 
