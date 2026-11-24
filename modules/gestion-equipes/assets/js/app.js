@@ -472,6 +472,12 @@
       .map(function (s) { return s.player_id; });
   }
 
+  function isSquadCaptain(playerId, teamCode, phase) {
+    return S.squads.some(function (s) {
+      return s.team_code === teamCode && s.phase === phase && s.is_captain && String(s.player_id) === String(playerId);
+    });
+  }
+
   function isInSquad(playerId, teamCode, phase) {
     return S.squads.some(function (s) {
       return s.team_code === teamCode && s.phase === phase && String(s.player_id) === String(playerId);
@@ -528,10 +534,12 @@
     return !!(burnStatus && !burnStatus.burned && burnStatus.projected);
   }
 
-  function playerBadges(p, dark, burnStatus) {
+  // captain : le capitanat dépend de l'équipe et de la journée, c'est
+  // l'appelant qui le sait.
+  function playerBadges(p, dark, burnStatus, captain) {
     var h = '<div style="display:flex;gap:3px;flex-wrap:wrap;margin-top:3px">';
     if (p.is_active === false) h += badge('🗑️ Hors effectif', 'neutral', dark, true);
-    if (p.is_captain) h += badge('© Cap.', 'primary', dark, true);
+    if (captain) h += badge('© Cap.', 'primary', dark, true);
     if (p.is_foreign) h += badge('E', 'purple', dark, true);
     if (p.is_young)   h += badge('Jeune', 'ok', dark, true);
     if (p.is_mutation)h += badge('Mut.', 'warn', dark, true);
@@ -1485,6 +1493,8 @@
           h += '<span style="font-size:11px;color:' + t.ink2 + ';margin-left:6px">' + (p.ranking || 0) + '</span>';
           h += playerBadges(p, dark);
           h += '</div>';
+          var capt = isSquadCaptain(p.id, teamCode, phase);
+          h += '<button data-action="squad-captain" data-team="' + esc(teamCode) + '" data-player-id="' + (capt ? 0 : p.id) + '" title="' + (capt ? 'Retirer le capitanat' : 'Nommer capitaine de phase') + '" style="width:28px;height:28px;border-radius:6px;border:' + (capt ? 'none' : '1px solid ' + t.bord) + ';background:' + (capt ? C.pri : 'transparent') + ';color:' + (capt ? 'white' : t.ink2) + ';font-size:13px;font-weight:700;cursor:pointer;flex-shrink:0">©</button>';
           h += '<button data-action="squad-remove" data-team="' + esc(teamCode) + '" data-player-id="' + p.id + '" style="width:28px;height:28px;border-radius:6px;border:none;background:' + C.errSoft + ';color:' + C.err + ';font-size:14px;cursor:pointer;flex-shrink:0">×</button>';
           h += '</div>';
         });
@@ -1986,6 +1996,22 @@
     }).catch(function () { loadSquads(); });
   }
 
+  // playerId = 0 : l'équipe n'a plus de capitaine de phase.
+  function squadCaptain(teamCode, playerId) {
+    var season = cfg.season || '';
+    var phase  = S.phase + 1;
+    // Optimiste, comme le serveur : un seul capitaine par équipe et par phase.
+    var next = S.squads.map(function (s) {
+      if (s.team_code !== teamCode || s.phase !== phase) return s;
+      return Object.assign({}, s, { is_captain: String(s.player_id) === String(playerId) });
+    });
+    setState({ squads: next });
+    apiFetch('/phase-squads/captain', {
+      method: 'POST',
+      body: JSON.stringify({ season: season, phase: phase, team_code: teamCode, player_id: playerId })
+    }).catch(function () { loadSquads(); });
+  }
+
   function squadVentilate() {
     setState({ squadLoading: true });
     apiFetch('/phase-squads/ventilate', {
@@ -2275,6 +2301,8 @@
         squadAdd(el.dataset.team, parseInt(el.dataset.playerId)); break;
       case 'squad-remove':
         squadRemove(el.dataset.team, parseInt(el.dataset.playerId)); break;
+      case 'squad-captain':
+        squadCaptain(el.dataset.team, parseInt(el.dataset.playerId)); break;
       case 'squad-ventilate':
         squadVentilate(); break;
       case 'avail-toggle':
