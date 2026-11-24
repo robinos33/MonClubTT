@@ -50,6 +50,7 @@
     dark: false, phase: cfg.phase || 0,
     journeeN: 3, playerId: null,
     activeTeamI: 0,
+    disposOpen: false, disposUnavailOpen: false,
     offline: !navigator.onLine,
     players: [], availabilities: [], compositions: [], phaseCompositions: [],
     loading: true, syncing: false, loadError: null, syncError: null,
@@ -783,8 +784,9 @@
     // Team carousel
     if (teams.length) {
       h += '<div style="display:flex;overflow-x:auto;padding:8px 12px 4px;gap:8px;-webkit-overflow-scrolling:touch">';
+      h += '<button data-action="dispos-open" title="Tout l’effectif de la journée, par disponibilité" style="padding:6px 10px;border-radius:8px;border:1px solid ' + (S.disposOpen ? C.pri : t.bord) + ';background:' + (S.disposOpen ? C.pri : t.surf) + ';color:' + (S.disposOpen ? 'white' : t.ink) + ';cursor:pointer;font-size:11px;font-weight:600;white-space:nowrap;flex-shrink:0">👥 Dispos</button>';
       teams.forEach(function (team, i) {
-        var active = i === S.activeTeamI;
+        var active = !S.disposOpen && i === S.activeTeamI;
         var slots = getCompoSlots(team.code || team.id || '');
         var filled = slots.filter(function (s) { return s.player_id; }).length;
         h += '<button data-action="team-tab" data-value="' + i + '" style="padding:6px 10px;border-radius:8px;border:1px solid ' + (active ? (team.color || C.pri) : t.bord) + ';background:' + (active ? (team.color || C.pri) : t.surf) + ';color:' + (active ? 'white' : t.ink) + ';cursor:pointer;font-size:11px;font-weight:600;white-space:nowrap;display:flex;align-items:center;gap:6px;flex-shrink:0">' +
@@ -793,7 +795,9 @@
         '</button>';
       });
       h += '</div>';
-      if (teams[S.activeTeamI]) {
+      if (S.disposOpen) {
+        h += renderDispos(dark);
+      } else if (teams[S.activeTeamI]) {
         h += renderTeamCompo(teams[S.activeTeamI], dark);
       }
     } else {
@@ -887,6 +891,79 @@
     h += '</div>';
     h += '</div>';
     return h;
+  }
+
+  // ── Onglet Dispos : tout l'effectif de la journée, par disponibilité ──
+  // Répond à « il manque des gens ? » avant de composer, sans ouvrir un slot.
+  function renderDispos(dark) {
+    var t = tk(dark);
+    var round = S.journeeN;
+    var forfeits = {};
+    S.teams.forEach(function (tm) {
+      var code = tm.code || tm.id || '';
+      if (isForfeit(code, round)) forfeits[code] = true;
+    });
+    var g = w.TTPRoster.group({
+      phase: S.phase + 1, round: round, players: S.players, availabilities: S.availabilities,
+      compositions: S.compositions, teams: S.teams, forfeits: forfeits
+    });
+    var jDate = (S.journees[round - 1] || {}).date || '';
+
+    var short = g.available < g.places;
+    var detail = g.unknown.length + ' sans réponse' +
+      (g.uncertain.length ? ' · ' + g.uncertain.length + ' incertain' + (g.uncertain.length > 1 ? 's' : '') : '');
+    var h = '<div style="padding:12px">';
+    h += '<div style="background:' + t.surf + ';border:1px solid ' + t.bord + ';border-left:4px solid ' + (short ? C.warn : C.ok) + ';border-radius:10px;padding:12px;margin-bottom:12px">' +
+      '<div style="font-size:15px;font-weight:700;color:' + t.ink + '">' + g.available + ' dispo pour ' + g.places + ' place' + (g.places > 1 ? 's' : '') + '</div>' +
+      '<div style="font-size:12px;color:' + t.ink2 + ';margin-top:2px">' + detail + '</div>' +
+    '</div>';
+
+    h += disposSection('✅ Dispo, non placés', g.free, dark);
+    h += disposSection('✅ Dispo, placés', g.placed, dark);
+    h += disposSection('❓ Incertains', g.uncertain, dark);
+    // Ceux à relancer : le SMS de la fiche joueur, pour cette journée.
+    h += disposSection('⚪ Non renseignés', g.unknown, dark, { smsDate: jDate });
+    h += disposSection('🚫 Indispo', g.unavailable, dark, { collapsed: !S.disposUnavailOpen });
+    h += '</div>';
+    return h;
+  }
+
+  function disposSection(title, entries, dark, opts) {
+    var t = tk(dark);
+    opts = opts || {};
+    var label = title + ' · ' + entries.length;
+    var titleStyle = 'font-size:10px;color:' + t.ink2 + ';font-weight:600;text-transform:uppercase;letter-spacing:0.5px';
+    var h = '<div style="margin-bottom:14px">';
+    if ('collapsed' in opts) {
+      h += '<button data-action="dispos-unavail-toggle" style="' + titleStyle + ';display:flex;align-items:center;gap:6px;width:100%;padding:0 2px;margin-bottom:8px;background:none;border:none;cursor:pointer;text-align:left">' +
+        '<span>' + (opts.collapsed ? '▸' : '▾') + '</span><span>' + esc(label) + '</span></button>';
+      if (opts.collapsed) return h + '</div>';
+    } else {
+      h += '<div style="' + titleStyle + ';padding:0 2px;margin-bottom:8px">' + esc(label) + '</div>';
+    }
+    if (!entries.length) return h + '<div style="font-size:12px;color:' + t.ink2 + ';padding:0 2px">Personne</div></div>';
+    h += '<div style="display:flex;flex-direction:column;gap:6px">';
+    entries.forEach(function (e) { h += disposRow(e, dark, opts.smsDate); });
+    return h + '</div></div>';
+  }
+
+  function disposRow(e, dark, smsDate) {
+    var t = tk(dark);
+    var p = e.player;
+    var team = e.team ? S.teams.find(function (tm) { return (tm.code || tm.id) === e.team; }) : null;
+    var phone = p.phone || '';
+    var h = '<div style="display:flex;align-items:center;gap:8px;background:' + t.surf + ';border:1px solid ' + t.bord + ';border-radius:10px;padding:8px 10px">' +
+      '<button data-action="player" data-value="' + esc(p.id) + '" style="flex:1;display:flex;align-items:center;gap:8px;background:transparent;border:none;padding:0;cursor:pointer;text-align:left;min-width:0">' +
+        '<span style="font-size:13px;font-weight:600;color:' + t.ink + ';overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + esc((p.first_name || '') + ' ' + (p.last_name || '')) + '</span>' +
+        '<span style="font-size:11px;color:' + t.ink2 + ';flex-shrink:0">' + (p.ranking || 0) + '</span>' +
+      '</button>';
+    if (e.team) {
+      h += '<span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:999px;background:' + ((team && team.color) || C.pri) + ';color:white;flex-shrink:0">' + esc(e.team) + '</span>';
+    }
+    if (smsDate !== undefined && phone) {
+      h += '<a href="' + esc(smsHref(phone, p.first_name || '', S.journeeN, smsDate)) + '" title="Demander sa dispo par SMS" style="width:30px;height:30px;border-radius:8px;background:' + t.priSoft + ';color:' + C.priInk + ';display:flex;align-items:center;justify-content:center;text-decoration:none;font-size:13px;flex-shrink:0">💬</a>';
+    }
+    return h + '</div>';
   }
 
   // ═══════════════════════════════════════════
@@ -1873,7 +1950,7 @@
         break;
       case 'phase':        var newPhase = parseInt(v); setState({ phase: newPhase, journees: buildJournees(newPhase) }); break;
       case 'team-tab':
-        setState({ activeTeamI: parseInt(v) });
+        setState({ activeTeamI: parseInt(v), disposOpen: false });
         loadBurnageContext(currentTeamCode(), S.journeeN);
         break;
       case 'filter':       setState({ playerFilter: v }); break;
@@ -1936,6 +2013,8 @@
         break;
       case 'bulk-generate':      sendMagicLinks(); break;
       case 'bulk-result-close':  setState({ bulkResult: null }); break;
+      case 'dispos-open':           setState({ disposOpen: true }); break;
+      case 'dispos-unavail-toggle': setState({ disposUnavailOpen: !S.disposUnavailOpen }); break;
       case 'share-open':         openShare(); break;
       case 'share-send':         sendShare(); break;
       case 'share-copy-link':    copyShareLink(); break;
