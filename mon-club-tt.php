@@ -29,6 +29,7 @@ define( 'MONCLUBTT_PLUGIN_FILE', __FILE__ );
 // Gestion des équipes (ex-TT Team Planner).
 require_once( __DIR__ . '/modules/gestion-equipes/gestion-equipes.php' );
 register_deactivation_hook( __FILE__, 'monclubtt_ge_desactiver' );
+register_deactivation_hook( __FILE__, array( 'MonClubTT_SynchroFFTTWP', 'desplanifier' ) );
 
 class MonClubTT_Plugin
 {
@@ -114,6 +115,9 @@ class MonClubTT_Plugin
 
         // Pages d'équipe ajoutables à l'écran d'accueil (manifest, bandeau).
         new MonClubTT_AppliWP(__FILE__);
+
+        // Synchronisation FFTT automatique, le dimanche soir et le lundi matin.
+        MonClubTT_SynchroFFTTWP::enregistrer();
 
         // Articles créés depuis les visuels de la page « Réseaux sociaux ».
         new MonClubTT_ArticleSocialWP();

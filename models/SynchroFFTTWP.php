@@ -6,8 +6,58 @@ if ( ! class_exists( 'MonClubTT_SynchroFFTTWP' ) ) {
 /**
  * Synchronisation des données FFTT : joueurs, équipes, classements et
  * rencontres des poules, caches vidés puis rechargés depuis l'API.
+ *
+ * Lancée à la main (Données FFTT, widget du tableau de bord) et par le cron
+ * de WordPress aux créneaux de MonClubTT_SynchroFFTT. Chaque créneau est un
+ * événement unique, replanifié après son passage à l'heure locale : une
+ * récurrence de 7 × 24 h glisserait d'une heure au changement d'heure.
  */
 class MonClubTT_SynchroFFTTWP {
+
+    const CRON_HOOK = 'monclubtt_synchro_auto';
+
+    /** Résultat du dernier passage automatique : quand, ok, message. */
+    const OPTION_ETAT = 'monclubtt_synchro_auto';
+
+    public static function enregistrer() {
+        add_action('init', array(__CLASS__, 'planifier'));
+        add_action(self::CRON_HOOK, array(__CLASS__, 'executer'));
+    }
+
+    /** Planifie chaque créneau qui ne l'est pas (première fois, événement perdu). */
+    public static function planifier() {
+        $maintenant = new DateTimeImmutable('now', wp_timezone());
+        foreach (MonClubTT_SynchroFFTT::CRENEAUX as $cle => $creneau) {
+            if (wp_next_scheduled(self::CRON_HOOK, array($cle)) !== false) {
+                continue;
+            }
+            $passage = MonClubTT_SynchroFFTT::prochainPassage($creneau[0], $creneau[1], $creneau[2], $maintenant);
+            wp_schedule_single_event($passage->getTimestamp(), self::CRON_HOOK, array($cle));
+        }
+    }
+
+    /**
+     * Passage du cron : synchronise, garde le résultat pour l'admin, puis
+     * replanifie le créneau. Une erreur est consignée, jamais propagée.
+     */
+    public static function executer($creneau = '') {
+        try {
+            $resultats = self::lancer();
+            $etat = array(
+                'ok'      => true,
+                'message' => sprintf('%d joueurs, %d équipes', $resultats['joueurs'], $resultats['equipes']),
+            );
+        } catch (Throwable $e) {
+            $etat = array('ok' => false, 'message' => $e->getMessage());
+        }
+        update_option(self::OPTION_ETAT, $etat + array('quand' => time(), 'creneau' => (string) $creneau), false);
+        self::planifier();
+    }
+
+    /** Désactivation du plugin : plus de passage automatique. */
+    public static function desplanifier() {
+        wp_unschedule_hook(self::CRON_HOOK);
+    }
 
     /**
      * Lance la synchronisation complète.
