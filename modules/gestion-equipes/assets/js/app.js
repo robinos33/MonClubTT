@@ -85,7 +85,7 @@
       var done = !!(date && date < today);
       var current = false;
       if (!done && date && !foundNext) { current = true; foundNext = true; }
-      return { n: i + 1, date: date, done: done, complete: 0, alerts: 0, current: current };
+      return { n: i + 1, date: date, done: done, current: current };
     });
   }
 
@@ -685,10 +685,10 @@
     var showGlobal = !!(nextGlobal && nextGlobal.phase !== S.phase + 1);
     // Journée courante dans la phase affichée (première avec date future)
     var nextLocal  = jj.find(function (j) { return j.current; }) || jj[jj.length - 1];
-    // Objet unifié : { round, date, phase, complete }
+    // Objet unifié : { round, date, phase }
     var next = showGlobal
       ? nextGlobal
-      : { round: nextLocal.n, date: nextLocal.date, phase: S.phase + 1, complete: nextLocal.complete };
+      : { round: nextLocal.n, date: nextLocal.date, phase: S.phase + 1 };
 
     var h = '<div style="padding:16px;display:flex;flex-direction:column;gap:14px">';
 
