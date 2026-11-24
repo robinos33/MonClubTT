@@ -3,7 +3,7 @@ Contributors: robinos33
 Tags: table tennis, fftt, club, rankings, results
 Requires at least: 6.4
 Tested up to: 7.1
-Stable tag: 2.10.0
+Stable tag: 2.10.1
 Requires PHP: 8.4
 License: GPLv2
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -86,7 +86,7 @@ Yes. The plugin exposes six filters: `monclubtt_get_evenements`, `monclubtt_get_
 
 == Changelog ==
 
-= Unreleased =
+= 2.10.1 =
 * Changed: pong mode picker: a plain Classic button and an arcade-style Arcade button, special shots picked on a matching dark panel
 * Changed: pong Arcade mode: each special shot has its icon, on its card, under the scores and in the freeze-frame cut-in
 
