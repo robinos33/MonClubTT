@@ -212,46 +212,64 @@
     return teamCode + '_r' + round;
   }
 
+  // Les fetch* rangent le résultat dans S sans re-rendre, et le renvoient :
+  // l'appelant décide quand rendre (une équipe à l'écran, ou toutes pour l'image).
+  function fetchForfeits(ph) {
+    return apiFetch('/forfeits?season=' + encodeURIComponent(cfg.season || '') + '&phase=' + ph)
+      .then(function (res) {
+        var map = {};
+        (res || []).forEach(function (f) { map[burnageKey(f.team_code, f.round)] = true; });
+        var fo = Object.assign({}, S.forfeits); fo['p' + ph] = map;
+        S.forfeits = fo;
+        return map;
+      });
+  }
+
+  function fetchValidation(teamCode, round) {
+    var key = burnageKey(teamCode, round);
+    return apiFetch('/appearances/validate?season=' + encodeURIComponent(cfg.season || '') +
+             '&phase=' + (S.phase + 1) + '&round=' + round + '&team_code=' + encodeURIComponent(teamCode))
+      .then(function (res) {
+        var v = Object.assign({}, S.validations);
+        v[key] = !!(res && res.validated);
+        S.validations = v;
+        return v[key];
+      });
+  }
+
+  function fetchBurnage(teamCode, round) {
+    var key = burnageKey(teamCode, round);
+    var ids = S.players.map(function (p) { return p.id; }).join(',');
+    return apiFetch('/burnage?season=' + encodeURIComponent(cfg.season || '') +
+             '&phase=' + (S.phase + 1) + '&round=' + round + '&team_code=' + encodeURIComponent(teamCode) +
+             '&player_ids=' + ids)
+      .then(function (res) {
+        var b = Object.assign({}, S.burnage);
+        b[key] = res || {};
+        S.burnage = b;
+        return b[key];
+      });
+  }
+
   function loadBurnageContext(teamCode, round) {
     if (!teamCode || !round) return;
     var key = burnageKey(teamCode, round);
     var ph  = S.phase + 1;
+    var rerender = function () { render(); };
+    var ignore = function () {};
 
     // Forfaits déclarés : chargés une fois par phase, indexés comme le brûlage.
     if (S.forfeits['p' + ph] === undefined) {
       S.forfeits['p' + ph] = {};
-      apiFetch('/forfeits?season=' + encodeURIComponent(cfg.season || '') + '&phase=' + ph)
-        .then(function (res) {
-          var map = {};
-          (res || []).forEach(function (f) { map[burnageKey(f.team_code, f.round)] = true; });
-          var fo = Object.assign({}, S.forfeits); fo['p' + ph] = map;
-          setState({ forfeits: fo });
-        })
-        .catch(function () {});
+      fetchForfeits(ph).then(rerender).catch(ignore);
     }
 
     if (S.validations[key] === undefined) {
-      apiFetch('/appearances/validate?season=' + encodeURIComponent(cfg.season || '') +
-               '&phase=' + (S.phase + 1) + '&round=' + round + '&team_code=' + encodeURIComponent(teamCode))
-        .then(function (res) {
-          var v = Object.assign({}, S.validations);
-          v[key] = !!(res && res.validated);
-          setState({ validations: v });
-        })
-        .catch(function () {});
+      fetchValidation(teamCode, round).then(rerender).catch(ignore);
     }
 
     if (!S.burnage[key] && S.players.length) {
-      var ids = S.players.map(function (p) { return p.id; }).join(',');
-      apiFetch('/burnage?season=' + encodeURIComponent(cfg.season || '') +
-               '&phase=' + (S.phase + 1) + '&round=' + round + '&team_code=' + encodeURIComponent(teamCode) +
-               '&player_ids=' + ids)
-        .then(function (res) {
-          var b = Object.assign({}, S.burnage);
-          b[key] = res || {};
-          setState({ burnage: b });
-        })
-        .catch(function () {});
+      fetchBurnage(teamCode, round).then(rerender).catch(ignore);
     }
   }
 
