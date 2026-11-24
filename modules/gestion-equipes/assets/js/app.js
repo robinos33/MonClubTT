@@ -321,6 +321,13 @@
     }).catch(function (err) { alert('Erreur : ' + err.message); });
   }
 
+  // Équipe régionale à moins de 4 joueurs (team-check.js) : null, 'notice'
+  // tant que la journée est loin, 'alert' dans la semaine de la journée.
+  function teamCompleteness(team, filled, round) {
+    var j = S.journees.find(function (x) { return x.n === round; });
+    return w.TTPTeamCheck.completeness(team, filled, j ? j.date : '', todayISO());
+  }
+
   function isForfeit(teamCode, round) {
     return !!(S.forfeits['p' + (S.phase + 1)] || {})[burnageKey(teamCode, round)];
   }
@@ -789,9 +796,10 @@
         var active = !S.disposOpen && i === S.activeTeamI;
         var slots = getCompoSlots(team.code || team.id || '');
         var filled = slots.filter(function (s) { return s.player_id; }).length;
+        var lost = !isForfeit(team.code || team.id || '', jn) && teamCompleteness(team, filled, jn) === 'alert';
         h += '<button data-action="team-tab" data-value="' + i + '" style="padding:6px 10px;border-radius:8px;border:1px solid ' + (active ? (team.color || C.pri) : t.bord) + ';background:' + (active ? (team.color || C.pri) : t.surf) + ';color:' + (active ? 'white' : t.ink) + ';cursor:pointer;font-size:11px;font-weight:600;white-space:nowrap;display:flex;align-items:center;gap:6px;flex-shrink:0">' +
           '<span>' + esc(team.code || team.id || 'E' + (i + 1)) + '</span>' +
-          '<span style="opacity:0.7">' + filled + '/4</span>' +
+          '<span style="opacity:0.7">' + (lost ? '⚠ ' : '') + filled + '/4</span>' +
         '</button>';
       });
       h += '</div>';
@@ -820,15 +828,21 @@
     var burnMap   = S.burnage[bKey] || {};
     var validated = !!S.validations[bKey];
     var forfeit   = isForfeit(tcode, round);
+    var check     = forfeit ? null : teamCompleteness(team, filled, round);
 
     var h = '<div style="padding:12px">';
     // Team header
     h += '<div style="background:' + t.surf + ';border:1px solid ' + t.bord + ';border-left:4px solid ' + tc + ';border-radius:10px;padding:12px;margin-bottom:10px">' +
       '<div style="display:flex;align-items:center;gap:8px">' +
-        '<div style="flex:1"><div style="font-size:15px;font-weight:700;color:' + t.ink + '">' + esc(team.name || team.id || 'Équipe') + '</div><div style="font-size:11px;color:' + t.ink2 + '">' + esc(team.level || '') + '</div></div>' +
+        '<div style="flex:1"><div style="font-size:15px;font-weight:700;color:' + t.ink + '">' + esc(team.name || team.id || 'Équipe') + '</div><div style="font-size:11px;color:' + t.ink2 + '">' + esc(team.level || '') + (check === 'notice' ? ' · 4 joueurs obligatoires' : '') + '</div></div>' +
         (validated ? badge('✓ Journée validée', 'ok', dark, true) : '') +
-        (forfeit ? badge('Forfait', 'danger', dark, true) : badge(filled + '/4', filled === 4 ? 'ok' : 'warn', dark)) +
+        (forfeit ? badge('Forfait', 'danger', dark, true)
+          : check === 'alert' ? badge(filled + '/4 · rencontre perdue', 'danger', dark)
+          : badge(filled + '/4', filled === 4 ? 'ok' : 'warn', dark)) +
       '</div>';
+    if (check === 'alert') {
+      h += '<div style="margin-top:8px;font-size:12px;color:' + C.err + ';line-height:1.5">Équipe incomplète : en régional, il faut 4 joueurs. À moins de 4, la rencontre est perdue (0 point) et coûte 30 €. Ce n’est pas un forfait.</div>';
+    }
     var ghostBtn = 'margin-top:10px;width:100%;padding:9px;border-radius:8px;background:transparent;border:1px solid ' + t.bord + ';color:' + t.ink2 + ';font-size:12px;font-weight:600;cursor:pointer';
     var roundAttrs = ' data-team="' + esc(tcode) + '" data-round="' + round + '"';
     if (validated) {

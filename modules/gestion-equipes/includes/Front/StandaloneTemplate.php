@@ -38,6 +38,7 @@ class StandaloneTemplate
         $cssUrl      = esc_url(MONCLUBTT_GE_URL . 'assets/css/app.css?v=' . MONCLUBTT_GE_VERSION);
         $jsUrl       = esc_url(MONCLUBTT_GE_URL . 'assets/js/app.js?v='  . MONCLUBTT_GE_VERSION);
         $rosterJsUrl = esc_url(MONCLUBTT_GE_URL . 'assets/js/roster.js?v=' . MONCLUBTT_GE_VERSION);
+        $checkJsUrl  = esc_url(MONCLUBTT_GE_URL . 'assets/js/team-check.js?v=' . MONCLUBTT_GE_VERSION);
         $shareJsUrl  = esc_url(MONCLUBTT_GE_URL . 'assets/js/share-image.js?v=' . MONCLUBTT_GE_VERSION);
         $pwaEnabled  = Assets::pwaEnabled();
 
@@ -68,6 +69,7 @@ class StandaloneTemplate
         echo '<div id="ttp-app"></div>';
         echo '<script>window.TTPConfig = ' . $configJson . ';</script>';
         echo '<script src="' . $rosterJsUrl . '"></script>'; // phpcs:ignore WordPress.WP.EnqueuedResources.NonEnqueuedScript -- app shell autonome, wp_enqueue_script() non applicable
+        echo '<script src="' . $checkJsUrl . '"></script>'; // phpcs:ignore WordPress.WP.EnqueuedResources.NonEnqueuedScript -- app shell autonome, wp_enqueue_script() non applicable
         echo '<script src="' . $shareJsUrl . '"></script>'; // phpcs:ignore WordPress.WP.EnqueuedResources.NonEnqueuedScript -- app shell autonome, wp_enqueue_script() non applicable
         echo '<script src="' . $jsUrl . '"></script>'; // phpcs:ignore WordPress.WP.EnqueuedResources.NonEnqueuedScript -- app shell autonome, wp_enqueue_script() non applicable
         echo '</body></html>';
