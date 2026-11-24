@@ -486,6 +486,13 @@
       .map(function (s) { return s.player_id; });
   }
 
+  // Capitaine de phase d'une équipe, quelle qu'elle soit, pour la phase affichée.
+  function isPhaseCaptain(playerId) {
+    return S.squads.some(function (s) {
+      return s.phase === S.phase + 1 && s.is_captain && String(s.player_id) === String(playerId);
+    });
+  }
+
   function isSquadCaptain(playerId, teamCode, phase) {
     return S.squads.some(function (s) {
       return s.team_code === teamCode && s.phase === phase && s.is_captain && String(s.player_id) === String(playerId);
@@ -512,7 +519,7 @@
       var f = S.playerFilter;
       if (f === 'all') return true;
       if (f === 'ko')    return getAvail(p.id) === 'unavailable';
-      if (f === 'capt')  return !!p.is_captain;
+      if (f === 'capt')  return isPhaseCaptain(p.id);
       if (f === 'E')     return !!p.is_foreign;
       if (f === 'jeune') return !!p.is_young;
       return true;
@@ -1291,7 +1298,7 @@
           '<span style="font-size:13px;font-weight:600;color:' + t.ink + ';overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + esc((p.first_name || '') + ' ' + (p.last_name || '')) + '</span>' +
           '<span style="font-size:11px;color:' + t.ink2 + ';font-weight:500;flex-shrink:0">' + (p.ranking || 0) + '</span>' +
         '</div>' +
-        playerBadges(p, dark) +
+        playerBadges(p, dark, null, isPhaseCaptain(p.id)) +
       '</div>' +
     '</button>';
     if (bulkMode) {
@@ -1352,7 +1359,7 @@
     h += '<div style="flex:1;min-width:0">' +
       '<div style="font-size:18px;font-weight:700;color:' + (heroKo ? (dark ? '#fca5a5' : '#b91c1c') : t.ink) + ';letter-spacing:-0.3px">' + esc((p.first_name || '') + ' ' + (p.last_name || '')) + '</div>' +
       '<div style="font-size:12px;color:' + t.ink2 + ';margin-top:2px">' + (p.ranking || 0) + ' pts · ' + esc(team ? team.name : p.usual_team || '—') + '</div>' +
-      playerBadges(p, dark) +
+      playerBadges(p, dark, null, isPhaseCaptain(p.id)) +
     '</div></div>';
 
     // Status banners
