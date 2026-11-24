@@ -142,7 +142,7 @@
   // équipe habituelle pour une demande de dispo.
   function smsHref(kind, p, jn, date, teamName) {
     var body = w.TTPSms.body(smsTemplate(kind), {
-      prenom: p.first_name, nom: p.last_name, equipe: teamName, journee: jn, date: date
+      prenom: p.first_name, nom: p.last_name, equipe: teamName, journee: jn, date: w.TTPSms.formatDate(date)
     });
     return w.TTPSms.href(p.phone, body);
   }

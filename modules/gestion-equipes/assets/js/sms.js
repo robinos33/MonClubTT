@@ -27,9 +27,18 @@
     });
   }
 
+  // « samedi 8 novembre » : la date ISO des réglages se lit mal dans un SMS.
+  // Une valeur qui n'est pas une date ISO passe telle quelle.
+  function formatDate(iso) {
+    var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso || '');
+    if (!m) return iso || '';
+    var d = new Date(+m[1], +m[2] - 1, +m[3]);
+    return d.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' });
+  }
+
   function href(phone, text) {
     return 'sms:' + String(phone || '').replace(/\s/g, '') + '?body=' + encodeURIComponent(text);
   }
 
-  w.TTPSms = { body: body, href: href, VARIABLES: VARIABLES, DEFAULTS: DEFAULTS };
+  w.TTPSms = { body: body, href: href, formatDate: formatDate, VARIABLES: VARIABLES, DEFAULTS: DEFAULTS };
 })(window);
