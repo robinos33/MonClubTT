@@ -79,6 +79,7 @@ class Activator
             team_code   varchar(20)         NOT NULL DEFAULT '',
             slot_number tinyint(1)          NOT NULL DEFAULT 1,
             player_id   bigint(20) UNSIGNED          DEFAULT NULL,
+            is_captain  tinyint(1)          NOT NULL DEFAULT 0,
             created_at  datetime            NOT NULL DEFAULT CURRENT_TIMESTAMP,
             updated_at  datetime            NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
             PRIMARY KEY (id),

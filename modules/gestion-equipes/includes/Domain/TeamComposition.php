@@ -14,6 +14,7 @@ final class TeamComposition
         public readonly string $teamCode,
         public readonly int $slotNumber,
         public readonly ?int $playerId,
+        public readonly bool $isCaptain = false,
     ) {}
 
     public static function fromRow(array $row): self
@@ -26,6 +27,8 @@ final class TeamComposition
             teamCode:    (string) $row['team_code'],
             slotNumber:  (int)    $row['slot_number'],
             playerId:    isset($row['player_id']) ? (int) $row['player_id'] : null,
+            // Vider un slot laisse le drapeau en place : sans joueur, il ne vaut rien.
+            isCaptain:   isset($row['player_id']) && ! empty($row['is_captain']),
         );
     }
 
@@ -39,6 +42,7 @@ final class TeamComposition
             'team_code'   => $this->teamCode,
             'slot_number' => $this->slotNumber,
             'player_id'   => $this->playerId,
+            'is_captain'  => $this->isCaptain,
         ];
     }
 }
