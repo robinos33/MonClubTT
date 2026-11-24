@@ -16,7 +16,7 @@ use MonClubTT\GestionEquipes\Repository\PlayerRepository;
  * MonClubTT fields used:  licence, nom, prénom, classement (points mensuels),
  *                        nationalité (étranger), catégorie (jeune).
  * Manual fields preserved on update: phone, usual_team, is_captain,
- *                                    is_mutation, is_burned, notes.
+ *                                    is_mutation, notes.
  */
 class SyncController
 {
