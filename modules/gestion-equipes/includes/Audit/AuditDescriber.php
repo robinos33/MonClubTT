@@ -41,6 +41,7 @@ class AuditDescriber
         'SmsTemplatesController::update',
         'SyncController::sync',
         'TeamsController::clearSlot',
+        'TeamsController::setCaptain',
         'TeamsController::setSlot',
     ];
 
@@ -129,6 +130,9 @@ class AuditDescriber
                     return null;
                 }
                 return $entry('composition.clear', sprintf('a retiré %s de la compo %s', $this->lookup->playerName($old), $where(self::int($p, 'slot_number'))));
+
+            case 'TeamsController::setCaptain':
+                return $entry('composition.captain', sprintf('a nommé %s capitaine %s', $this->lookup->playerName(self::int($p, 'player_id')), $where()));
 
             case 'AvailabilityController::setAvailability':
                 $status = self::str($p, 'status') ?: 'unknown';
