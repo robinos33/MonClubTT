@@ -417,6 +417,20 @@
     }).catch(function () { loadCompositions(); });
   }
 
+  // Remplace, pour cette journée, le capitaine de phase ou celui déjà nommé.
+  function setRoundCaptain(teamCode, playerId) {
+    var ph = S.phase + 1, rn = S.journeeN, se = cfg.season || '';
+    var compos = S.compositions.map(function (c) {
+      return c.team_code === teamCode
+        ? Object.assign({}, c, { is_captain: Number(c.player_id) === playerId }) : c;
+    });
+    setRoundCompositions(compos);
+    apiFetch('/compositions/captain', {
+      method: 'POST',
+      body: JSON.stringify({ team_code: teamCode, player_id: playerId, phase: ph, round: rn, season: se })
+    }).catch(function () { loadCompositions(); });
+  }
+
   function syncPlayers() {
     setState({ syncing: true, syncError: null });
     apiFetch('/players/sync', { method: 'POST' })
@@ -895,6 +909,7 @@
     var canConfirm = !validated && !forfeit;
     var roundDate  = (S.journees[round - 1] || {}).date || '';
     var check     = forfeit ? null : teamCompleteness(team, filled, round);
+    var captainId = w.TTPRoster.captain(tcode, S.phase + 1, S.compositions, S.squads);
 
     var h = '<div style="padding:12px">';
     // Team header
@@ -955,6 +970,7 @@
         var burnStatus = burnMap[p.id];
         var danger = avail === 'unavailable' || (burnStatus && burnStatus.burned);
         var foreseen = !danger && isProjectedBurn(burnStatus);
+        var isCaptain = String(p.id) === String(captainId);
         var init = initials((p.first_name || '') + ' ' + (p.last_name || ''));
         var slotBg     = danger ? C.errSoft : foreseen ? C.warnSoft : t.surf;
         var slotBorder = danger ? '2px solid ' + C.err : foreseen ? '2px solid ' + C.warn : '1px solid ' + t.bord;
@@ -969,9 +985,13 @@
                 '<span style="font-size:11px;color:' + t.ink2 + '">·</span>' +
                 '<span style="font-size:11px;color:' + avColor(avail, dark) + '">' + avEmoji(avail) + ' ' + avStatus(avail) + '</span>' +
               '</div>' +
-              playerBadges(p, dark, burnStatus) +
+              playerBadges(p, dark, burnStatus, isCaptain) +
             '</div>' +
           '</button>' +
+          // Le capitaine ne se retire pas : on en nomme un autre.
+          (isCaptain
+            ? '<span title="Capitaine de la journée" style="width:36px;min-height:56px;align-self:stretch;border-left:1px solid ' + t.bord + ';color:' + C.pri + ';display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;flex-shrink:0">©</span>'
+            : '<button data-action="slot-captain" data-team="' + tcodeAttr + '" data-player-id="' + esc(p.id) + '" title="Nommer capitaine pour cette journée" style="width:36px;min-height:56px;align-self:stretch;border:none;border-left:1px solid ' + t.bord + ';background:transparent;color:' + t.ink2 + ';opacity:0.45;font-size:14px;font-weight:700;cursor:pointer;flex-shrink:0">©</button>') +
           (canConfirm && p.phone
             ? '<a href="' + esc(smsHref('confirmation', p, round, roundDate, team.name || tcode)) + '" title="Confirmer sa place par SMS" style="width:40px;min-height:56px;align-self:stretch;border-left:1px solid ' + t.bord + ';color:' + C.pri + ';display:flex;align-items:center;justify-content:center;text-decoration:none;font-size:15px;flex-shrink:0">💬</a>'
             : '') +
@@ -2287,6 +2307,7 @@
       case 'slot-open':    setState({ picker: { teamCode: el.dataset.team, slotNum: parseInt(el.dataset.slot) }, pickerQ: '' }); break;
       case 'slot-assign':  if (S.picker) assignSlot(S.picker.teamCode, S.picker.slotNum, parseInt(el.dataset.playerId)); break;
       case 'slot-remove':  e.stopPropagation(); removeSlot(el.dataset.team, parseInt(el.dataset.slot)); break;
+      case 'slot-captain': setRoundCaptain(el.dataset.team, parseInt(el.dataset.playerId)); break;
       case 'round-validate':   validateTeamRound(el.dataset.team, parseInt(el.dataset.round)); break;
       case 'round-unvalidate': unvalidateTeamRound(el.dataset.team, parseInt(el.dataset.round)); break;
       case 'round-forfeit':        setForfeit(el.dataset.team, parseInt(el.dataset.round), true); break;
