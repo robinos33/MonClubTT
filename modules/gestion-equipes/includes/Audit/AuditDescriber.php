@@ -255,7 +255,7 @@ class AuditDescriber
             'season' => '', 'phase' => $phase, 'round' => 0, 'team_code' => '',
         ];
 
-        if (preg_match('/^ttp_journee_dates_p([12])$/', $option, $m)) {
+        if (preg_match('/^monclubtt_ge_journee_dates_p([12])$/', $option, $m)) {
             $changes = [];
             foreach ((array) $new as $i => $date) {
                 $before = (string) (((array) $old)[$i] ?? '');
@@ -266,7 +266,7 @@ class AuditDescriber
             return $changes ? $entry(sprintf('a modifié les dates de la phase %s : %s', $m[1], implode(', ', $changes)), (int) $m[1]) : null;
         }
 
-        if (preg_match('/^ttp_sms_template_(availability|confirmation)$/', $option, $m)) {
+        if (preg_match('/^monclubtt_ge_sms_template_(availability|confirmation)$/', $option, $m)) {
             return $entry(sprintf('a modifié le SMS du club « %s »', self::SMS_LABELS[$m[1]]));
         }
 

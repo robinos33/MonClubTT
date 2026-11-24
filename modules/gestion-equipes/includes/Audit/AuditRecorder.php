@@ -22,7 +22,7 @@ use WP_REST_Response;
 class AuditRecorder
 {
     /** Réglages du back-office suivis. */
-    private const OPTIONS = '/^ttp_(journee_dates_p[12]|sms_template_(availability|confirmation)|teams|club_name|pwa_enabled)$/';
+    private const OPTIONS = '/^monclubtt_ge_(journee_dates_p[12]|sms_template_(availability|confirmation)|teams|club_name|pwa_enabled)$/';
 
     /** @var array<int, array<string, mixed>> état d'avant, par requête */
     private array $pending = [];
