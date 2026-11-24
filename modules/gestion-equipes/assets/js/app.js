@@ -352,12 +352,6 @@
     return b;
   }
 
-  function invalidateBurnage(teamCode, round) {
-    var b = Object.assign({}, S.burnage);
-    delete b[burnageKey(teamCode, round)];
-    setState({ burnage: b });
-  }
-
   function assignSlot(teamCode, slotNum, playerId) {
     var ph = S.phase + 1, rn = S.journeeN, se = cfg.season || '';
     var compos = S.compositions.filter(function (c) {
@@ -368,8 +362,8 @@
       return Number(c.player_id) === playerId ? Object.assign({}, c, { player_id: null }) : c;
     });
     compos.push({ team_code: teamCode, slot_number: slotNum, player_id: playerId, phase: ph, round: rn, season: se });
-    invalidateBurnage(teamCode, rn);
-    setRoundCompositions(compos, { picker: null, pickerQ: '' });
+    // Le brûlage projeté des journées suivantes compte cette composition.
+    setRoundCompositions(compos, { picker: null, pickerQ: '', burnage: burnageBefore(rn) });
     apiFetch('/compositions', {
       method: 'POST',
       body: JSON.stringify({ team_code: teamCode, slot_number: slotNum, player_id: playerId, phase: ph, round: rn, season: se })
@@ -384,8 +378,7 @@
       return (c.team_code === teamCode && c.slot_number === slotNum)
         ? Object.assign({}, c, { player_id: null }) : c;
     });
-    invalidateBurnage(teamCode, rn);
-    setRoundCompositions(compos);
+    setRoundCompositions(compos, { burnage: burnageBefore(rn) });
     apiFetch('/compositions', {
       method: 'DELETE',
       body: JSON.stringify({ team_code: teamCode, slot_number: slotNum, phase: ph, round: rn, season: se })
@@ -497,6 +490,14 @@
   // Motif de brûlage renvoyé par /burnage → libellé affiché. Partagé avec l'image de partage.
   var BURN_LABELS = { rule3: '⚠ Limite J2', min_points: '⚠ Points min.', foreign: '⚠ 2e étranger', forfeit: '⚠ Forfait' };
 
+  // Brûlage projeté : le joueur le serait si les journées précédentes non
+  // validées se jouaient comme composées. Avertissement, pas interdiction.
+  var PROJECTED_LABELS = { rule2: '🔮 Brûlé si compos jouées', rule3: '🔮 Limite J2 si J1 jouée', forfeit: '🔮 Forfait si compos jouées' };
+
+  function isProjectedBurn(burnStatus) {
+    return !!(burnStatus && !burnStatus.burned && burnStatus.projected);
+  }
+
   function playerBadges(p, dark, burnStatus) {
     var h = '<div style="display:flex;gap:3px;flex-wrap:wrap;margin-top:3px">';
     if (p.is_active === false) h += badge('🗑️ Hors effectif', 'neutral', dark, true);
@@ -506,6 +507,8 @@
     if (p.is_mutation)h += badge('Mut.', 'warn', dark, true);
     if (burnStatus && burnStatus.burned) {
       h += badge(BURN_LABELS[burnStatus.reason] || '🔥 Brûlé', 'danger', dark, true);
+    } else if (isProjectedBurn(burnStatus)) {
+      h += badge(PROJECTED_LABELS[burnStatus.projected.reason] || '🔮 Brûlé si compos jouées', 'warn', dark, true);
     }
     h += '</div>';
     return h;
@@ -859,8 +862,11 @@
         var avail = getAvail(p.id);
         var burnStatus = burnMap[p.id];
         var danger = avail === 'unavailable' || (burnStatus && burnStatus.burned);
+        var foreseen = !danger && isProjectedBurn(burnStatus);
         var init = initials((p.first_name || '') + ' ' + (p.last_name || ''));
-        h += '<div style="display:flex;align-items:center;background:' + (danger ? C.errSoft : t.surf) + ';border:' + (danger ? '2px' : '1px') + ' solid ' + (danger ? C.err : t.bord) + ';border-radius:10px;overflow:hidden">' +
+        var slotBg     = danger ? C.errSoft : foreseen ? C.warnSoft : t.surf;
+        var slotBorder = danger ? '2px solid ' + C.err : foreseen ? '2px solid ' + C.warn : '1px solid ' + t.bord;
+        h += '<div style="display:flex;align-items:center;background:' + slotBg + ';border:' + slotBorder + ';border-radius:10px;overflow:hidden">' +
           '<button data-action="player" data-value="' + esc(p.id) + '" style="flex:1;display:flex;align-items:center;gap:10px;padding:10px;background:transparent;border:none;cursor:pointer;text-align:left;min-width:0">' +
             '<div style="width:22px;height:22px;border-radius:6px;background:' + t.surf2 + ';color:' + t.ink2 + ';font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0">' + num + '</div>' +
             '<div style="width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,' + C.pri + ',' + C.priInk + ');color:white;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0">' + esc(init) + '</div>' +
