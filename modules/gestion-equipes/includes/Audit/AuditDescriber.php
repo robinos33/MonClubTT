@@ -30,6 +30,7 @@ class AuditDescriber
         'MatchAppearanceController::withdrawForfeit',
         'PhaseSquadController::addPlayer',
         'PhaseSquadController::removePlayer',
+        'PhaseSquadController::setCaptain',
         'PhaseSquadController::ventilate',
         'PlayersController::deletePlayer',
         'PlayersController::deletePlayerPermanently',
@@ -181,6 +182,12 @@ class AuditDescriber
 
             case 'PhaseSquadController::removePlayer':
                 return $entry('squad.remove', sprintf("a retiré %s de l'effectif (%s, phase %d)", $this->lookup->playerName(self::int($p, 'player_id')), $this->lookup->teamName($team), $phase));
+
+            case 'PhaseSquadController::setCaptain':
+                $captain = self::int($p, 'player_id');
+                return $entry('squad.captain', $captain
+                    ? sprintf('a nommé %s capitaine de phase (%s, phase %d)', $this->lookup->playerName($captain), $this->lookup->teamName($team), $phase)
+                    : sprintf('a retiré le capitaine de phase (%s, phase %d)', $this->lookup->teamName($team), $phase));
 
             case 'PhaseSquadController::ventilate':
                 return $entry('squad.ventilate', sprintf(
