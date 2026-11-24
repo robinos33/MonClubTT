@@ -2371,6 +2371,7 @@ class MonClubTT_Plugin
             <?php else: ?>
                 <p><em>Aucune synchronisation effectuée</em></p>
             <?php endif; ?>
+            <?php echo MonClubTT_SynchroFFTTWP::etat_html(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- HTML construit avec esc_html() ?>
 
             <p>
                 <button id="monclubtt-dashboard-sync-button" class="button button-primary button-large" style="width:100%; display:inline-flex; align-items:center; justify-content:center; gap:6px; line-height:1;">

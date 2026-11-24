@@ -21,8 +21,9 @@ if ( ! defined( 'ABSPATH' ) ) exit;
             $monclubtt_timeDiff = human_time_diff($monclubtt_lastSync);
             echo '<p><strong>Dernière synchronisation :</strong><br>' . esc_html($monclubtt_syncDate) . '<br><small style="color: #666;">(il y a ' . esc_html($monclubtt_timeDiff) . ')</small></p>';
         } else {
-            echo '<p><em>Aucune synchronisation manuelle effectuée</em></p>';
+            echo '<p><em>Aucune synchronisation effectuée</em></p>';
         }
+        echo MonClubTT_SynchroFFTTWP::etat_html(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- HTML construit avec esc_html()
         ?>
         <button id="monclubtt-sync-button" class="button button-primary" style="display:inline-flex; align-items:center; gap:6px; line-height:1;">
             <span class="monclubtt-icon monclubtt-sync-icon" aria-hidden="true">&#xf463;</span>

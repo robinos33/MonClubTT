@@ -59,6 +59,30 @@ class MonClubTT_SynchroFFTTWP {
         wp_unschedule_hook(self::CRON_HOOK);
     }
 
+    /** Créneaux, prochain passage et dernier échec, pour l'admin. */
+    public static function etat_html() {
+        $html = '<p><strong>Synchronisation automatique :</strong> le dimanche à 20 h et le lundi à 6 h.';
+
+        $prochains = array();
+        foreach (array_keys(MonClubTT_SynchroFFTT::CRENEAUX) as $cle) {
+            $quand = wp_next_scheduled(self::CRON_HOOK, array($cle));
+            if ($quand !== false) {
+                $prochains[] = $quand;
+            }
+        }
+        if ($prochains) {
+            $html .= '<br><small style="color: #666;">Prochaine : ' . esc_html(monclubtt_date_locale(min($prochains))) . '</small>';
+        }
+
+        $etat = get_option(self::OPTION_ETAT);
+        if (is_array($etat) && empty($etat['ok']) && !empty($etat['quand'])) {
+            $html .= '<br><span style="color: #b32d2e;">Échec le ' . esc_html(monclubtt_date_locale((int) $etat['quand']))
+                . ' : ' . esc_html((string) ($etat['message'] ?? '')) . '</span>';
+        }
+
+        return $html . '</p>';
+    }
+
     /**
      * Lance la synchronisation complète.
      *
