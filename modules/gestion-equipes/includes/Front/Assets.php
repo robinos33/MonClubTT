@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace MonClubTT\GestionEquipes\Front;
 
+use MonClubTT\GestionEquipes\Domain\Division;
+
 class Assets
 {
     /** Max joueurs étrangers par composition — valeur fixe V1. */
@@ -94,7 +96,7 @@ class Assets
             'season'            => $season,
             'phase'             => $phase - 1, // 0-indexed pour le JS
             'teamsCount'        => count($teams),
-            'teams'             => $teams,
+            'teams'             => self::teamsForFront((array) $teams),
             'journeeDates'      => [
                 (array) get_option('monclubtt_ge_journee_dates_p1', array_fill(0, 7, '')),
                 (array) get_option('monclubtt_ge_journee_dates_p2', array_fill(0, 7, '')),
@@ -111,6 +113,25 @@ class Assets
     }
 
     // ─── Helpers statiques ────────────────────────────────────────────────────
+
+    /**
+     * Équipes des réglages, avec ce que le front ne sait pas déduire seul du
+     * niveau en saisie libre : l'obligation de jouer à 4 (régional).
+     *
+     * @param array<mixed> $teams
+     * @return list<array<string, mixed>>
+     */
+    public static function teamsForFront(array $teams): array
+    {
+        $result = [];
+        foreach ($teams as $team) {
+            $team = (array) $team;
+            $team['full_team_required'] = Division::requiresFullTeam((string) ($team['level'] ?? ''));
+            $result[] = $team;
+        }
+
+        return $result;
+    }
 
     /**
      * Saison courante calculée depuis la date système.
