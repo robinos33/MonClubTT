@@ -1432,8 +1432,9 @@ class MonClubTT_Plugin
      * Open Graph et image générée). Une victoire contre un joueur du top 10
      * mondial ou du club entre en plus au tableau des meilleurs scores. Noms
      * (licenciés, adversaires des réglages, invité du shortcode de la page)
-     * et score sont vérifiés ; le score reste déclaré par le navigateur, d'où
-     * la limite d'un envoi toutes les 15 secondes par adresse IP.
+     * et score sont vérifiés, le prénom libre d'un visiteur passe par les
+     * termes interdits ; le score reste déclaré par le navigateur, d'où la
+     * limite d'un envoi toutes les 15 secondes et du quota horaire par IP.
      */
     public function handle_ajax_pong_fin()
     {
