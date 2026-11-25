@@ -3,7 +3,7 @@ Contributors: robinos33
 Tags: table tennis, fftt, club, rankings, results
 Requires at least: 6.4
 Tested up to: 7.1
-Stable tag: 2.12.0
+Stable tag: 2.13.0
 Requires PHP: 8.4
 License: GPLv2
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -88,6 +88,14 @@ Nothing, by default: reinstalling the plugin finds everything again. To erase al
 Yes. The plugin exposes six filters: `monclubtt_get_evenements`, `monclubtt_get_joueurs`, `monclubtt_get_equipes`, `monclubtt_get_classement_poule`, `monclubtt_get_rencontres_poule`, `monclubtt_get_feuille_rencontre`. See the documentation for usage.
 
 == Changelog ==
+
+= 2.13.0 =
+* Security: team management: reading players (e-mail, phone, notes), availabilities, squads and line-ups now requires the "Manage teams" capability (Team committee member role, editors, administrators), not just being logged in; other accounts are refused the app
+* Security: FFTT API password no longer written in the settings page; left empty, the field keeps the saved password, and the eye button fetches it on demand (administrators)
+* Added: Settings: "Erase all plugin data when it is deleted" checkbox, unchecked by default. Unchecked, deleting the plugin keeps everything; checked, it erases settings and credentials, team management, calendar, committee, pong scores and images. Pages, posts and media are kept
+* Added: Pong: forbidden names for visitors, set in Mon Club TT > Pong, matched anywhere in the name regardless of case, accents, spaces, punctuation, repeated letters or digits used as letters; adding a term also removes existing entries
+* Added: Pong: at most 30 recorded games per hour from one IP address, adjustable (0: no limit)
+* Fixed: Pong: the reason a game was not recorded now shows after a defeat and in the daily challenge
 
 = 2.12.0 =
 * Added: FFTT data sync runs automatically on Sunday at 8 pm and Monday at 6 am (site time) through WP-Cron; team management players follow. The Connection tab and the dashboard widget show the slots, the next run and the reason of the last failure
@@ -348,6 +356,9 @@ Yes. The plugin exposes six filters: `monclubtt_get_evenements`, `monclubtt_get_
 * Automatic team page generation and deletion
 
 == Upgrade Notice ==
+
+= 2.13.0 =
+Security fix: team management data is now only readable with the "Manage teams" capability (administrators, editors, Team committee member role). Logged-in accounts without it, such as subscribers, can no longer open the app.
 
 = 2.11.0 =
 Security fix: team management players, availabilities and squads are no longer readable without logging in. Writing now requires the "Manage teams" capability (administrators, editors, Team committee member role): give it to contributors or authors who used to edit line-ups.
