@@ -4,12 +4,15 @@ declare(strict_types=1);
 
 namespace MonClubTT\GestionEquipes\Front;
 
+use MonClubTT\GestionEquipes\Capabilities;
+
 /**
  * Remplace le thème WordPress par une page HTML autonome
  * pour toute page contenant le shortcode [tt_team_planner].
  *
  * - Non connecté  → redirection vers wp-login.php (avec retour vers l'app)
- * - Connecté      → HTML minimal, zero chrome WordPress
+ * - Connecté sans le droit Gérer les équipes → page d'erreur 403
+ * - Connecté avec ce droit → HTML minimal, zero chrome WordPress
  */
 class StandaloneTemplate
 {
@@ -30,6 +33,14 @@ class StandaloneTemplate
         if (! is_user_logged_in()) {
             wp_safe_redirect(wp_login_url(get_permalink((int) $post->ID)));
             exit;
+        }
+
+        if (! Capabilities::canManagePlanner()) {
+            wp_die(
+                esc_html__('L\'application est réservée aux membres de la commission équipe.', 'mon-club-tt'),
+                esc_html__('Accès réservé', 'mon-club-tt'),
+                ['response' => 403]
+            );
         }
 
         $config      = (new Assets())->buildConfig();

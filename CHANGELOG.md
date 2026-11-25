@@ -5,6 +5,12 @@ Format : [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/)
 
 ---
 
+## [Non publié]
+
+### Sécurité
+
+- **Gestion des équipes** : lire les joueurs (e-mail, téléphone, notes), les disponibilités, les effectifs et les compositions demande désormais le droit *Gérer les équipes* (commission équipe, éditeurs, administrateurs), et non plus d'être simplement connecté. Un compte sans ce droit, un abonné par exemple, se voit refuser l'application.
+
 ## [2.12.0] — 2026-11-24
 
 ### Ajouté

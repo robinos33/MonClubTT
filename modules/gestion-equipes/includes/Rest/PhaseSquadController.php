@@ -213,9 +213,13 @@ class PhaseSquadController
         ], 200);
     }
 
+    /**
+     * Même droit que l'écriture : les réponses portent des données personnelles
+     * (coordonnées des joueurs, disponibilités et leurs motifs, mineurs compris).
+     */
     public function canRead(): bool
     {
-        return current_user_can('read');
+        return Capabilities::canManagePlanner();
     }
 
     public function canWrite(): bool
