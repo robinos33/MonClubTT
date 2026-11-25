@@ -11,6 +11,10 @@ Format : [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/)
 
 - **Gestion des équipes** : lire les joueurs (e-mail, téléphone, notes), les disponibilités, les effectifs et les compositions demande désormais le droit *Gérer les équipes* (commission équipe, éditeurs, administrateurs), et non plus d'être simplement connecté. Un compte sans ce droit, un abonné par exemple, se voit refuser l'application.
 
+### Ajouté
+
+- **Réglages › Suppression du plugin** : case *Effacer toutes les données du plugin quand on le supprime*, décochée par défaut. Décochée, supprimer le plugin ne touche à rien ; cochée, la suppression efface réglages et identifiants, gestion des équipes (joueurs, coordonnées, disponibilités, journal, rôle *Membre commission équipe*), calendrier, comité, scores et images du pong. Pages, articles et médiathèque restent.
+
 ## [2.12.0] — 2026-11-24
 
 ### Ajouté
