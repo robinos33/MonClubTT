@@ -1011,7 +1011,9 @@
                 }
                 if (d.partage) afficherPartage(zonePartage, d.partage);
             }, function (err) {
-                if (victoire && classe) ligne.textContent = 'Score non enregistré : ' + err.message;
+                // Raison donnée par le serveur (prénom refusé, trop de parties…), défaites comprises.
+                ligne.textContent = (victoire && classe ? 'Score non enregistré : ' : 'Match non enregistré : ') + err.message;
+                if (compteJour) ligneJour.textContent = 'Défi du jour : partie non classée.';
             });
         }
 
