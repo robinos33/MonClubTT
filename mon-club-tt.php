@@ -1353,7 +1353,7 @@ class MonClubTT_Plugin
         }
         $scoreOk = $victoire ? MonClubTT_PongScores::scoreValide($pj, $pa) : MonClubTT_PongScores::scoreValide($pa, $pj);
         if (!$joueur || !$adversaire || !in_array($niveau, MonClubTT_PongScores::NIVEAUX, true) || !$scoreOk) {
-            wp_send_json_error(array('message' => 'Match non enregistré.'), 400);
+            wp_send_json_error(array('message' => 'Données du match invalides.'), 400);
             return;
         }
         set_transient($cle, 1, 15);
