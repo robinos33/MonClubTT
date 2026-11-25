@@ -298,6 +298,8 @@ class MonClubTT_Plugin
         register_setting($groupe, 'monclubtt_pong_vider_scores', array('sanitize_callback' => array($this, 'sanitize_pong_vider_scores')));
         register_setting($groupe, 'monclubtt_pong_vider_matchs', array('sanitize_callback' => array($this, 'sanitize_pong_vider_matchs')));
         register_setting($groupe, 'monclubtt_pong_vider_defi', array('sanitize_callback' => array($this, 'sanitize_pong_vider_defi')));
+        register_setting($groupe, MonClubTT_Constantes::MONCLUBTT_PONG_TERMES_INTERDITS, array('sanitize_callback' => array($this, 'sanitize_pong_termes_interdits')));
+        register_setting($groupe, MonClubTT_Constantes::MONCLUBTT_PONG_QUOTA, array('sanitize_callback' => array($this, 'sanitize_pong_quota')));
         add_settings_section('monclubtt_section_pong', '', '__return_false', $groupe);
         add_settings_field(MonClubTT_Constantes::MONCLUBTT_PONG_PROS, 'Top 10 mondial', array($this, 'pong_pros_html'), $groupe, 'monclubtt_section_pong');
         add_settings_field(MonClubTT_Constantes::MONCLUBTT_PONG_ADVERSAIRES, 'Adversaires', array($this, 'pong_adversaires_html'), $groupe, 'monclubtt_section_pong');
@@ -306,6 +308,8 @@ class MonClubTT_Plugin
         add_settings_field('monclubtt_pong_vider_scores', 'Meilleurs scores', array($this, 'pong_vider_scores_html'), $groupe, 'monclubtt_section_pong');
         add_settings_field('monclubtt_pong_vider_matchs', 'Matchs partagés', array($this, 'pong_vider_matchs_html'), $groupe, 'monclubtt_section_pong');
         add_settings_field('monclubtt_pong_vider_defi', 'Défi du jour', array($this, 'pong_vider_defi_html'), $groupe, 'monclubtt_section_pong');
+        add_settings_field(MonClubTT_Constantes::MONCLUBTT_PONG_TERMES_INTERDITS, 'Prénoms interdits', array($this, 'pong_termes_interdits_html'), $groupe, 'monclubtt_section_pong');
+        add_settings_field(MonClubTT_Constantes::MONCLUBTT_PONG_QUOTA, 'Parties par adresse IP', array($this, 'pong_quota_html'), $groupe, 'monclubtt_section_pong');
 
         // Réglages : identité du club
         $groupe = 'monclubtt_settings';
@@ -941,6 +945,127 @@ class MonClubTT_Plugin
         return '';
     }
 
+    public function pong_termes_interdits_html()
+    {
+        ?>
+        <textarea name="<?php echo esc_attr(MonClubTT_Constantes::MONCLUBTT_PONG_TERMES_INTERDITS); ?>" rows="6" cols="40"
+                  class="code" spellcheck="false"><?php echo esc_textarea(implode("\n", $this->termesInterditsPong())); ?></textarea>
+        <p class="description">
+            Un terme par ligne. Un visiteur hors club dont le prénom contient l'un d'eux ne peut pas enregistrer son match.
+            La comparaison ignore majuscules, accents, espaces, ponctuation, lettres répétées et chiffres mis pour des lettres :
+            « connard » bloque aussi « C0n nnard ». Un terme court bloque large : « con » refuserait aussi « Conrad ».
+            Ajouter un terme retire aussi, du tableau, du défi et des matchs partagés, les visiteurs dont le prénom le contient.
+        </p>
+        <?php
+    }
+
+    /**
+     * Liste des termes interdits ; les entrées existantes des visiteurs au
+     * prénom désormais interdit sont retirées.
+     */
+    public function sanitize_pong_termes_interdits($valeur)
+    {
+        // Appelé deux fois au premier enregistrement (add_option) : la seconde fois avec la liste déjà nettoyée.
+        $saisie = is_array($valeur)
+            ? array_map('sanitize_text_field', array_filter($valeur, 'is_scalar'))
+            : sanitize_textarea_field((string) $valeur);
+        $termes  = MonClubTT_PongModeration::termes($saisie);
+        $retires = $this->retirerNomsInterditsPong($termes);
+        if ($retires > 0) {
+            add_settings_error(
+                MonClubTT_Constantes::MONCLUBTT_PONG_TERMES_INTERDITS,
+                'monclubtt_pong_retires',
+                /* translators: %d: nombre d'entrées retirées */
+                sprintf(_n('%d entrée d\'un visiteur au prénom interdit retirée.', '%d entrées de visiteurs au prénom interdit retirées.', $retires, 'mon-club-tt'), $retires),
+                'updated'
+            );
+        }
+        return $termes;
+    }
+
+    public function pong_quota_html()
+    {
+        ?>
+        <label>
+            <input type="number" name="<?php echo esc_attr(MonClubTT_Constantes::MONCLUBTT_PONG_QUOTA); ?>" min="0" max="1000" step="1" class="small-text"
+                   value="<?php echo esc_attr((string) $this->quotaPong()); ?>">
+            parties enregistrées par heure au plus
+        </label>
+        <p class="description">
+            Au-delà, on peut continuer à jouer depuis cette adresse, mais les parties ne vont plus au tableau, au défi du jour ni au partage jusqu'à la fin de l'heure.
+            0 : sans limite. Tous les appareils d'un même wifi (au club, à l'école) partagent souvent une seule adresse : prévoyez large.
+        </p>
+        <?php
+    }
+
+    public function sanitize_pong_quota($valeur)
+    {
+        return (string) min(1000, absint($valeur));
+    }
+
+    private function quotaPong()
+    {
+        return (int) get_option(MonClubTT_Constantes::MONCLUBTT_PONG_QUOTA, MonClubTT_PongModeration::QUOTA_DEFAUT);
+    }
+
+    /** @return list<string> */
+    private function termesInterditsPong()
+    {
+        return MonClubTT_PongModeration::termes((array) get_option(MonClubTT_Constantes::MONCLUBTT_PONG_TERMES_INTERDITS, array()));
+    }
+
+    /**
+     * Retire les visiteurs au prénom interdit du tableau des scores, du défi
+     * (tous les jours gardés) et des matchs partagés, images comprises.
+     * @param list<string> $termes
+     * @return int Entrées retirées.
+     */
+    private function retirerNomsInterditsPong(array $termes)
+    {
+        if (!$termes) {
+            return 0;
+        }
+        $retires = 0;
+
+        $r = MonClubTT_PongModeration::retirer((array) get_option(MonClubTT_Constantes::MONCLUBTT_PONG_SCORES, array()), $termes);
+        if ($r['retirees']) {
+            update_option(MonClubTT_Constantes::MONCLUBTT_PONG_SCORES, $r['entrees'], false);
+            $retires += count($r['retirees']);
+        }
+
+        $jours  = (array) get_option(MonClubTT_Constantes::MONCLUBTT_PONG_DEFIS, array());
+        $change = false;
+        foreach ($jours as $date => $jour) {
+            if (is_array($jour) && isset($jour['entrees']) && is_array($jour['entrees'])) {
+                $r = MonClubTT_PongModeration::retirer($jour['entrees'], $termes);
+                if ($r['retirees']) {
+                    $jours[$date]['entrees'] = $r['entrees'];
+                    $retires += count($r['retirees']);
+                    $change = true;
+                }
+            }
+        }
+        if ($change) {
+            update_option(MonClubTT_Constantes::MONCLUBTT_PONG_DEFIS, $jours, false);
+        }
+
+        $r = MonClubTT_PongModeration::retirer((array) get_option(MonClubTT_Constantes::MONCLUBTT_PONG_MATCHS, array()), $termes);
+        if ($r['retirees']) {
+            update_option(MonClubTT_Constantes::MONCLUBTT_PONG_MATCHS, $r['entrees'], false);
+            foreach ($r['retirees'] as $id) {
+                foreach (array(true, false) as $photos) {
+                    $fichier = $this->cheminImagePong((string) $id, $photos);
+                    if ($fichier && file_exists($fichier)) {
+                        wp_delete_file($fichier);
+                    }
+                }
+            }
+            $retires += count($r['retirees']);
+        }
+
+        return $retires;
+    }
+
     public function sanitize_pong_adversaires($valeur)
     {
         $adversaires = monclubtt_normaliser_adversaires($valeur);
@@ -1307,8 +1432,9 @@ class MonClubTT_Plugin
      * Open Graph et image générée). Une victoire contre un joueur du top 10
      * mondial ou du club entre en plus au tableau des meilleurs scores. Noms
      * (licenciés, adversaires des réglages, invité du shortcode de la page)
-     * et score sont vérifiés ; le score reste déclaré par le navigateur, d'où
-     * la limite d'un envoi toutes les 15 secondes par adresse IP.
+     * et score sont vérifiés, le prénom libre d'un visiteur passe par les
+     * termes interdits ; le score reste déclaré par le navigateur, d'où la
+     * limite d'un envoi toutes les 15 secondes et du quota horaire par IP.
      */
     public function handle_ajax_pong_fin()
     {
@@ -1353,9 +1479,25 @@ class MonClubTT_Plugin
         }
         $scoreOk = $victoire ? MonClubTT_PongScores::scoreValide($pj, $pa) : MonClubTT_PongScores::scoreValide($pa, $pj);
         if (!$joueur || !$adversaire || !in_array($niveau, MonClubTT_PongScores::NIVEAUX, true) || !$scoreOk) {
-            wp_send_json_error(array('message' => 'Match non enregistré.'), 400);
+            wp_send_json_error(array('message' => 'Données du match invalides.'), 400);
             return;
         }
+        if ($visiteur && MonClubTT_PongModeration::interdit($joueur['affiche'], $this->termesInterditsPong())) {
+            wp_send_json_error(array('message' => 'Ce prénom n\'est pas accepté, choisis-en un autre.'), 400);
+            return;
+        }
+        // Quota par heure : les parties valides seulement sont comptées.
+        $cleQuota = 'monclubtt_pong_quota_' . $this->cleIpPong();
+        $quota    = MonClubTT_PongModeration::quota(get_transient($cleQuota), time(), $this->quotaPong());
+        if (!$quota['autorise']) {
+            wp_send_json_error(array('message' => sprintf(
+                'Limite de %d parties par heure atteinte depuis ce réseau, réessaie à %s.',
+                $this->quotaPong(),
+                wp_date('G\\hi', $quota['reprise'])
+            )), 429);
+            return;
+        }
+        set_transient($cleQuota, $quota['etat'], max(1, $quota['reprise'] - time()));
         set_transient($cle, 1, 15);
         $this->compterPong('terminees');
 
@@ -1404,6 +1546,8 @@ class MonClubTT_Plugin
                 'adv_nom'     => $champ('adv_nom'),
                 'adv_prenom'  => $champ('adv_prenom'),
                 'mode'        => $mode,
+                // Pour retirer le match si son prénom devient interdit.
+                'visiteur'    => $visiteur,
                 'post'        => $postId,
                 'date'        => time(),
             ));

@@ -14,6 +14,12 @@ Format : [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/)
 ### Ajouté
 
 - **Réglages › Suppression du plugin** : case *Effacer toutes les données du plugin quand on le supprime*, décochée par défaut. Décochée, supprimer le plugin ne touche à rien ; cochée, la suppression efface réglages et identifiants, gestion des équipes (joueurs, coordonnées, disponibilités, journal, rôle *Membre commission équipe*), calendrier, comité, scores et images du pong. Pages, articles et médiathèque restent.
+- **Pong › Prénoms interdits** : liste de termes dans *Mon Club TT › Pong*. Un visiteur hors club dont le prénom en contient un ne peut pas enregistrer son match (tableau, défi du jour, partage), comparaison sans majuscules, accents, espaces, ponctuation, lettres répétées ni chiffres mis pour des lettres ; ajouter un terme retire aussi les entrées existantes.
+- **Pong › Parties par adresse IP** : au plus 30 parties enregistrées par heure depuis une même adresse, réglable (0 : sans limite). Au-delà, on joue sans enregistrement jusqu'à l'heure indiquée.
+
+### Corrigé
+
+- **Pong** : la raison d'un match non enregistré s'affiche aussi après une défaite et au défi du jour, qui restait sur « enregistrement… ».
 
 ## [2.12.0] — 2026-11-24
 
