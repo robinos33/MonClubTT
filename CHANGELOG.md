@@ -10,6 +10,7 @@ Format : [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/)
 ### Sécurité
 
 - **Gestion des équipes** : lire les joueurs (e-mail, téléphone, notes), les disponibilités, les effectifs et les compositions demande désormais le droit *Gérer les équipes* (commission équipe, éditeurs, administrateurs), et non plus d'être simplement connecté. Un compte sans ce droit, un abonné par exemple, se voit refuser l'application.
+- **Données FFTT › Connexion** : le mot de passe de l'API n'est plus écrit dans la page. Le champ reste vide et, laissé vide, garde le mot de passe enregistré ; le bouton « œil » le récupère à la demande pour l'afficher (administrateurs).
 
 ### Ajouté
 
