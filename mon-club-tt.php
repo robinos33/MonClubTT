@@ -952,24 +952,91 @@ class MonClubTT_Plugin
             Un terme par ligne. Un visiteur hors club dont le prénom contient l'un d'eux ne peut pas enregistrer son match.
             La comparaison ignore majuscules, accents, espaces, ponctuation, lettres répétées et chiffres mis pour des lettres :
             « connard » bloque aussi « C0n nnard ». Un terme court bloque large : « con » refuserait aussi « Conrad ».
+            Ajouter un terme retire aussi, du tableau, du défi et des matchs partagés, les visiteurs dont le prénom le contient.
         </p>
         <?php
     }
 
-    /** Liste des termes interdits, un par ligne. */
+    /**
+     * Liste des termes interdits ; les entrées existantes des visiteurs au
+     * prénom désormais interdit sont retirées.
+     */
     public function sanitize_pong_termes_interdits($valeur)
     {
         // Appelé deux fois au premier enregistrement (add_option) : la seconde fois avec la liste déjà nettoyée.
         $saisie = is_array($valeur)
             ? array_map('sanitize_text_field', array_filter($valeur, 'is_scalar'))
             : sanitize_textarea_field((string) $valeur);
-        return MonClubTT_PongModeration::termes($saisie);
+        $termes  = MonClubTT_PongModeration::termes($saisie);
+        $retires = $this->retirerNomsInterditsPong($termes);
+        if ($retires > 0) {
+            add_settings_error(
+                MonClubTT_Constantes::MONCLUBTT_PONG_TERMES_INTERDITS,
+                'monclubtt_pong_retires',
+                /* translators: %d: nombre d'entrées retirées */
+                sprintf(_n('%d entrée d\'un visiteur au prénom interdit retirée.', '%d entrées de visiteurs au prénom interdit retirées.', $retires, 'mon-club-tt'), $retires),
+                'updated'
+            );
+        }
+        return $termes;
     }
 
     /** @return list<string> */
     private function termesInterditsPong()
     {
         return MonClubTT_PongModeration::termes((array) get_option(MonClubTT_Constantes::MONCLUBTT_PONG_TERMES_INTERDITS, array()));
+    }
+
+    /**
+     * Retire les visiteurs au prénom interdit du tableau des scores, du défi
+     * (tous les jours gardés) et des matchs partagés, images comprises.
+     * @param list<string> $termes
+     * @return int Entrées retirées.
+     */
+    private function retirerNomsInterditsPong(array $termes)
+    {
+        if (!$termes) {
+            return 0;
+        }
+        $retires = 0;
+
+        $r = MonClubTT_PongModeration::retirer((array) get_option(MonClubTT_Constantes::MONCLUBTT_PONG_SCORES, array()), $termes);
+        if ($r['retirees']) {
+            update_option(MonClubTT_Constantes::MONCLUBTT_PONG_SCORES, $r['entrees'], false);
+            $retires += count($r['retirees']);
+        }
+
+        $jours  = (array) get_option(MonClubTT_Constantes::MONCLUBTT_PONG_DEFIS, array());
+        $change = false;
+        foreach ($jours as $date => $jour) {
+            if (is_array($jour) && isset($jour['entrees']) && is_array($jour['entrees'])) {
+                $r = MonClubTT_PongModeration::retirer($jour['entrees'], $termes);
+                if ($r['retirees']) {
+                    $jours[$date]['entrees'] = $r['entrees'];
+                    $retires += count($r['retirees']);
+                    $change = true;
+                }
+            }
+        }
+        if ($change) {
+            update_option(MonClubTT_Constantes::MONCLUBTT_PONG_DEFIS, $jours, false);
+        }
+
+        $r = MonClubTT_PongModeration::retirer((array) get_option(MonClubTT_Constantes::MONCLUBTT_PONG_MATCHS, array()), $termes);
+        if ($r['retirees']) {
+            update_option(MonClubTT_Constantes::MONCLUBTT_PONG_MATCHS, $r['entrees'], false);
+            foreach ($r['retirees'] as $id) {
+                foreach (array(true, false) as $photos) {
+                    $fichier = $this->cheminImagePong((string) $id, $photos);
+                    if ($fichier && file_exists($fichier)) {
+                        wp_delete_file($fichier);
+                    }
+                }
+            }
+            $retires += count($r['retirees']);
+        }
+
+        return $retires;
     }
 
     public function sanitize_pong_adversaires($valeur)
@@ -1439,6 +1506,8 @@ class MonClubTT_Plugin
                 'adv_nom'     => $champ('adv_nom'),
                 'adv_prenom'  => $champ('adv_prenom'),
                 'mode'        => $mode,
+                // Pour retirer le match si son prénom devient interdit.
+                'visiteur'    => $visiteur,
                 'post'        => $postId,
                 'date'        => time(),
             ));
