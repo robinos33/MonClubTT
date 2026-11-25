@@ -298,6 +298,7 @@ class MonClubTT_Plugin
         register_setting($groupe, 'monclubtt_pong_vider_scores', array('sanitize_callback' => array($this, 'sanitize_pong_vider_scores')));
         register_setting($groupe, 'monclubtt_pong_vider_matchs', array('sanitize_callback' => array($this, 'sanitize_pong_vider_matchs')));
         register_setting($groupe, 'monclubtt_pong_vider_defi', array('sanitize_callback' => array($this, 'sanitize_pong_vider_defi')));
+        register_setting($groupe, MonClubTT_Constantes::MONCLUBTT_PONG_TERMES_INTERDITS, array('sanitize_callback' => array($this, 'sanitize_pong_termes_interdits')));
         add_settings_section('monclubtt_section_pong', '', '__return_false', $groupe);
         add_settings_field(MonClubTT_Constantes::MONCLUBTT_PONG_PROS, 'Top 10 mondial', array($this, 'pong_pros_html'), $groupe, 'monclubtt_section_pong');
         add_settings_field(MonClubTT_Constantes::MONCLUBTT_PONG_ADVERSAIRES, 'Adversaires', array($this, 'pong_adversaires_html'), $groupe, 'monclubtt_section_pong');
@@ -306,6 +307,7 @@ class MonClubTT_Plugin
         add_settings_field('monclubtt_pong_vider_scores', 'Meilleurs scores', array($this, 'pong_vider_scores_html'), $groupe, 'monclubtt_section_pong');
         add_settings_field('monclubtt_pong_vider_matchs', 'Matchs partagés', array($this, 'pong_vider_matchs_html'), $groupe, 'monclubtt_section_pong');
         add_settings_field('monclubtt_pong_vider_defi', 'Défi du jour', array($this, 'pong_vider_defi_html'), $groupe, 'monclubtt_section_pong');
+        add_settings_field(MonClubTT_Constantes::MONCLUBTT_PONG_TERMES_INTERDITS, 'Prénoms interdits', array($this, 'pong_termes_interdits_html'), $groupe, 'monclubtt_section_pong');
 
         // Réglages : identité du club
         $groupe = 'monclubtt_settings';
@@ -941,6 +943,35 @@ class MonClubTT_Plugin
         return '';
     }
 
+    public function pong_termes_interdits_html()
+    {
+        ?>
+        <textarea name="<?php echo esc_attr(MonClubTT_Constantes::MONCLUBTT_PONG_TERMES_INTERDITS); ?>" rows="6" cols="40"
+                  class="code" spellcheck="false"><?php echo esc_textarea(implode("\n", $this->termesInterditsPong())); ?></textarea>
+        <p class="description">
+            Un terme par ligne. Un visiteur hors club dont le prénom contient l'un d'eux ne peut pas enregistrer son match.
+            La comparaison ignore majuscules, accents, espaces, ponctuation, lettres répétées et chiffres mis pour des lettres :
+            « connard » bloque aussi « C0n nnard ». Un terme court bloque large : « con » refuserait aussi « Conrad ».
+        </p>
+        <?php
+    }
+
+    /** Liste des termes interdits, un par ligne. */
+    public function sanitize_pong_termes_interdits($valeur)
+    {
+        // Appelé deux fois au premier enregistrement (add_option) : la seconde fois avec la liste déjà nettoyée.
+        $saisie = is_array($valeur)
+            ? array_map('sanitize_text_field', array_filter($valeur, 'is_scalar'))
+            : sanitize_textarea_field((string) $valeur);
+        return MonClubTT_PongModeration::termes($saisie);
+    }
+
+    /** @return list<string> */
+    private function termesInterditsPong()
+    {
+        return MonClubTT_PongModeration::termes((array) get_option(MonClubTT_Constantes::MONCLUBTT_PONG_TERMES_INTERDITS, array()));
+    }
+
     public function sanitize_pong_adversaires($valeur)
     {
         $adversaires = monclubtt_normaliser_adversaires($valeur);
@@ -1354,6 +1385,10 @@ class MonClubTT_Plugin
         $scoreOk = $victoire ? MonClubTT_PongScores::scoreValide($pj, $pa) : MonClubTT_PongScores::scoreValide($pa, $pj);
         if (!$joueur || !$adversaire || !in_array($niveau, MonClubTT_PongScores::NIVEAUX, true) || !$scoreOk) {
             wp_send_json_error(array('message' => 'Données du match invalides.'), 400);
+            return;
+        }
+        if ($visiteur && MonClubTT_PongModeration::interdit($joueur['affiche'], $this->termesInterditsPong())) {
+            wp_send_json_error(array('message' => 'Ce prénom n\'est pas accepté, choisis-en un autre.'), 400);
             return;
         }
         set_transient($cle, 1, 15);
