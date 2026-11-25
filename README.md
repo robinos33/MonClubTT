@@ -218,7 +218,7 @@ Ancienne extension *TT Team Planner*, intégrée au plugin (`modules/gestion-equ
 
 **Application du staff.** Une page contenant le shortcode `[tt_team_planner]` (bouton *Créer la page* dans *Gestion des équipes › Général*) est remplacée par l'application, sans le thème. Connexion WordPress requise. Installable sur l'écran d'accueil (PWA) si l'option est cochée.
 
-**Qui peut modifier.** Les données de l'application ne se lisent qu'une fois connecté. Les modifier demande le droit *Gérer les équipes* (`monclubtt_ge_manage_planner`), que portent les administrateurs, les éditeurs et le rôle **Membre commission équipe**. Ce rôle n'a que ce droit et la lecture : un capitaine qui l'a ouvre l'application, wp-admin le renvoie vers elle et la barre d'admin lui est masquée. Le journal des actions est réservé aux administrateurs.
+**Qui y accède.** Ouvrir l'application, lire ses données comme les modifier demande le droit *Gérer les équipes* (`monclubtt_ge_manage_planner`), que portent les administrateurs, les éditeurs et le rôle **Membre commission équipe**. Ce rôle n'a que ce droit et la lecture : un capitaine qui l'a ouvre l'application, wp-admin le renvoie vers elle et la barre d'admin lui est masquée. Le journal des actions est réservé aux administrateurs.
 
 **Joueurs.** Repris des données FFTT et mis à jour à chaque synchronisation de *Données FFTT*, manuelle ou automatique (dimanche soir et lundi matin). Les informations saisies dans l'application (téléphone, e-mail, équipe habituelle, notes) sont conservées. Le capitaine se nomme par équipe, pour la phase (écran *Effectifs*) et pour une journée (vue *Journée*).
 
