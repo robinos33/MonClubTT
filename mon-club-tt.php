@@ -314,12 +314,14 @@ class MonClubTT_Plugin
         register_setting($groupe, MonClubTT_Constantes::MONCLUBTT_COULEURS, array('sanitize_callback' => array($this, 'sanitize_couleurs')));
         register_setting($groupe, MonClubTT_Constantes::MONCLUBTT_APPLI_EQUIPES, array('sanitize_callback' => array($this, 'sanitize_case')));
         register_setting($groupe, MonClubTT_Constantes::MONCLUBTT_PARTENAIRES, array('sanitize_callback' => array($this, 'sanitize_partenaires')));
+        register_setting($groupe, MonClubTT_Constantes::MONCLUBTT_EFFACER_DONNEES, array('sanitize_callback' => array($this, 'sanitize_case')));
         add_settings_section('monclubtt_section_reglages', '', '__return_false', $groupe);
         add_settings_field(MonClubTT_Constantes::MONCLUBTT_NOM_CLUB, 'Nom du club', array($this, 'nom_club_html'), $groupe, 'monclubtt_section_reglages');
         add_settings_field(MonClubTT_Constantes::MONCLUBTT_LOGO, 'Logo du club', array($this, 'logo_html'), $groupe, 'monclubtt_section_reglages');
         add_settings_field(MonClubTT_Constantes::MONCLUBTT_COULEURS, 'Couleurs du club', array($this, 'couleurs_html'), $groupe, 'monclubtt_section_reglages');
         add_settings_field(MonClubTT_Constantes::MONCLUBTT_APPLI_EQUIPES, 'Écran d\'accueil', array($this, 'appli_equipes_html'), $groupe, 'monclubtt_section_reglages');
         add_settings_field(MonClubTT_Constantes::MONCLUBTT_PARTENAIRES, 'Partenaires', array($this, 'partenaires_html'), $groupe, 'monclubtt_section_reglages');
+        add_settings_field(MonClubTT_Constantes::MONCLUBTT_EFFACER_DONNEES, 'Suppression du plugin', array($this, 'effacer_donnees_html'), $groupe, 'monclubtt_section_reglages');
     }
 
     /** Journal désactivé : les logs déjà enregistrés sont effacés. */
@@ -444,6 +446,29 @@ class MonClubTT_Plugin
             avec le nom du club, son logo (carré, 192 px minimum, sinon l'icône du site) et ses couleurs.
             À décocher si un autre plugin ou le thème fournit déjà une appli (PWA) pour le site.
             Sur une page, <code>appli="non"</code> le désactive ; <code>nom_appli="…"</code> et <code>nom_court="…"</code> imposent les noms.
+        </p>
+        <?php
+    }
+
+    /**
+     * Choix de ce que devient le contenu quand on supprime le plugin
+     * (Extensions › Supprimer, WP-CLI) : décoché, rien n'est effacé.
+     */
+    public function effacer_donnees_html()
+    {
+        ?>
+        <label>
+            <input type="checkbox" name="<?php echo esc_attr(MonClubTT_Constantes::MONCLUBTT_EFFACER_DONNEES); ?>" value="1"
+                <?php checked(get_option(MonClubTT_Constantes::MONCLUBTT_EFFACER_DONNEES) === '1'); ?>>
+            Effacer toutes les données du plugin quand on le supprime
+        </label>
+        <p class="description">
+            Décoché, supprimer le plugin ne touche à rien : le réinstaller retrouve tout.
+            Coché, la suppression efface définitivement les réglages et identifiants (FFTT, Meta), la gestion des équipes
+            (joueurs, coordonnées, disponibilités, compositions, journal, rôle <em>Membre commission équipe</em>),
+            les événements du calendrier, les membres du comité, les scores et images du pong.
+            Les pages, les articles et les images de la médiathèque restent.
+            Désactiver le plugin n'efface jamais rien.
         </p>
         <?php
     }

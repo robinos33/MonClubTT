@@ -42,6 +42,8 @@ Menu *Mon Club TT* :
    - **Numéro de club** (8 chiffres, ex. `10330011`)
 4. Lancer une première synchronisation via le bouton *Synchroniser les données*
 
+**Désinstallation.** Supprimer le plugin ne touche à aucune donnée, sauf si la case *Mon Club TT › Réglages › Suppression du plugin* est cochée : la suppression efface alors réglages et identifiants, gestion des équipes, calendrier, comité, scores et images du pong. Pages, articles et médiathèque restent.
+
 ---
 
 ## Shortcodes

@@ -81,6 +81,9 @@ Contact the FFTT directly. An App ID and password are provided upon request.
 = How often is the data updated? =
 Player data is refreshed on manual sync only. League standings and results are cached and automatically refreshed at 08:00 and 13:00 each day, and every 30 minutes from Saturday noon to Sunday night, when match sheets are entered. Match sheets are cached for 7 days (past results do not change).
 
+= What happens to my data when I delete the plugin? =
+Nothing, by default: reinstalling the plugin finds everything again. To erase all of the plugin's data on deletion (settings and credentials, team management, calendar, committee, pong scores and images), tick *Mon Club TT → Réglages → Suppression du plugin* first. Pages, posts and media library images are always kept.
+
 = Can I use the data in another plugin? =
 Yes. The plugin exposes six filters: `monclubtt_get_evenements`, `monclubtt_get_joueurs`, `monclubtt_get_equipes`, `monclubtt_get_classement_poule`, `monclubtt_get_rencontres_poule`, `monclubtt_get_feuille_rencontre`. See the documentation for usage.
 

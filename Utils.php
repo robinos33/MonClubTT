@@ -39,6 +39,8 @@ if ( ! class_exists( 'MonClubTT_Constantes' ) ) {
         const MONCLUBTT_PONG_COMPTEURS = 'monclubtt_pong_compteurs';
         /** Défi du jour du jeu de pong : par date (AAAA-MM-JJ), l'adversaire tiré et les tentatives. */
         const MONCLUBTT_PONG_DEFIS = 'monclubtt_pong_defis';
+        /** '1' : supprimer le plugin efface aussi ses données (voir uninstall.php). Décoché par défaut. */
+        const MONCLUBTT_EFFACER_DONNEES = 'monclubtt_effacer_donnees';
         /** Ancienne option (1.6.2), relue tant que les réglages n'ont pas été enregistrés. */
         const MONCLUBTT_SOCIAL_COULEURS = 'monclubtt_social_couleurs';
 
