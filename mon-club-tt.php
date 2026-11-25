@@ -80,6 +80,7 @@ class MonClubTT_Plugin
         // AJAX handlers
         add_action('wp_ajax_monclubtt_sync', array($this, 'handle_ajax_sync'));
         add_action('wp_ajax_monclubtt_exclude_joueur', array($this, 'handle_ajax_exclude_joueur'));
+        add_action('wp_ajax_monclubtt_mot_de_passe', array($this, 'handle_ajax_mot_de_passe'));
         add_action('wp_ajax_monclubtt_set_joueur_photo', array($this, 'handle_ajax_set_joueur_photo'));
         add_action('wp_ajax_monclubtt_remove_joueur_photo', array($this, 'handle_ajax_remove_joueur_photo'));
         add_action('wp_ajax_monclubtt_generate_pages', array($this, 'handle_ajax_generate_pages'));
@@ -271,7 +272,7 @@ class MonClubTT_Plugin
         // Données FFTT › Connexion
         $groupe = 'monclubtt_fftt_settings';
         register_setting($groupe, MonClubTT_Constantes::MONCLUBTT_ID_APPLICATION, array('sanitize_callback' => 'sanitize_text_field'));
-        register_setting($groupe, MonClubTT_Constantes::MONCLUBTT_MOT_DE_PASSE,    array('sanitize_callback' => 'sanitize_text_field'));
+        register_setting($groupe, MonClubTT_Constantes::MONCLUBTT_MOT_DE_PASSE,    array('sanitize_callback' => array($this, 'sanitize_mot_de_passe')));
         register_setting($groupe, MonClubTT_Constantes::MONCLUBTT_NUM_CLUB,        array('sanitize_callback' => 'sanitize_text_field'));
         register_setting($groupe, MonClubTT_Constantes::MONCLUBTT_LICENCES_EXCLUES, array('sanitize_callback' => 'monclubtt_sanitize_licences_exclues'));
         add_settings_section('monclubtt_section', '', array($this, 'section_html'), $groupe);
@@ -363,28 +364,58 @@ class MonClubTT_Plugin
     }
 
     /**
-     * Mot de passe masqué par défaut, avec un bouton « œil » pour l'afficher
-     * (même présentation que le mot de passe du profil WordPress).
+     * Mot de passe jamais écrit dans la page : champ vide, qui conserve le
+     * mot de passe enregistré s'il reste vide. Le bouton « œil » le
+     * récupère à la demande (AJAX, administrateurs) pour l'afficher.
+     * « new-password » empêche le navigateur d'y glisser le mot de passe
+     * WordPress enregistré, qui écraserait celui de la FFTT.
      */
     public function mot_de_passe_html()
     {
+        $enregistre = (string) get_option(MonClubTT_Constantes::MONCLUBTT_MOT_DE_PASSE) !== '';
         ?>
         <span class="wp-pwd monclubtt-mot-de-passe">
             <input type="password" id="monclubtt_mot_de_passe" name="monclubtt_mot_de_passe" class="regular-text" spellcheck="false"
-                   autocomplete="off" value="<?php echo esc_attr(get_option(MonClubTT_Constantes::MONCLUBTT_MOT_DE_PASSE)); ?>"/>
+                   autocomplete="new-password" value=""
+                   <?php if ($enregistre): ?>placeholder="Enregistré : laisser vide pour le garder"<?php endif; ?>/>
             <button type="button" class="button wp-hide-pw hide-if-no-js" aria-controls="monclubtt_mot_de_passe" aria-label="Afficher le mot de passe">
                 <span class="dashicons dashicons-visibility" aria-hidden="true"></span>
             </button>
         </span>
         <?php
+        $params = wp_json_encode(array(
+            'enregistre' => $enregistre,
+            'nonce'      => wp_create_nonce('monclubtt_mot_de_passe'),
+        ));
         wp_add_inline_script('monclubtt-js', 'jQuery(function($) {
-            $(".monclubtt-mot-de-passe .wp-hide-pw").on("click", function() {
-                var $champ = $("#monclubtt_mot_de_passe"), visible = $champ.attr("type") === "password";
+            var params = ' . $params . ', $champ = $("#monclubtt_mot_de_passe"), $bouton = $(".monclubtt-mot-de-passe .wp-hide-pw");
+            function afficher(visible) {
                 $champ.attr("type", visible ? "text" : "password");
-                $(this).attr("aria-label", visible ? "Masquer le mot de passe" : "Afficher le mot de passe")
+                $bouton.attr("aria-label", visible ? "Masquer le mot de passe" : "Afficher le mot de passe")
                     .find(".dashicons").toggleClass("dashicons-visibility", !visible).toggleClass("dashicons-hidden", visible);
+            }
+            $bouton.on("click", function() {
+                var visible = $champ.attr("type") === "password";
+                if (!visible || $champ.val() !== "" || !params.enregistre) {
+                    afficher(visible);
+                    return;
+                }
+                $bouton.prop("disabled", true);
+                $.post(ajaxurl, { action: "monclubtt_mot_de_passe", nonce: params.nonce }).done(function(r) {
+                    if (r && r.success) {
+                        $champ.val(r.data.mot_de_passe);
+                        afficher(true);
+                    }
+                }).always(function() { $bouton.prop("disabled", false); });
             });
         });');
+    }
+
+    /** Champ laissé vide : le mot de passe enregistré est conservé. */
+    public function sanitize_mot_de_passe($valeur)
+    {
+        $valeur = sanitize_text_field((string) $valeur);
+        return $valeur !== '' ? $valeur : (string) get_option(MonClubTT_Constantes::MONCLUBTT_MOT_DE_PASSE, '');
     }
 
     public function equipe_num_html()
@@ -2293,6 +2324,19 @@ class MonClubTT_Plugin
         update_option(MonClubTT_Constantes::MONCLUBTT_LICENCES_EXCLUES, $licencesExclues);
 
         wp_send_json_success(array('message' => 'Joueur retiré de la liste'));
+    }
+
+    /** Handler AJAX : mot de passe FFTT enregistré, pour le bouton « œil » des réglages. */
+    public function handle_ajax_mot_de_passe()
+    {
+        check_ajax_referer('monclubtt_mot_de_passe', 'nonce');
+
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error(array('message' => 'Permissions insuffisantes'), 403);
+            return;
+        }
+
+        wp_send_json_success(array('mot_de_passe' => (string) get_option(MonClubTT_Constantes::MONCLUBTT_MOT_DE_PASSE, '')));
     }
 
     /**
