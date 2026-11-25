@@ -299,6 +299,7 @@ class MonClubTT_Plugin
         register_setting($groupe, 'monclubtt_pong_vider_matchs', array('sanitize_callback' => array($this, 'sanitize_pong_vider_matchs')));
         register_setting($groupe, 'monclubtt_pong_vider_defi', array('sanitize_callback' => array($this, 'sanitize_pong_vider_defi')));
         register_setting($groupe, MonClubTT_Constantes::MONCLUBTT_PONG_TERMES_INTERDITS, array('sanitize_callback' => array($this, 'sanitize_pong_termes_interdits')));
+        register_setting($groupe, MonClubTT_Constantes::MONCLUBTT_PONG_QUOTA, array('sanitize_callback' => array($this, 'sanitize_pong_quota')));
         add_settings_section('monclubtt_section_pong', '', '__return_false', $groupe);
         add_settings_field(MonClubTT_Constantes::MONCLUBTT_PONG_PROS, 'Top 10 mondial', array($this, 'pong_pros_html'), $groupe, 'monclubtt_section_pong');
         add_settings_field(MonClubTT_Constantes::MONCLUBTT_PONG_ADVERSAIRES, 'Adversaires', array($this, 'pong_adversaires_html'), $groupe, 'monclubtt_section_pong');
@@ -308,6 +309,7 @@ class MonClubTT_Plugin
         add_settings_field('monclubtt_pong_vider_matchs', 'Matchs partagés', array($this, 'pong_vider_matchs_html'), $groupe, 'monclubtt_section_pong');
         add_settings_field('monclubtt_pong_vider_defi', 'Défi du jour', array($this, 'pong_vider_defi_html'), $groupe, 'monclubtt_section_pong');
         add_settings_field(MonClubTT_Constantes::MONCLUBTT_PONG_TERMES_INTERDITS, 'Prénoms interdits', array($this, 'pong_termes_interdits_html'), $groupe, 'monclubtt_section_pong');
+        add_settings_field(MonClubTT_Constantes::MONCLUBTT_PONG_QUOTA, 'Parties par adresse IP', array($this, 'pong_quota_html'), $groupe, 'monclubtt_section_pong');
 
         // Réglages : identité du club
         $groupe = 'monclubtt_settings';
@@ -981,6 +983,31 @@ class MonClubTT_Plugin
         return $termes;
     }
 
+    public function pong_quota_html()
+    {
+        ?>
+        <label>
+            <input type="number" name="<?php echo esc_attr(MonClubTT_Constantes::MONCLUBTT_PONG_QUOTA); ?>" min="0" max="1000" step="1" class="small-text"
+                   value="<?php echo esc_attr((string) $this->quotaPong()); ?>">
+            parties enregistrées par heure au plus
+        </label>
+        <p class="description">
+            Au-delà, on peut continuer à jouer depuis cette adresse, mais les parties ne vont plus au tableau, au défi du jour ni au partage jusqu'à la fin de l'heure.
+            0 : sans limite. Tous les appareils d'un même wifi (au club, à l'école) partagent souvent une seule adresse : prévoyez large.
+        </p>
+        <?php
+    }
+
+    public function sanitize_pong_quota($valeur)
+    {
+        return (string) min(1000, absint($valeur));
+    }
+
+    private function quotaPong()
+    {
+        return (int) get_option(MonClubTT_Constantes::MONCLUBTT_PONG_QUOTA, MonClubTT_PongModeration::QUOTA_DEFAUT);
+    }
+
     /** @return list<string> */
     private function termesInterditsPong()
     {
@@ -1458,6 +1485,18 @@ class MonClubTT_Plugin
             wp_send_json_error(array('message' => 'Ce prénom n\'est pas accepté, choisis-en un autre.'), 400);
             return;
         }
+        // Quota par heure : les parties valides seulement sont comptées.
+        $cleQuota = 'monclubtt_pong_quota_' . $this->cleIpPong();
+        $quota    = MonClubTT_PongModeration::quota(get_transient($cleQuota), time(), $this->quotaPong());
+        if (!$quota['autorise']) {
+            wp_send_json_error(array('message' => sprintf(
+                'Limite de %d parties par heure atteinte depuis ce réseau, réessaie à %s.',
+                $this->quotaPong(),
+                wp_date('G\\hi', $quota['reprise'])
+            )), 429);
+            return;
+        }
+        set_transient($cleQuota, $quota['etat'], max(1, $quota['reprise'] - time()));
         set_transient($cle, 1, 15);
         $this->compterPong('terminees');
 

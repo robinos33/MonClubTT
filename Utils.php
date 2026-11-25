@@ -43,6 +43,8 @@ if ( ! class_exists( 'MonClubTT_Constantes' ) ) {
         const MONCLUBTT_EFFACER_DONNEES = 'monclubtt_effacer_donnees';
         /** Termes interdits dans le prénom des visiteurs du pong (liste de chaînes). */
         const MONCLUBTT_PONG_TERMES_INTERDITS = 'monclubtt_pong_termes_interdits';
+        /** Parties de pong enregistrées par adresse IP et par heure (0 = sans limite). */
+        const MONCLUBTT_PONG_QUOTA = 'monclubtt_pong_quota';
         /** Ancienne option (1.6.2), relue tant que les réglages n'ont pas été enregistrés. */
         const MONCLUBTT_SOCIAL_COULEURS = 'monclubtt_social_couleurs';
 
