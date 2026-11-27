@@ -300,6 +300,7 @@ class MonClubTT_Plugin
         register_setting($groupe, MonClubTT_Constantes::MONCLUBTT_PONG_MUSIQUE, array('sanitize_callback' => array($this, 'sanitize_pong_musique')));
         register_setting($groupe, 'monclubtt_pong_raz_compteurs', array('sanitize_callback' => array($this, 'sanitize_pong_raz_compteurs')));
         register_setting($groupe, 'monclubtt_pong_vider_scores', array('sanitize_callback' => array($this, 'sanitize_pong_vider_scores')));
+        register_setting($groupe, 'monclubtt_pong_concours_admin', array('sanitize_callback' => array($this, 'sanitize_pong_concours_admin')));
         register_setting($groupe, 'monclubtt_pong_vider_matchs', array('sanitize_callback' => array($this, 'sanitize_pong_vider_matchs')));
         register_setting($groupe, 'monclubtt_pong_vider_defi', array('sanitize_callback' => array($this, 'sanitize_pong_vider_defi')));
         register_setting($groupe, MonClubTT_Constantes::MONCLUBTT_PONG_TERMES_INTERDITS, array('sanitize_callback' => array($this, 'sanitize_pong_termes_interdits')));
@@ -310,6 +311,7 @@ class MonClubTT_Plugin
         add_settings_field(MonClubTT_Constantes::MONCLUBTT_PONG_ADVERSAIRES, 'Adversaires', array($this, 'pong_adversaires_html'), $groupe, 'monclubtt_section_pong');
         add_settings_field(MonClubTT_Constantes::MONCLUBTT_PONG_MUSIQUE, 'Musique', array($this, 'pong_musique_html'), $groupe, 'monclubtt_section_pong');
         add_settings_field('monclubtt_pong_raz_compteurs', 'Parties', array($this, 'pong_compteurs_html'), $groupe, 'monclubtt_section_pong');
+        add_settings_field('monclubtt_pong_concours_admin', 'Concours du mois', array($this, 'pong_concours_html'), $groupe, 'monclubtt_section_pong');
         add_settings_field('monclubtt_pong_vider_scores', 'Meilleurs scores', array($this, 'pong_vider_scores_html'), $groupe, 'monclubtt_section_pong');
         add_settings_field('monclubtt_pong_vider_matchs', 'Matchs partagés', array($this, 'pong_vider_matchs_html'), $groupe, 'monclubtt_section_pong');
         add_settings_field('monclubtt_pong_vider_defi', 'Défi du jour', array($this, 'pong_vider_defi_html'), $groupe, 'monclubtt_section_pong');
@@ -912,6 +914,70 @@ class MonClubTT_Plugin
         update_option(MonClubTT_Constantes::MONCLUBTT_PONG_COMPTEURS, $c, false);
     }
 
+    /**
+     * Réglage « Concours du mois » : état, retrait d'un joueur (cote
+     * usurpée par un mauvais plaisant) et remise à zéro du mois.
+     */
+    public function pong_concours_html()
+    {
+        $etat    = $this->etatConcoursPong();
+        $joueurs = $etat['joueurs'];
+        uasort($joueurs, function ($a, $b) {
+            return strcasecmp(remove_accents($a['affiche']), remove_accents($b['affiche']));
+        });
+        $classes = count(MonClubTT_PongConcours::classer($etat));
+        ?>
+        <p>
+            Concours de <?php echo esc_html($this->libelleMoisPong($etat['periode'])); ?> :
+            <?php /* translators: %d: nombre de joueurs */ ?>
+            <?php echo esc_html(sprintf(_n('%d joueur a joué', '%d joueurs ont joué', count($joueurs), 'mon-club-tt'), count($joueurs))); ?>,
+            <?php /* translators: %d: nombre de joueurs */ ?>
+            <?php echo esc_html(sprintf(_n('%d classé', '%d classés', $classes, 'mon-club-tt'), $classes)); ?>
+            (<?php echo esc_html(MonClubTT_PongConcours::MATCHS_MIN); ?> matchs au moins).
+        </p>
+        <?php if ($joueurs): ?>
+            <p>
+                <label>
+                    Retirer un joueur du classement :
+                    <select name="monclubtt_pong_concours_admin[retirer]">
+                        <option value="">—</option>
+                        <?php foreach ($joueurs as $cle => $fiche): ?>
+                            <option value="<?php echo esc_attr($cle); ?>"><?php echo esc_html(sprintf('%s (%d pts, %d matchs)', $fiche['affiche'], round($fiche['cote']), $fiche['matchs'])); ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                </label>
+            </p>
+        <?php endif; ?>
+        <p>
+            <label>
+                <input type="checkbox" name="monclubtt_pong_concours_admin[raz]" value="1">
+                Remettre le concours du mois à zéro (les cotes des adversaires sont gardées)
+            </label>
+        </p>
+        <p class="description">
+            Personne ne se connecte pour jouer : n'importe qui peut choisir le nom d'un licencié, et perdre exprès pour faire baisser sa cote.
+            La limite de <?php echo esc_html(MonClubTT_PongConcours::MATCHS_PAR_JOUR); ?> matchs classés par joueur et par jour réduit les dégâts ; retirez le joueur s'il a été visé, il repartira de ses points FFTT.
+            Le concours change seul le 1er de chaque mois : son podium entre au palmarès, les joueurs repartent de leurs points FFTT, les adversaires gardent leur cote.
+        </p>
+        <?php
+    }
+
+    /**
+     * Actions sur le concours du mois ; rien n'est conservé dans
+     * l'option elle-même.
+     */
+    public function sanitize_pong_concours_admin($valeur)
+    {
+        $valeur = is_array($valeur) ? $valeur : array();
+        $etat   = $this->etatConcoursPong();
+        if (($valeur['raz'] ?? '') === '1') {
+            update_option(MonClubTT_Constantes::MONCLUBTT_PONG_CONCOURS, MonClubTT_PongConcours::vide($etat['periode'], $etat['adversaires']), false);
+        } elseif (!empty($valeur['retirer'])) {
+            update_option(MonClubTT_Constantes::MONCLUBTT_PONG_CONCOURS, MonClubTT_PongConcours::retirer($etat, sanitize_text_field((string) $valeur['retirer'])), false);
+        }
+        return '';
+    }
+
     public function pong_vider_scores_html()
     {
         $nb = count(MonClubTT_PongScores::classer((array) get_option(MonClubTT_Constantes::MONCLUBTT_PONG_SCORES, array())));
@@ -1331,6 +1397,7 @@ class MonClubTT_Plugin
         $manches = in_array((int) $atts['manches'], array(1, 3, 5), true) ? (int) $atts['manches'] : 1;
         $joueurs = new MonClubTT_Joueurs();
         $scores  = $this->classementPong();
+        $concours = $this->donneesConcoursPong();
         $musique = monclubtt_get_pong_musique_url();
         $defiJour = $this->donneesDefiPong();
 
@@ -1468,7 +1535,7 @@ class MonClubTT_Plugin
      */
     public function handle_ajax_pong_scores()
     {
-        wp_send_json_success(array('classement' => $this->classementPong()));
+        wp_send_json_success(array('classement' => $this->classementPong(), 'concours' => $this->donneesConcoursPong()));
     }
 
     /**
@@ -1488,7 +1555,153 @@ class MonClubTT_Plugin
         }
         set_transient($cle, 1, 2);
         $this->compterPong('jouees');
-        wp_send_json_success();
+        wp_send_json_success(array('concours' => $this->lancerMatchConcoursPong()));
+    }
+
+    /**
+     * Déclare au concours du mois le match qui commence, s'il est
+     * classé : licencié du club, mode Classique, contre un joueur du club ou
+     * du top 10 mondial. Le match reste en cours jusqu'à sa fin ; jamais
+     * terminé, il est perdu.
+     * @return array{jeton: string|null, restants: int, message: string}|null null : match non classé.
+     */
+    private function lancerMatchConcoursPong()
+    {
+        // phpcs:disable WordPress.Security.NonceVerification.Missing -- vérifié par handle_ajax_pong_debut()
+        $champ = function ($cle) {
+            return sanitize_text_field(wp_unslash($_POST[$cle] ?? ''));
+        };
+        // phpcs:enable
+        if ($champ('joueur_type') !== 'club' || $champ('mode') !== 'classique') {
+            return null;
+        }
+        $niveau = $champ('niveau');
+        if (!in_array($niveau, MonClubTT_PongScores::NIVEAUX, true)) {
+            return null;
+        }
+        $joueur = $this->joueurPong($champ('joueur_nom'), $champ('joueur_prenom'));
+        $adv    = $this->adversaireConcoursPong($champ('adv_type'), $champ('adv_nom'), $champ('adv_prenom'), $niveau);
+        if (!$joueur || !$adv || $joueur['licence'] === '') {
+            return null;
+        }
+        $jeton = strtolower(wp_generate_password(16, false));
+        $r = MonClubTT_PongConcours::lancer(
+            $this->etatConcoursPong(),
+            $jeton,
+            array('cle' => $joueur['licence'], 'affiche' => $joueur['affiche'], 'points' => $joueur['points']),
+            $adv,
+            $this->cleIpPong(),
+            wp_date('Y-m-d'),
+            time()
+        );
+        update_option(MonClubTT_Constantes::MONCLUBTT_PONG_CONCOURS, $r['etat'], false);
+        return array(
+            'jeton'    => $r['classe'] ? $jeton : null,
+            'restants' => $r['restants'],
+            'message'  => $r['classe'] ? '' : sprintf(
+                /* translators: %d: nombre de matchs classés par jour */
+                _n('%d match classé par jour : celui-ci se joue hors classement.', '%d matchs classés par jour : celui-ci se joue hors classement.', MonClubTT_PongConcours::MATCHS_PAR_JOUR, 'mon-club-tt'),
+                MonClubTT_PongConcours::MATCHS_PAR_JOUR
+            ),
+        );
+    }
+
+    /**
+     * Adversaire d'un match classé, avec sa clé au classement (une cote par
+     * adversaire et par niveau) et sa cote de départ.
+     * @return array{cle: string, affiche: string, depart: float}|null
+     */
+    private function adversaireConcoursPong($type, $nom, $prenom, $niveau)
+    {
+        if ($type === 'club') {
+            $adv = $this->joueurPong($nom, $prenom);
+            if (!$adv || $adv['licence'] === '') {
+                return null;
+            }
+            return array(
+                'cle'     => 'club:' . $adv['licence'] . '|' . $niveau,
+                'affiche' => $adv['affiche'],
+                'depart'  => MonClubTT_PongConcours::coteDepartAdversaire('club', $adv['points'], $niveau),
+            );
+        }
+        if ($type === 'monde' && monclubtt_pong_pros()) {
+            foreach (monclubtt_get_pong_adversaires() as $liste) {
+                foreach ($liste as $adv) {
+                    if ($adv['nom'] !== '' && $adv['nom'] === $nom) {
+                        return array(
+                            'cle'     => 'monde:' . $adv['nom'] . '|' . $niveau,
+                            'affiche' => $adv['nom'],
+                            'depart'  => MonClubTT_PongConcours::coteDepartAdversaire('monde', null, $niveau),
+                        );
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
+    /**
+     * État du concours du mois en cours. Au changement de mois, le podium
+     * du mois clos entre au palmarès et les joueurs repartent de zéro (les
+     * adversaires gardent leur cote) ; les matchs abandonnés sont comptés perdus.
+     * @return array
+     */
+    private function etatConcoursPong()
+    {
+        $brut   = get_option(MonClubTT_Constantes::MONCLUBTT_PONG_CONCOURS, null);
+        $periode = MonClubTT_PongConcours::periode((int) wp_date('Y'), (int) wp_date('n'));
+        $r       = MonClubTT_PongConcours::ouvrir($brut, $periode);
+        $etat   = MonClubTT_PongConcours::expirer($r['etat'], time());
+        if ($r['close']) {
+            $palmares = (array) get_option(MonClubTT_Constantes::MONCLUBTT_PONG_PALMARES, array());
+            $palmares[$r['close']['periode']] = $r['close']['podium'];
+            krsort($palmares);
+            update_option(MonClubTT_Constantes::MONCLUBTT_PONG_PALMARES, $palmares, false);
+        }
+        if ($etat !== $brut) {
+            update_option(MonClubTT_Constantes::MONCLUBTT_PONG_CONCOURS, $etat, false);
+        }
+        return $etat;
+    }
+
+    /**
+     * Mois d'une période AAAA-MM, en toutes lettres (« novembre 2026 »).
+     */
+    private function libelleMoisPong($periode)
+    {
+        $t = strtotime($periode . '-15 12:00:00');
+        return $t ? wp_date('F Y', $t) : (string) $periode;
+    }
+
+    /**
+     * Concours du mois pour le navigateur : mois, AFFICHES premiers, champion
+     * du mois précédent et règles (pour l'explication).
+     * @param array|null $etat
+     * @return array
+     */
+    private function donneesConcoursPong($etat = null)
+    {
+        $etat     = $etat ?? $this->etatConcoursPong();
+        $palmares = (array) get_option(MonClubTT_Constantes::MONCLUBTT_PONG_PALMARES, array());
+        $champion = null;
+        foreach ($palmares as $periode => $podium) {
+            if (!empty($podium[0]['joueur'])) {
+                $champion = array('mois' => $this->libelleMoisPong((string) $periode), 'joueur' => (string) $podium[0]['joueur'], 'progression' => (float) $podium[0]['progression']);
+                break;
+            }
+        }
+        return array(
+            'mois'       => $this->libelleMoisPong($etat['periode']),
+            'classement' => array_map(array('MonClubTT_PongConcours', 'publique'), array_slice(MonClubTT_PongConcours::classer($etat), 0, MonClubTT_PongConcours::AFFICHES)),
+            'champion'   => $champion,
+            'regles'     => array(
+                'min'     => MonClubTT_PongConcours::MATCHS_MIN,
+                'jour'    => MonClubTT_PongConcours::MATCHS_PAR_JOUR,
+                'abandon' => (int) (MonClubTT_PongConcours::DELAI_ABANDON / 60),
+                'expert'  => MonClubTT_PongConcours::BONUS_EXPERT,
+                'monde'   => MonClubTT_PongConcours::COTE_MONDE,
+            ),
+        );
     }
 
     /**
@@ -1520,12 +1733,6 @@ class MonClubTT_Plugin
         $mode     = $champ('mode') === 'arcade' ? 'arcade' : 'classique';
         $speciaux = max(0, min(99, (int) $champ('speciaux')));
 
-        $cle = 'monclubtt_pong_' . $this->cleIpPong();
-        if (get_transient($cle)) {
-            wp_send_json_error(array('message' => 'Trop de matchs envoyés, réessayez dans un instant.'), 429);
-            return;
-        }
-
         $victoire   = $pj > $pa;
         $visiteur   = $champ('joueur_type') === 'visiteur';
         $joueur     = $visiteur ? $this->visiteurPong($champ('joueur_nom')) : $this->joueurPong($champ('joueur_nom'), $champ('joueur_prenom'));
@@ -1552,10 +1759,32 @@ class MonClubTT_Plugin
             wp_send_json_error(array('message' => 'Ce prénom n\'est pas accepté, choisis-en un autre.'), 400);
             return;
         }
+
+        // Concours du mois, avant les limites d'envoi : le match a été
+        // déclaré à son lancement, le refuser ici le ferait compter perdu.
+        $concours = null;
+        $jeton    = $champ('concours_jeton');
+        if ($jeton !== '' && !$visiteur && $mode === 'classique') {
+            $concours = $this->terminerMatchConcoursPong($jeton, $joueur, $advType, $champ('adv_nom'), $champ('adv_prenom'), $niveau, $victoire, $pj + $pa);
+        }
+
+        $cle = 'monclubtt_pong_' . $this->cleIpPong();
+        if (get_transient($cle)) {
+            if ($concours) {
+                wp_send_json_success(array('classement' => null, 'rang' => null, 'partage' => null, 'concours' => $concours));
+                return;
+            }
+            wp_send_json_error(array('message' => 'Trop de matchs envoyés, réessayez dans un instant.'), 429);
+            return;
+        }
         // Quota par heure : les parties valides seulement sont comptées.
         $cleQuota = 'monclubtt_pong_quota_' . $this->cleIpPong();
         $quota    = MonClubTT_PongModeration::quota(get_transient($cleQuota), time(), $this->quotaPong());
         if (!$quota['autorise']) {
+            if ($concours) {
+                wp_send_json_success(array('classement' => null, 'rang' => null, 'partage' => null, 'concours' => $concours));
+                return;
+            }
             wp_send_json_error(array('message' => sprintf(
                 'Limite de %d parties par heure atteinte depuis ce réseau, réessaie à %s.',
                 $this->quotaPong(),
@@ -1567,7 +1796,7 @@ class MonClubTT_Plugin
         set_transient($cle, 1, 15);
         $this->compterPong('terminees');
 
-        $reponse = array('classement' => null, 'rang' => null, 'partage' => null);
+        $reponse = array('classement' => null, 'rang' => null, 'partage' => null, 'concours' => $concours);
 
         // Visiteurs hors club compris, signalés comme tels au tableau.
         if ($victoire && $advType !== 'invite' && $mode === 'classique') {
@@ -1635,6 +1864,30 @@ class MonClubTT_Plugin
     }
 
     /**
+     * Fin d'un match du concours : cotes mises à jour, variation, cote, rang et
+     * classement renvoyés au navigateur.
+     * @return array
+     */
+    private function terminerMatchConcoursPong($jeton, array $joueur, $advType, $advNom, $advPrenom, $niveau, $victoire, $points)
+    {
+        $adv = $this->adversaireConcoursPong($advType, $advNom, $advPrenom, $niveau);
+        $fin = $adv ? MonClubTT_PongConcours::terminer($this->etatConcoursPong(), $jeton, $joueur['licence'], $adv['cle'], $victoire, time(), $points) : null;
+        if (!$fin || !$fin['resultat']) {
+            return array('message' => 'Match non classé : il n\'a pas été enregistré à son lancement, ou il a été trop court.');
+        }
+        update_option(MonClubTT_Constantes::MONCLUBTT_PONG_CONCOURS, $fin['etat'], false);
+        return array(
+            'variation'   => $fin['resultat']['variation'],
+            'cote'        => (int) round($fin['resultat']['cote']),
+            'progression' => $fin['resultat']['progression'],
+            'matchs'      => $fin['resultat']['matchs'],
+            'rang'        => MonClubTT_PongConcours::rang($fin['etat'], $joueur['licence']),
+            'min'         => MonClubTT_PongConcours::MATCHS_MIN,
+            'donnees'     => $this->donneesConcoursPong($fin['etat']),
+        );
+    }
+
+    /**
      * Clé de limite de débit du pong : adresse IPv4 du visiteur, ou son
      * préfixe /64 en IPv6 (un appareil y dispose de milliards d'adresses).
      * Derrière un proxy, REMOTE_ADDR est celle du proxy : la limite devient
@@ -1649,7 +1902,7 @@ class MonClubTT_Plugin
 
     /**
      * Licencié du club proposé dans le jeu, retrouvé par nom et prénom.
-     * @return array{affiche: string, photo: int}|null photo = ID de la pièce jointe (0 sans photo)
+     * @return array{affiche: string, photo: int, licence: string, points: float}|null photo = ID de la pièce jointe (0 sans photo)
      */
     private function joueurPong($nom, $prenom)
     {
@@ -1660,6 +1913,8 @@ class MonClubTT_Plugin
                 return array(
                     'affiche' => trim($joueur->getPrenom() . ' ' . strtoupper($joueur->getNom())),
                     'photo'   => monclubtt_photos_affichees() ? (int) ($photos[$joueur->getLicence()] ?? 0) : 0,
+                    'licence' => (string) $joueur->getLicence(),
+                    'points'  => (float) $joueur->getClassement()->getPointsOfficiels(),
                 );
             }
         }

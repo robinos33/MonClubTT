@@ -18,6 +18,7 @@ $config   = array(
     'adversaires' => $adversaires,
     'impose'      => $impose,
     'scores'      => $scores,
+    'concours'    => $concours,
     'defi'        => $defi,
     'defiJour'    => $defiJour,
     'ajax'        => admin_url('admin-ajax.php'),
