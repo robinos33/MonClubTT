@@ -3,7 +3,7 @@ Contributors: robinos33
 Tags: table tennis, fftt, club, rankings, results
 Requires at least: 6.4
 Tested up to: 7.1
-Stable tag: 2.13.0
+Stable tag: 2.14.0
 Requires PHP: 8.4
 License: GPLv2
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -88,6 +88,9 @@ Nothing, by default: reinstalling the plugin finds everything again. To erase al
 Yes. The plugin exposes six filters: `monclubtt_get_evenements`, `monclubtt_get_joueurs`, `monclubtt_get_equipes`, `monclubtt_get_classement_poule`, `monclubtt_get_rencontres_poule`, `monclubtt_get_feuille_rencontre`. See the documentation for usage.
 
 == Changelog ==
+
+= 2.14.0 =
+* Added: Pong: "Show the game on the 404 page" setting, unchecked by default. Checked, a not-found address shows the game under a "Balle dehors !" message, with a link to the home page and the search form, instead of the theme's 404 page (site header and footer kept, 404 status kept). High scores and the daily challenge count; match sharing is not offered there
 
 = 2.13.0 =
 * Security: team management: reading players (e-mail, phone, notes), availabilities, squads and line-ups now requires the "Manage teams" capability (Team committee member role, editors, administrators), not just being logged in; other accounts are refused the app
