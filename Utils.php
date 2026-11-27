@@ -33,6 +33,8 @@ if ( ! class_exists( 'MonClubTT_Constantes' ) ) {
         const MONCLUBTT_PONG_MUSIQUE = 'monclubtt_pong_musique';
         /** '1' (défaut) : top 10 mondial proposé comme adversaires du jeu de pong ; '0' : joueurs du club seulement. */
         const MONCLUBTT_PONG_PROS = 'monclubtt_pong_pros';
+        /** '1' : le jeu de pong remplace la page 404 du thème. Décoché par défaut. */
+        const MONCLUBTT_PONG_404 = 'monclubtt_pong_404';
         /** Matchs récents partageables (id => données), pour les pages et images de partage. */
         const MONCLUBTT_PONG_MATCHS = 'monclubtt_pong_matchs';
         /** Compteurs du jeu de pong : parties jouées, parties terminées, date de départ. */
@@ -218,6 +220,15 @@ if ( ! function_exists( 'monclubtt_pong_pros' ) ) {
     /** Top 10 mondial proposé dans le jeu de pong ? Oui par défaut. */
     function monclubtt_pong_pros() {
         return get_option(MonClubTT_Constantes::MONCLUBTT_PONG_PROS, '1') !== '0';
+    }
+
+}
+
+if ( ! function_exists( 'monclubtt_pong_404' ) ) {
+
+    /** Jeu de pong sur la page 404 ? Non par défaut. */
+    function monclubtt_pong_404() {
+        return get_option(MonClubTT_Constantes::MONCLUBTT_PONG_404, '0') === '1';
     }
 
 }

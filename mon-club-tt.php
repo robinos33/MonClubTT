@@ -98,6 +98,8 @@ class MonClubTT_Plugin
         // Partage d'un match : image générée et balises Open Graph.
         add_action('init', array($this, 'pong_image'), 20);
         add_action('wp_head', array($this, 'pong_og'), 1);
+        // Page 404 du thème remplacée par le jeu (réglage Pong › Page 404).
+        add_filter('template_include', array($this, 'pong_404'), 99);
 
         // Widget dashboard
         add_action('wp_dashboard_setup', array($this, 'add_dashboard_widget'));
@@ -293,6 +295,7 @@ class MonClubTT_Plugin
         // Pong
         $groupe = 'monclubtt_pong_settings';
         register_setting($groupe, MonClubTT_Constantes::MONCLUBTT_PONG_PROS, array('sanitize_callback' => array($this, 'sanitize_case')));
+        register_setting($groupe, MonClubTT_Constantes::MONCLUBTT_PONG_404, array('sanitize_callback' => array($this, 'sanitize_case')));
         register_setting($groupe, MonClubTT_Constantes::MONCLUBTT_PONG_ADVERSAIRES, array('sanitize_callback' => array($this, 'sanitize_pong_adversaires')));
         register_setting($groupe, MonClubTT_Constantes::MONCLUBTT_PONG_MUSIQUE, array('sanitize_callback' => array($this, 'sanitize_pong_musique')));
         register_setting($groupe, 'monclubtt_pong_raz_compteurs', array('sanitize_callback' => array($this, 'sanitize_pong_raz_compteurs')));
@@ -303,6 +306,7 @@ class MonClubTT_Plugin
         register_setting($groupe, MonClubTT_Constantes::MONCLUBTT_PONG_QUOTA, array('sanitize_callback' => array($this, 'sanitize_pong_quota')));
         add_settings_section('monclubtt_section_pong', '', '__return_false', $groupe);
         add_settings_field(MonClubTT_Constantes::MONCLUBTT_PONG_PROS, 'Top 10 mondial', array($this, 'pong_pros_html'), $groupe, 'monclubtt_section_pong');
+        add_settings_field(MonClubTT_Constantes::MONCLUBTT_PONG_404, 'Page 404', array($this, 'pong_404_html'), $groupe, 'monclubtt_section_pong');
         add_settings_field(MonClubTT_Constantes::MONCLUBTT_PONG_ADVERSAIRES, 'Adversaires', array($this, 'pong_adversaires_html'), $groupe, 'monclubtt_section_pong');
         add_settings_field(MonClubTT_Constantes::MONCLUBTT_PONG_MUSIQUE, 'Musique', array($this, 'pong_musique_html'), $groupe, 'monclubtt_section_pong');
         add_settings_field('monclubtt_pong_raz_compteurs', 'Parties', array($this, 'pong_compteurs_html'), $groupe, 'monclubtt_section_pong');
@@ -763,6 +767,37 @@ class MonClubTT_Plugin
         </label>
         <p class="description">Décoché : on ne joue que contre les joueurs du club (et l'invité d'un shortcode).</p>
         <?php
+    }
+
+    public function pong_404_html()
+    {
+        ?>
+        <input type="hidden" name="<?php echo esc_attr(MonClubTT_Constantes::MONCLUBTT_PONG_404); ?>" value="0">
+        <label>
+            <input type="checkbox" name="<?php echo esc_attr(MonClubTT_Constantes::MONCLUBTT_PONG_404); ?>" value="1"<?php checked(monclubtt_pong_404()); ?>>
+            Afficher le jeu sur la page 404
+        </label>
+        <p class="description">
+            Une adresse introuvable affiche le jeu sous un message « Balle dehors ! », avec un lien vers l'accueil et la recherche,
+            à la place de la page 404 du thème. Les scores et le défi du jour comptent ; le partage d'un match n'y est pas proposé.
+        </p>
+        <?php
+    }
+
+    /**
+     * Page 404 : gabarit du plugin (en-tête et pied du thème, message, jeu)
+     * si le réglage est coché. Le statut HTTP 404 est conservé.
+     * @param string $template
+     * @return string
+     */
+    public function pong_404($template)
+    {
+        if (!is_404() || !monclubtt_pong_404()) {
+            return $template;
+        }
+        // Styles du jeu dans le <head> : la vue les demande trop tard sinon.
+        wp_enqueue_style('monclubtt-pong-css');
+        return __DIR__ . '/views/front/pong-404.php';
     }
 
     /** Case à cocher : '1' ou '0'. */

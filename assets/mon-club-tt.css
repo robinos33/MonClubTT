@@ -1507,3 +1507,47 @@ th.headerSortUp {
     gap: 8px;
     margin: 4px 0 0;
 }
+
+/* ===== Page 404 avec le jeu de pong (réglage Pong › Page 404) ===== */
+.monclubtt-div.monclubtt-404 {
+    box-sizing: border-box;
+    max-width: 672px;
+    margin: 0 auto;
+    padding: 40px 16px 56px;
+}
+
+.monclubtt-404 .monclubtt-404-entete {
+    margin: 0 0 28px;
+    text-align: center;
+}
+
+.monclubtt-404 .monclubtt-404-titre {
+    margin: 0 0 8px;
+    color: var(--monclubtt-primaire, #23344a);
+    font-size: clamp(28px, 6vw, 40px);
+    line-height: 1.15;
+}
+
+.monclubtt-404 .monclubtt-404-message {
+    max-width: 30em;
+    margin: 0 auto 20px;
+    color: #555;
+    font-size: 17px;
+    line-height: 1.5;
+}
+
+.monclubtt-404 .monclubtt-404-liens {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 12px 20px;
+}
+
+.monclubtt-404 .monclubtt-404-liens form {
+    margin: 0;
+}
+
+.monclubtt-404 .monclubtt-404-accueil {
+    font-weight: 600;
+}
