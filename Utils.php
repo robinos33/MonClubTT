@@ -41,6 +41,10 @@ if ( ! class_exists( 'MonClubTT_Constantes' ) ) {
         const MONCLUBTT_PONG_COMPTEURS = 'monclubtt_pong_compteurs';
         /** Défi du jour du jeu de pong : par date (AAAA-MM-JJ), l'adversaire tiré et les tentatives. */
         const MONCLUBTT_PONG_DEFIS = 'monclubtt_pong_defis';
+        /** Concours du mois du jeu de pong : cotes des joueurs et des adversaires, matchs en cours. */
+        const MONCLUBTT_PONG_CONCOURS = 'monclubtt_pong_concours';
+        /** Palmarès du jeu de pong : podium de chaque mois clos (AAAA-MM => podium). */
+        const MONCLUBTT_PONG_PALMARES = 'monclubtt_pong_palmares';
         /** '1' : supprimer le plugin efface aussi ses données (voir uninstall.php). Décoché par défaut. */
         const MONCLUBTT_EFFACER_DONNEES = 'monclubtt_effacer_donnees';
         /** Termes interdits dans le prénom des visiteurs du pong (liste de chaînes). */

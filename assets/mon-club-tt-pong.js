@@ -921,12 +921,69 @@
                 : 'Gagné, mais ' + defi.joueur + ' avait fait mieux (' + score + ').';
         }
 
+        /* ---- Concours du mois : progression de la cote pong ---- */
+        var blocConcours = el('section', 'pong-scores pong-scores--concours');
+        var titreConcours = el('h4', 'pong-scores-titre', 'Concours du mois');
+        var championConcours = el('p', 'pong-scores-hier');
+        championConcours.hidden = true;
+        var listeConcours = el('ol', 'pong-scores-liste');
+        var aideConcours = el('details', 'pong-concours-aide');
+        blocConcours.appendChild(titreConcours);
+        blocConcours.appendChild(championConcours);
+        blocConcours.appendChild(listeConcours);
+        blocConcours.appendChild(aideConcours);
+
+        /* « de novembre 2026 », « d'octobre 2026 ». */
+        function deMois(m) { return (/^[aeiouyàâéèêh]/i.test(m) ? 'd\'' : 'de ') + m; }
+        function nombre(n) { return Math.round(n).toLocaleString('fr-FR'); }
+        function progressionTexte(n) {
+            var r = Math.round(n * 10) / 10;
+            return (r > 0 ? '+' : r < 0 ? '−' : '') + Math.abs(r).toLocaleString('fr-FR') + ' pts';
+        }
+
+        /* Explication du classement, repliée sous la liste. */
+        function majAideConcours(r) {
+            aideConcours.innerHTML = '';
+            aideConcours.appendChild(el('summary', null, 'Comment marche le classement ?'));
+            [
+                'Joue sous ton nom de licencié, en mode Classique, contre un joueur du club ou du top 10 mondial : le match est classé.',
+                'Ta cote pong démarre à tes points FFTT à ton premier match du mois. Chaque adversaire a aussi sa cote pong, une par niveau : ses points FFTT au départ (+' + r.expert + ' en Expert, ' + nombre(r.monde) + ' pour le top 10 mondial), puis elle évolue avec les résultats de tout le monde. Un adversaire que tout le monde bat voit sa cote baisser.',
+                'Après chaque match, les deux cotes bougent selon le barème FFTT : battre plus fort que soi rapporte gros (jusqu\'à 40 pts), battre plus faible presque rien ; perdre contre plus faible coûte cher.',
+                'Le classement suit ta progression depuis ton premier match du mois, pas ta cote : un joueur qui débute a autant de chances que le n°1 du club. Il faut ' + r.min + ' matchs pour y apparaître.',
+                r.jour + ' matchs classés par joueur et par jour, les suivants se jouent hors classement. Un match lancé puis abandonné compte comme une défaite au bout de ' + r.abandon + ' minutes, ou dès le match suivant sur le même appareil.',
+                'Les matchs classés se jouent à force égale : l\'adversaire n\'est pas ajusté à tes points.',
+                'Le concours repart à zéro le 1er de chaque mois : chacun retrouve ses points FFTT, le vainqueur entre au palmarès. Les adversaires gardent leur cote d\'un mois à l\'autre.'
+            ].forEach(function (t) { aideConcours.appendChild(el('p', null, t)); });
+        }
+
+        function afficherConcours(d) {
+            if (!d) { blocConcours.hidden = true; return; }
+            blocConcours.hidden = false;
+            titreConcours.textContent = 'Concours ' + deMois(d.mois);
+            championConcours.hidden = !d.champion;
+            if (d.champion) championConcours.textContent = 'Champion ' + deMois(d.champion.mois) + ' : ' + d.champion.joueur + ' (' + progressionTexte(d.champion.progression) + ')';
+            listeConcours.innerHTML = '';
+            if (!d.classement || !d.classement.length) {
+                listeConcours.appendChild(el('li', 'pong-scores-vide', 'Personne n\'est encore classé : ' + d.regles.min + ' matchs suffisent pour ouvrir le classement.'));
+            }
+            (d.classement || []).forEach(function (e) {
+                var li = el('li', 'pong-score');
+                li.appendChild(el('span', 'pong-score-joueur', e.joueur));
+                li.appendChild(el('span', 'pong-score-detail', 'cote ' + nombre(e.cote) + ' · ' + e.matchs + ' match' + (e.matchs > 1 ? 's' : '')));
+                li.appendChild(el('span', 'pong-score-points', progressionTexte(e.progression)));
+                listeConcours.appendChild(li);
+            });
+            majAideConcours(d.regles);
+        }
+        afficherConcours(cfg.concours);
+
         /* ---- Tableau des meilleurs scores (commun à tous les visiteurs) ---- */
         var blocScores = el('section', 'pong-scores');
         blocScores.appendChild(el('h4', 'pong-scores-titre', 'Meilleurs scores'));
         var listeScores = el('ol', 'pong-scores-liste');
         blocScores.appendChild(listeScores);
         ecranSel.appendChild(blocJour);
+        ecranSel.appendChild(blocConcours);
         ecranSel.appendChild(blocScores);
 
         function afficherScores(liste) {
@@ -960,7 +1017,10 @@
                 });
         }
         // La page peut venir d'un cache : le tableau est relu à l'ouverture.
-        appelAjax('monclubtt_pong_scores').then(function (d) { afficherScores(d.classement); }, function () {});
+        appelAjax('monclubtt_pong_scores').then(function (d) {
+            afficherScores(d.classement);
+            if (d.concours) afficherConcours(d.concours);
+        }, function () {});
         // Défi du jour : relu de même (la page peut dater d'hier), puis l'écran d'accueil.
         majDefiJour(cfg.defiJour || null);
         appelAjax('monclubtt_pong_defi').then(function (d) { majDefiJour(d); }, function () {}).then(montrerAccueilJour);
@@ -972,9 +1032,26 @@
             return 'invite';
         }
 
+        /* Match compté au classement de la concours (le serveur le vérifie). */
+        function matchClasse(p, a) {
+            return !!p && !p.visiteur && !modeArcade() && typeAdversaire(a) !== 'invite';
+        }
+
         /* Fin de match : le match est enregistré pour le partage ; une victoire
          * contre le top 10 ou le club est en plus proposée au tableau. */
-        function envoyerFin(ligne, zonePartage, ligneJour) {
+        /* Résultat au classement de la concours, sous le score du match. */
+        function afficherResultatConcours(ligne, r) {
+            if (r.message) { ligne.textContent = r.message; return; }
+            var v = Math.round(r.variation * 10) / 10;
+            var texte = 'Cote pong ' + (v >= 0 ? '+' : '−') + Math.abs(v).toLocaleString('fr-FR') + ' → ' + nombre(r.cote) + ' (' + progressionTexte(r.progression) + ' ce mois-ci). ';
+            texte += r.rang
+                ? rangTexte(r.rang) + ' au concours du mois.'
+                : 'Encore ' + (r.min - r.matchs) + ' match' + (r.min - r.matchs > 1 ? 's' : '') + ' pour entrer au classement du mois.';
+            ligne.textContent = texte;
+            if (r.donnees) afficherConcours(r.donnees);
+        }
+
+        function envoyerFin(ligne, zonePartage, ligneJour, ligneConcours) {
             var victoire = match.points.joueur > match.points.adversaire;
             var type = typeAdversaire(adv);
             // Tentative comptée au défi du jour : la première, contre l'adversaire du jour.
@@ -990,8 +1067,10 @@
                 adv_type: type, adv_nom: adv.nom, adv_prenom: adv.prenom || '',
                 niveau: etat.niveau, pj: match.points.joueur, pa: match.points.adversaire,
                 mode: modeArcade() ? 'arcade' : 'classique', speciaux: arcade.speciaux,
-                defi_jour: compteJour ? '1' : '', defi_date: compteJour ? defiJour.date : '', duree: match.duree.toFixed(1)
+                defi_jour: compteJour ? '1' : '', defi_date: compteJour ? defiJour.date : '', duree: match.duree.toFixed(1),
+                concours_jeton: match.concoursJeton || ''
             }).then(function (d) {
+                if (d.concours) afficherResultatConcours(ligneConcours, d.concours);
                 if (d.defi) {
                     var dj = d.defi;
                     if (dj.message) ligneJour.textContent = dj.message;
@@ -1011,6 +1090,7 @@
                 }
                 if (d.partage) afficherPartage(zonePartage, d.partage);
             }, function (err) {
+                if (match.concoursJeton) ligneConcours.textContent = 'Concours du mois : match non enregistré.';
                 // Raison donnée par le serveur (prénom refusé, trop de parties…), défaites comprises.
                 ligne.textContent = (victoire && classe ? 'Score non enregistré : ' : 'Match non enregistré : ') + err.message;
                 if (compteJour) ligneJour.textContent = 'Défi du jour : partie non classée.';
@@ -1176,7 +1256,7 @@
             });
             aideMode.textContent = etat.mode === 'arcade'
                 ? 'Coups spéciaux : remplis ta jauge (les effets la remplissent vite), puis ' + (tactile ? 'touche l\'écran' : 'appuie sur Espace') + ' pour lâcher ton coup. Hors tableau des scores.'
-                : 'Les règles du ping, et le tableau des meilleurs scores.';
+                : 'Les règles du ping, le concours du mois et les meilleurs scores.';
         }
         modes.addEventListener('click', function (e) {
             var b = e.target.closest('.pong-mode');
@@ -1704,8 +1784,9 @@
         function demarrer(p) {
             pleinEcranMobile();
             etat.joueur = p;
-            // Défi du jour : même adversaire pour tous, sans ajustement à son joueur.
-            etat.force = etat.defiJour ? 1 : forceAdversaire(p, adv);
+            // Défi du jour et matchs classés : même adversaire pour tous, sans
+            // ajustement à son joueur (sinon les cotes ne se comparent pas).
+            etat.force = etat.defiJour || matchClasse(p, adv) ? 1 : forceAdversaire(p, adv);
             montrer(ecranJeu);
             marqueur.noms(nomAffiche(p), nomAffiche(adv));
             Promise.all([
@@ -1740,14 +1821,36 @@
         }
 
         function nouveauMatch() {
-            // Compteur des parties jouées (réglages du plugin) ; sans réponse attendue.
-            appelAjax('monclubtt_pong_debut', { nonce: cfg.nonce || '' }).catch(function () {});
+            // Compteur des parties jouées, et déclaration du match au classement
+            // de la concours (un match classé jamais terminé compte perdu).
+            var classe = matchClasse(etat.joueur, adv);
+            var debut = { nonce: cfg.nonce || '' };
+            if (classe) {
+                debut.joueur_type = 'club';
+                debut.joueur_nom = etat.joueur.nom;
+                debut.joueur_prenom = etat.joueur.prenom || '';
+                debut.adv_type = typeAdversaire(adv);
+                debut.adv_nom = adv.nom;
+                debut.adv_prenom = adv.prenom || '';
+                debut.niveau = etat.niveau;
+                debut.mode = 'classique';
+            }
+            var declare = appelAjax('monclubtt_pong_debut', debut);
             // Défi du jour : une manche ; la tentative comptée est consommée ici.
             if (etat.defiJour === 'compte' && defiJoue()) etat.defiJour = 'libre';
             if (etat.defiJour === 'compte') ecrireLocal('defi-jour', defiJour.date);
             var manches = etat.defiJour ? 1 : nbManches;
             match = new Match(manches);
             match.duree = 0; // temps de jeu (s), pauses exclues
+            var ceMatch = match;
+            declare.then(function (d) {
+                var s = d && d.concours;
+                if (!s) return;
+                if (s.jeton) ceMatch.concoursJeton = s.jeton;
+                else if (s.message) ceMatch.concoursHors = s.message;
+            }, function () {
+                if (classe) ceMatch.concoursHors = 'Match non classé : il n\'a pas pu être enregistré à son lancement.';
+            });
             arcade = { jauge: { joueur: 0, adversaire: 0 }, arme: { joueur: false, adversaire: false }, speciaux: 0, gel: 0, cutin: null };
             figJ.sonne = figA.sonne = 0;
             figJ.gele = figA.gele = 0;
@@ -1921,11 +2024,15 @@
                 if (verdict) message.insertBefore(el('strong', 'pong-message-defi', verdict), message.querySelector('.pong-message-boutons'));
                 var ligneJour = el('strong', 'pong-message-defi');
                 var ligneScore = el('span', 'pong-message-classement');
+                var ligneConcours = el('strong', 'pong-message-defi');
                 var zonePartage = el('div', 'pong-partage');
+                if (match.concoursJeton) ligneConcours.textContent = 'Concours du mois : enregistrement…';
+                else if (match.concoursHors) ligneConcours.textContent = match.concoursHors;
                 message.insertBefore(ligneJour, message.querySelector('.pong-message-boutons'));
+                message.insertBefore(ligneConcours, message.querySelector('.pong-message-boutons'));
                 message.insertBefore(ligneScore, message.querySelector('.pong-message-boutons'));
                 message.insertBefore(zonePartage, message.querySelector('.pong-message-boutons'));
-                envoyerFin(ligneScore, zonePartage, ligneJour);
+                envoyerFin(ligneScore, zonePartage, ligneJour, ligneConcours);
             }
         }
 

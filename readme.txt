@@ -3,7 +3,7 @@ Contributors: robinos33
 Tags: table tennis, fftt, club, rankings, results
 Requires at least: 6.4
 Tested up to: 7.1
-Stable tag: 2.14.0
+Stable tag: 2.15.0
 Requires PHP: 8.4
 License: GPLv2
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -88,6 +88,13 @@ Nothing, by default: reinstalling the plugin finds everything again. To erase al
 Yes. The plugin exposes six filters: `monclubtt_get_evenements`, `monclubtt_get_joueurs`, `monclubtt_get_equipes`, `monclubtt_get_classement_poule`, `monclubtt_get_rencontres_poule`, `monclubtt_get_feuille_rencontre`. See the documentation for usage.
 
 == Changelog ==
+
+= 2.15.0 =
+* Added: Pong monthly contest: each club player gets a pong rating starting from their official FFTT points at their first ranked match of the month (club player, Classic mode, against a club player or the world top 10); each opponent has its own rating per level (FFTT points, +300 in Expert, 3,000 for the world top 10), updated by everyone's results and kept from one month to the next. After each match both ratings move by the FFTT points scale. The ranking follows each player's progress over the month, from 5 matches; it shows under the player selection with a folded "how it works" explanation and last month's champion. The contest resets on the 1st of each month and its podium goes to the hall of fame
+* Added: a ranked match is declared to the server when it starts: if abandoned, it counts as a defeat after 30 minutes or at the same player's next match on the same device; an end of match faster than the points played allow is refused
+* Added: 5 ranked matches per player per day, the next ones are unranked, so someone losing on purpose under a club player's name cannot sink their rating
+* Added: Mon Club TT > Pong > Monthly contest: number of players, removing a player (back to their FFTT points) and resetting the month (opponents keep their rating)
+* Changed: Pong: ranked matches are played at equal strength, like the daily challenge; the ±20% opponent adjustment to the points gap now only applies to visitors, Arcade mode and a shortcode guest
 
 = 2.14.0 =
 * Added: Pong: "Show the game on the 404 page" setting, unchecked by default. Checked, a not-found address shows the game under a "Balle dehors !" message, with a link to the home page and the search form, instead of the theme's 404 page (site header and footer kept, 404 status kept). High scores and the daily challenge count; match sharing is not offered there

@@ -5,6 +5,19 @@ Format : [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/)
 
 ---
 
+## [2.15.0] — 2026-11-27
+
+### Ajouté
+
+- **Pong › Concours du mois** : chaque licencié a une cote pong, qui démarre à ses points FFTT officiels à son premier match classé du mois (licencié du club, mode Classique, contre un joueur du club ou du top 10 mondial). Chaque adversaire a aussi la sienne, une par niveau : ses points FFTT au départ (+300 en Expert, 3 000 pour le top 10 mondial), puis elle évolue avec les résultats de tout le monde et se garde d'un mois à l'autre. Après chaque match, les deux cotes bougent selon le barème FFTT des points classement. Le classement suit la progression depuis le premier match du mois, à partir de 5 matchs ; il s'affiche sous la sélection, avec une explication repliée (« Comment marche le classement ? ») et le champion du mois précédent. Le concours repart à zéro le 1er de chaque mois, son podium entre au palmarès.
+- Un match classé est déclaré au serveur dès son lancement : abandonné, il compte comme une défaite au bout de 30 minutes, ou dès le match suivant du même joueur sur le même appareil. Une fin de match plus rapide que les points joués ne le permettent n'est pas acceptée.
+- 5 matchs classés par joueur et par jour, les suivants se jouent hors classement : personne ne se connecte, un mauvais plaisant qui perd exprès sous le nom d'un licencié ne peut pas faire chuter sa cote de plus de quelques points par jour.
+- **Mon Club TT › Pong › Concours du mois** : nombre de joueurs, retrait d'un joueur (il repart de ses points FFTT) et remise à zéro du mois (les adversaires gardent leur cote).
+
+### Modifié
+
+- **Pong** : les matchs classés se jouent à force égale, comme le défi du jour. L'ajustement de l'adversaire à l'écart de points avec le joueur choisi (±20 %) ne s'applique plus qu'aux visiteurs hors club, au mode Arcade et à l'invité d'un shortcode.
+
 ## [2.14.0] — 2026-11-27
 
 ### Ajouté
