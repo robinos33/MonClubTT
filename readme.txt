@@ -38,7 +38,7 @@ Mon Club TT is an unofficial WordPress plugin that connects to the FFTT (Fédér
 * `[monclubtt_prochain serie="slug"]` — next date of a series; `format="texte"` returns a single field (date, round number, place, link) to use inside your own text
 * `[monclubtt_dates serie="slug"]` — dates of a series for the season, the next one highlighted; several series give a table by month
 * `[monclubtt_comite]` — management committee: the board (roles), then the other members (commissions); `partie="bureau"` for the board only
-* `[monclubtt_pong]` — table tennis pong game: pick a club player, then pick an opponent from the world top 10 (men or women, editable in the settings) or from the club, with touch, mouse or keyboard; high score table and match sharing (Facebook, Instagram, X, WhatsApp) with a generated Open Graph image
+* `[monclubtt_pong]` — table tennis pong game: pick a club player, then pick an opponent from the world top 10 (men or women, editable in the settings) or from the club, with touch, mouse or keyboard; high score table and match sharing (Facebook, Instagram, X, WhatsApp) with a generated Open Graph image; can also replace the theme's 404 page (Mon Club TT > Pong)
 
 **Requirements:**
 

@@ -5,6 +5,12 @@ Format : [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/)
 
 ---
 
+## [Non publié]
+
+### Ajouté
+
+- **Pong › Page 404** : case *Afficher le jeu sur la page 404*, décochée par défaut. Cochée, une adresse introuvable affiche le jeu sous un message « Balle dehors ! », avec un lien vers l'accueil et la recherche, à la place de la page 404 du thème (en-tête et pied du site gardés, statut 404 conservé). Scores et défi du jour comptent ; le partage d'un match n'y est pas proposé.
+
 ## [2.13.0] — 2026-11-25
 
 ### Sécurité
